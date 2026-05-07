@@ -4,11 +4,21 @@ from apps.products.models import Product
 
 
 class Cart(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    session_id = models.CharField(max_length=255, null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Cart({self.user})"
+        if self.user:
+            return f"Cart({self.user})"
+        return f"Cart(Session: {self.session_id})"
 
 
 class CartItem(models.Model):
