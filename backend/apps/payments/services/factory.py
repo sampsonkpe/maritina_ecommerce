@@ -6,7 +6,6 @@ class PaymentServiceFactory:
 
     @staticmethod
     def get_service():
-
         provider = getattr(settings, "PAYMENT_PROVIDER", "mock")
 
         if provider == "mock":

@@ -1,30 +1,30 @@
 import hmac
 import hashlib
+import json
 from django.conf import settings
 from django.http import HttpResponse
-import json
 
-from .services.service import PaymentService
+from .services.payment_service import PaymentService
 
 
 def paystack_webhook(request):
 
     payload = request.body
-    signature = request.headers.get("x-paystack-signature")
+    signature = request.META.get("HTTP_X_PAYSTACK_SIGNATURE")
 
-    hash = hmac.new(
-        settings.PAYSTACK_SECRET_KEY.encode('utf-8'),
+    computed_hash = hmac.new(
+        settings.PAYSTACK_SECRET_KEY.encode("utf-8"),
         payload,
         hashlib.sha512
     ).hexdigest()
 
-    if hash != signature:
+    if computed_hash != signature:
         return HttpResponse(status=401)
 
     event = json.loads(payload)
 
     if event["event"] == "charge.success":
         reference = event["data"]["reference"]
-        PaymentService.mark_as_paid(reference)
+        PaymentService.verify_payment(reference)
 
     return HttpResponse(status=200)

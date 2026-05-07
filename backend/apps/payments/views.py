@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from apps.orders.models import Order
-from apps.payments.services.service import PaymentService
+from apps.payments.services.payment_service import PaymentService
 
 
 class InitializePaymentView(APIView):
@@ -34,7 +34,6 @@ class VerifyPaymentView(APIView):
 
         response = PaymentService.verify_payment(reference)
 
-        # SAFE CHECK (mock + future Paystack compatibility)
         if response.get("status") is True:
             return Response({
                 "message": "Payment verified successfully",
