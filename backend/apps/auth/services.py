@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
+import re
 
 User = get_user_model()
 
@@ -9,9 +9,19 @@ class AuthService:
 
     @staticmethod
     def register(validated_data):
+        email = validated_data.get("email")
+        phone = validated_data.get("phone")
+
+        # duplicate protection
+        if email and User.objects.filter(email=email).exists():
+            raise ValueError("Email already exists")
+
+        if phone and User.objects.filter(phone=phone).exists():
+            raise ValueError("Phone already exists")
+
         user = User.objects.create_user(
-            email=validated_data.get("email"),
-            phone=validated_data.get("phone"),
+            email=email,
+            phone=phone,
             full_name=validated_data["full_name"],
             password=validated_data["password"]
         )
@@ -21,17 +31,15 @@ class AuthService:
 
     @staticmethod
     def login(identifier, password):
-        user = None
 
-        # EMAIL LOGIN
-        if "@" in identifier:
+        email_pattern = r"[^@]+@[^@]+\.[^@]+"
+
+        if re.match(email_pattern, identifier):
             user = User.objects.filter(email=identifier).first()
-
-        # PHONE LOGIN
         else:
             user = User.objects.filter(phone=identifier).first()
 
-        if user and user.check_password(password):
+        if user and user.is_active and user.check_password(password):
             return user
 
         return None
