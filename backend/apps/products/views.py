@@ -2,7 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import (
+    IsAdminUser,
+    AllowAny,
+)
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -13,6 +16,11 @@ from .services import ProductService
 
 
 class CategoryListCreateView(APIView):
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+    
+        return [IsAdminUser()]
 
     def get(self, request):
         categories = Category.objects.all()
@@ -30,6 +38,8 @@ class CategoryListCreateView(APIView):
 
 
 class ProductListView(ListAPIView):
+    permission_classes = [AllowAny]
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -57,6 +67,7 @@ class ProductCreateView(APIView):
 
 
 class ProductDetailView(APIView):
+    permission_classes = [AllowAny]
 
     def get(self, request, pk):
         product = get_object_or_404(Product, id=pk)

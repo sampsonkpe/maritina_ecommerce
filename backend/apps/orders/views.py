@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from .services import OrderService
 from .serializers import OrderSerializer
@@ -8,6 +9,7 @@ from .models import Order
 
 
 class CreateOrderView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
 
@@ -39,6 +41,7 @@ class CreateOrderView(APIView):
 
 
 class UserOrdersView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
 
