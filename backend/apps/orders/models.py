@@ -26,11 +26,28 @@ class Order(models.Model):
         (PICKUP, "Pickup"),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    total_amount = models.IntegerField()
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
 
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_PENDING)
-    delivery_type = models.CharField(max_length=30, choices=DELIVERY_CHOICES, default=DELIVERY)
+    subtotal = models.IntegerField(default=0)
+
+    delivery_fee = models.IntegerField(default=0)
+
+    total_amount = models.IntegerField(default=0)
+
+    status = models.CharField(
+        max_length=30,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING
+    )
+
+    delivery_type = models.CharField(
+        max_length=20,
+        choices=DELIVERY_CHOICES,
+        default=DELIVERY
+    )
 
     address = models.ForeignKey(
         "addresses.Address",
@@ -39,12 +56,7 @@ class Order(models.Model):
         blank=True
     )
 
-    delivery_fee = models.IntegerField(default=0)
-
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Order #{self.id} - {self.user}"
 
     class Meta:
         indexes = [
@@ -52,14 +64,24 @@ class Order(models.Model):
             models.Index(fields=["created_at"]),
         ]
 
+    def __str__(self):
+        return f"Order #{self.id}"
+    
 
 class OrderItem(models.Model):
 
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="items"
+    )
 
     product_name = models.CharField(max_length=255)
+
     product_price = models.IntegerField()
-    quantity = models.IntegerField()
+
+    quantity = models.PositiveIntegerField()
+
     subtotal = models.IntegerField()
 
     def __str__(self):
