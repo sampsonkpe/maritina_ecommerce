@@ -1,10 +1,16 @@
-class BasePaymentService:
+from abc import ABC, abstractmethod
 
+
+class BasePaymentService(ABC):
+
+    @abstractmethod
     def initialize_payment(self, order, email):
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def verify_payment(self, reference):
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def webhook(self, payload):
-        raise NotImplementedError
+        pass

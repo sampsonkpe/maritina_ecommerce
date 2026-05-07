@@ -3,6 +3,8 @@ import random
 
 from .base import BasePaymentService
 from ..models import Payment
+from apps.orders.models import Order
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class MockPaymentService(BasePaymentService):
@@ -27,10 +29,11 @@ class MockPaymentService(BasePaymentService):
             }
         }
 
-
     def verify_payment(self, reference):
-
-        payment = Payment.objects.get(reference=reference)
+        try:
+            payment = Payment.objects.get(reference=reference)
+        except ObjectDoesNotExist:
+            return {"status": False, "message": "Invalid reference"}
 
         success = random.random() < 0.9
 
@@ -39,7 +42,7 @@ class MockPaymentService(BasePaymentService):
             payment.save()
 
             order = payment.order
-            order.status = "PAID"
+            order.status = Order.STATUS_PAID
             order.save()
 
             return {"status": True, "message": "Payment successful"}
@@ -48,7 +51,6 @@ class MockPaymentService(BasePaymentService):
         payment.save()
 
         return {"status": False, "message": "Payment failed"}
-
 
     def webhook(self, payload):
         return self.verify_payment(payload.get("reference"))

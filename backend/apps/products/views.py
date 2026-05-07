@@ -2,6 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAdminUser
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -25,7 +27,7 @@ class CategoryListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class ProductListView(ListAPIView):
     queryset = Product.objects.all()
@@ -33,17 +35,32 @@ class ProductListView(ListAPIView):
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
-    filterset_fields = ['category', 'is_available']
-    search_fields = ['name', 'description']
-    ordering_fields = ['price', 'created_at']
+    filterset_fields = ["category", "is_available"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["price", "created_at"]
+
 
 class ProductCreateView(APIView):
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
 
         if serializer.is_valid():
             product = ProductService.create_product(serializer.validated_data)
-            return Response(ProductSerializer(product).data, status=status.HTTP_201_CREATED)
+            return Response(
+                ProductSerializer(product).data,
+                status=status.HTTP_201_CREATED
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductDetailView(APIView):
+
+    def get(self, request, pk):
+        product = get_object_or_404(Product, id=pk)
+        return Response(
+            ProductSerializer(product).data,
+            status=status.HTTP_200_OK
+        )
