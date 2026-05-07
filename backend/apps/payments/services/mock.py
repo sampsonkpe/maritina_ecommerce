@@ -1,19 +1,13 @@
 import uuid
 import random
-from datetime import datetime
 
-from .models import Payment
-from apps.orders.models import Order
+from .base import BasePaymentService
+from ..models import Payment
 
 
-class MockPaymentService:
+class MockPaymentService(BasePaymentService):
 
-    """
-    Simulates Paystack behaviour for development/testing
-    """
-
-    @staticmethod
-    def initialize_payment(order: Order, email: str):
+    def initialize_payment(self, order, email):
 
         reference = f"MOCK-{uuid.uuid4().hex[:10].upper()}"
 
@@ -25,30 +19,19 @@ class MockPaymentService:
             provider="mock"
         )
 
-        # simulate Paystack response
         return {
             "status": True,
-            "message": "Mock payment initialized",
             "data": {
-                "authorization_url": f"https://mock-paystack.local/checkout/{reference}",
                 "reference": reference,
-                "amount": order.total_amount * 100,
-                "email": email,
-                "created_at": str(datetime.now())
+                "authorization_url": f"/mock/checkout/{reference}"
             }
         }
 
 
-    @staticmethod
-    def verify_payment(reference: str):
-
-        """
-        Simulates verification response
-        """
+    def verify_payment(self, reference):
 
         payment = Payment.objects.get(reference=reference)
 
-        # simulate success/failure (90% success rate)
         success = random.random() < 0.9
 
         if success:
@@ -59,39 +42,13 @@ class MockPaymentService:
             order.status = "PAID"
             order.save()
 
-            return {
-                "status": True,
-                "message": "Mock payment successful",
-                "data": {
-                    "reference": reference,
-                    "status": "success"
-                }
-            }
+            return {"status": True, "message": "Payment successful"}
 
-        else:
-            payment.status = Payment.STATUS_FAILED
-            payment.save()
+        payment.status = Payment.STATUS_FAILED
+        payment.save()
 
-            return {
-                "status": False,
-                "message": "Mock payment failed",
-                "data": {
-                    "reference": reference,
-                    "status": "failed"
-                }
-            }
+        return {"status": False, "message": "Payment failed"}
 
 
-    @staticmethod
-    def webhook(payload: dict):
-
-        """
-        Simulates webhook trigger
-        """
-
-        reference = payload.get("reference")
-
-        if not reference:
-            return {"status": False, "message": "No reference provided"}
-
-        return MockPaymentService.verify_payment(reference)
+    def webhook(self, payload):
+        return self.verify_payment(payload.get("reference"))

@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from apps.orders.models import Order
-from .services import PaymentService
+from apps.payments.services.service import PaymentService
 
 
 class InitializePaymentView(APIView):
@@ -14,26 +14,38 @@ class InitializePaymentView(APIView):
         try:
             order = Order.objects.get(id=order_id, user=request.user)
 
-            response = PaymentService.initialize_payment(
+            service = PaymentServiceFactory.get_service()
+
+            response = service.initialize_payment(
                 order=order,
                 email=request.user.email or "test@example.com"
             )
 
-            return Response(response)
+            return Response(response, status=status.HTTP_200_OK)
 
         except Order.DoesNotExist:
-            return Response({
-                "error": "Order not found"
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Order not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class VerifyPaymentView(APIView):
 
     def get(self, request, reference):
 
-        response = PaymentService.verify_payment(reference)
+        service = PaymentServiceFactory.get_service()
 
-        if response["data"]["status"] == "success":
-            PaymentService.mark_as_paid(reference)
+        response = service.verify_payment(reference)
 
-        return Response(response)
+        # SAFE CHECK (mock + future Paystack compatibility)
+        if response.get("status") is True:
+            return Response({
+                "message": "Payment verified successfully",
+                "data": response
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "message": "Payment verification failed",
+            "data": response
+        }, status=status.HTTP_400_BAD_REQUEST)

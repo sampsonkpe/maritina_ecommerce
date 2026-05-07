@@ -4,7 +4,7 @@ from django.conf import settings
 from django.http import HttpResponse
 import json
 
-from .services import PaymentService
+from .services.service import PaymentService
 
 
 def paystack_webhook(request):
