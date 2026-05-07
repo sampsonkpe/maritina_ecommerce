@@ -12,7 +12,7 @@ class OrderService:
     def create_order_from_cart(user):
 
         cart = Cart.objects.select_for_update().get(user=user)
-        items = cart.items.select_related("product").select_for_update()
+        items = cart.items.select_related("product")
 
         if not items.exists():
             raise ValueError("Cart is empty")
@@ -41,13 +41,14 @@ class OrderService:
                 subtotal=subtotal
             )
 
-            # SAFE STOCK UPDATE
+            # SAFE STOCK REDUCTION
             product.stock = F("stock") - item.quantity
             product.save()
 
         order.total_amount = total
         order.save()
 
+        # clear cart after checkout
         cart.items.all().delete()
 
         return order

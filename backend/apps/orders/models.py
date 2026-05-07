@@ -32,16 +32,29 @@ class Order(models.Model):
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_PENDING)
     delivery_type = models.CharField(max_length=30, choices=DELIVERY_CHOICES, default=DELIVERY)
 
-    address = models.ForeignKey("addresses.Address", on_delete=models.SET_NULL, null=True, blank=True)
-    delivery_fee = models.IntegerField(default=0)  # calculated based on address
+    address = models.ForeignKey(
+        "addresses.Address",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    delivery_fee = models.IntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Order #{self.id} - {self.user}"
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "status"]),
+            models.Index(fields=["created_at"]),
+        ]
+
 
 class OrderItem(models.Model):
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
 
     product_name = models.CharField(max_length=255)
@@ -51,9 +64,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
-    
-class Meta:
-    indexes = [
-        models.Index(fields=["user", "status"]),
-        models.Index(fields=["created_at"]),
-    ]
