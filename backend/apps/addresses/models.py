@@ -19,3 +19,12 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.label} - {self.user.email}"
+    
+class Meta:
+    constraints = [
+        models.UniqueConstraint(
+            fields=["user"],
+            condition=models.Q(is_default=True),
+            name="unique_default_address_per_user"
+        )
+    ]

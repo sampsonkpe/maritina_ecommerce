@@ -14,9 +14,7 @@ class InitializePaymentView(APIView):
         try:
             order = Order.objects.get(id=order_id, user=request.user)
 
-            service = PaymentServiceFactory.get_service()
-
-            response = service.initialize_payment(
+            response = PaymentService.initialize_payment(
                 order=order,
                 email=request.user.email or "test@example.com"
             )
@@ -34,9 +32,7 @@ class VerifyPaymentView(APIView):
 
     def get(self, request, reference):
 
-        service = PaymentServiceFactory.get_service()
-
-        response = service.verify_payment(reference)
+        response = PaymentService.verify_payment(reference)
 
         # SAFE CHECK (mock + future Paystack compatibility)
         if response.get("status") is True:

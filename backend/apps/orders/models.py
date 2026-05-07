@@ -18,10 +18,22 @@ class Order(models.Model):
         (STATUS_DELIVERED, "Delivered"),
     ]
 
+    DELIVERY = "DELIVERY"
+    PICKUP = "PICKUP"
+
+    DELIVERY_CHOICES = [
+        (DELIVERY, "Delivery"),
+        (PICKUP, "Pickup"),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     total_amount = models.IntegerField()
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    delivery_type = models.CharField(max_length=30, choices=DELIVERY_CHOICES, default=DELIVERY)
+
+    address = models.ForeignKey("addresses.Address", on_delete=models.SET_NULL, null=True, blank=True)
+    delivery_fee = models.IntegerField(default=0)  # calculated based on address
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -39,3 +51,9 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
+    
+class Meta:
+    indexes = [
+        models.Index(fields=["user", "status"]),
+        models.Index(fields=["created_at"]),
+    ]
