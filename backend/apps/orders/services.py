@@ -6,6 +6,7 @@ from .delivery import DeliveryService
 
 from apps.cart.models import Cart
 from apps.addresses.models import Address
+from apps.products.models import Product
 
 
 class OrderService:
@@ -55,7 +56,6 @@ class OrderService:
 
         order = Order.objects.create(
             user=user,
-            subtotal=0,
             delivery_fee=delivery_fee,
             total_amount=0,
             delivery_type=delivery_type,
@@ -64,7 +64,7 @@ class OrderService:
 
         for item in items:
 
-            product = item.product
+            product = Product.objects.select_for_update().get(id=item.product_id)
 
             if product.stock < item.quantity:
                 raise ValueError(
@@ -86,12 +86,11 @@ class OrderService:
             )
 
             # safe stock reduction
-            product.stock = F("stock") - item.quantity
+            product.stock -= item.quantity
             product.save()
 
         total_amount = subtotal + delivery_fee
 
-        order.subtotal = subtotal
         order.total_amount = total_amount
         order.save()
 

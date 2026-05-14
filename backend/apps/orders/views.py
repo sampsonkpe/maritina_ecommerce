@@ -19,6 +19,7 @@ class CreateOrderView(APIView):
         )
 
         address_id = request.data.get("address_id")
+        address_id = int(address_id) if address_id else None
 
         try:
 
@@ -30,10 +31,15 @@ class CreateOrderView(APIView):
 
             return Response({
                 "message": "Order created successfully",
-                "order": OrderSerializer(order).data
+                "order": OrderSerializer(order).data,
+                "summary": {
+                    "subtotal": order.total_amount - order.delivery_fee,
+                    "delivery_fee": order.delivery_fee,
+                    "total_amount": order.total_amount
+                }
             }, status=status.HTTP_201_CREATED)
 
-        except Exception as e:
+        except ValueError as e:
 
             return Response({
                 "error": str(e)
