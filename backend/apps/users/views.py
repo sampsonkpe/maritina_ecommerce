@@ -6,6 +6,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 
 from .serializers import RegisterSerializer
+from .services import UserService
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -18,18 +19,32 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
 
         if serializer.is_valid():
-            user = serializer.save()
+            data = serializer.validated_data
 
-            refresh = RefreshToken.for_user(user)
+            try:
+                user = UserService.register(
+                    email=data.get("email"),
+                    phone=data.get("phone"),
+                    full_name=data["full_name"],
+                    password=data["password"]
+                )
 
-            return Response({
-                "user": serializer.data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            }, status=status.HTTP_201_CREATED)
+                tokens = UserService.get_tokens(user)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "phone": user.phone,
+                        "full_name": user.full_name,
+                    },
+                    "tokens": tokens
+                }, status=status.HTTP_201_CREATED)
 
+            except ValueError as e:
+                return Response({"error": str(e)}, status=400)
+
+        return Response(serializer.errors, status=400)
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -40,11 +55,36 @@ class MeView(APIView):
         return Response({
             "id": user.id,
             "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
+            "phone": user.phone,
+            "full_name": user.full_name,
         })
 
+class LoginView(APIView):
 
+    def post(self, request):
+
+        identifier = request.data.get("identifier")
+        password = request.data.get("password")
+
+        user = UserService.login(identifier, password)
+
+        if not user:
+            return Response(
+                {"error": "Invalid credentials"},
+                status=401
+            )
+
+        tokens = UserService.get_tokens(user)
+
+        return Response({
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "phone": user.phone,
+                "full_name": user.full_name,
+            },
+            "tokens": tokens
+        })
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 

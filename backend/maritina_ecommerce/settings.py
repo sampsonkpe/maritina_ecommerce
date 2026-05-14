@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'apps.orders',
     'apps.payments',
     'apps.addresses',
-    'apps.authentication',
 ]
 
 AUTH_USER_MODEL = "users.User"

@@ -5,14 +5,11 @@ import re
 User = get_user_model()
 
 
-class AuthService:
+class UserService:
 
     @staticmethod
-    def register(validated_data):
-        email = validated_data.get("email")
-        phone = validated_data.get("phone")
+    def register(email, phone, full_name, password):
 
-        # duplicate protection
         if email and User.objects.filter(email=email).exists():
             raise ValueError("Email already exists")
 
@@ -22,8 +19,8 @@ class AuthService:
         user = User.objects.create_user(
             email=email,
             phone=phone,
-            full_name=validated_data["full_name"],
-            password=validated_data["password"]
+            full_name=full_name,
+            password=password
         )
 
         return user
