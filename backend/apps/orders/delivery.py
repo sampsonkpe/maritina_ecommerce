@@ -1,5 +1,3 @@
-from .delivery import DeliveryService
-
 class DeliveryService:
 
     BASE_FEE = 1000

@@ -5,6 +5,7 @@ from django.conf import settings
 class Order(models.Model):
 
     STATUS_PENDING = "PENDING"
+    STATUS_PAYMENT_IN_PROGRESS = "PAYMENT_IN_PROGRESS"
     STATUS_PAID = "PAID"
     STATUS_PREPARING = "PREPARING"
     STATUS_OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
@@ -12,6 +13,7 @@ class Order(models.Model):
 
     STATUS_CHOICES = [
         (STATUS_PENDING, "Pending"),
+        (STATUS_PAYMENT_IN_PROGRESS, "Payment In Progress"),
         (STATUS_PAID, "Paid"),
         (STATUS_PREPARING, "Preparing"),
         (STATUS_OUT_FOR_DELIVERY, "Out for Delivery"),

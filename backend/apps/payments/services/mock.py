@@ -1,5 +1,6 @@
 import uuid
-import random
+
+from django.core.exceptions import ValidationError
 
 from .base import BasePaymentService
 from ..models import Payment
@@ -9,6 +10,10 @@ from apps.orders.models import Order
 class MockPaymentService(BasePaymentService):
 
     def initialize_payment(self, order, email):
+
+        # Prevent duplicate payments
+        if order.status == Order.STATUS_PAID:
+            raise ValidationError("Order is already paid")
 
         reference = f"MOCK-{uuid.uuid4().hex[:10].upper()}"
 
@@ -35,25 +40,19 @@ class MockPaymentService(BasePaymentService):
         except Payment.DoesNotExist:
             return {"status": False, "message": "Invalid reference"}
 
-        success = random.random() < 0.9
-
-        if success:
-            payment.status = Payment.STATUS_SUCCESS
-            payment.save()
-
-            order = payment.order
-            order.status = Order.STATUS_PAID
-            order.save()
-
-            return {"status": True, "message": "Payment successful"}
-
-        payment.status = Payment.STATUS_FAILED
+        # MOCK SUCCESS
+        payment.status = Payment.STATUS_SUCCESS
         payment.save()
 
-        return {"status": False, "message": "Payment failed"}
+        order = payment.order
+        order.status = Order.STATUS_PAID
+        order.save()
+
+        return {
+            "status": True,
+            "message": "Payment successful"
+        }
 
     def webhook(self, payload):
-        return self.verify_payment(payload.get("reference"))
-
-    def mark_as_paid(self, reference):
+        reference = payload.get("reference")
         return self.verify_payment(reference)
