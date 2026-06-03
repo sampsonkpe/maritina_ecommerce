@@ -32,15 +32,33 @@ class AddToCartView(APIView):
     def post(self, request):
 
         cart = CartService.get_or_create_cart(
-            user=request.user if request.user.is_authenticated else None,
+            user=request.user,
             session_id=get_session_id(request)
         )
 
         variant_id = request.data.get("variant_id")
         quantity = int(request.data.get("quantity", 1))
 
-        item = CartService.add_to_cart(cart, variant_id, quantity)
+        try:
+            item = CartService.add_to_cart(
+                cart,
+                variant_id,
+                quantity
+            )
 
+            return Response(
+                {
+                    "message": "Item added to cart",
+                    "item_id": item.id
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class UpdateCartItemView(APIView):
     permission_classes = [IsAuthenticated]
