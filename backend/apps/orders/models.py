@@ -80,15 +80,21 @@ class OrderItem(models.Model):
 
     product_name = models.CharField(max_length=255)
 
-    product_price = models.IntegerField()
+    variant_name = models.CharField(max_length=255, null=True, blank=True)
+
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     quantity = models.PositiveIntegerField()
 
-    subtotal = models.IntegerField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
 
     class Meta:
         verbose_name_plural = "Order Items"
 
     def __str__(self):
-        return f"{self.product_name} x {self.quantity}"
+        return (
+            f"{self.product_name} "
+            f"({self.variant_name} "
+            f"x {self.quantity})"
+        )

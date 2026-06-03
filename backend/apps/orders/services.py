@@ -6,7 +6,6 @@ from .delivery import DeliveryService
 
 from apps.cart.models import Cart
 from apps.addresses.models import Address
-from apps.products.models import Product
 
 
 class OrderService:
@@ -23,7 +22,10 @@ class OrderService:
 
         items = (
             cart.items
-            .select_related("product")
+            .select_related(
+                "variant",
+                "variant__product"
+                )
             .select_for_update()
         )
 
@@ -64,34 +66,38 @@ class OrderService:
 
         for item in items:
 
-            product = Product.objects.select_for_update().get(id=item.variant_id)
+            variant = item.variant
 
-            if product.stock < item.quantity:
+            if variant.stock < item.quantity:
                 raise ValueError(
-                    f"Insufficient stock for {product.name}"
+                    f"Insufficient stock for "
+                    f"{variant.product.name} "
+                    f"({variant.name})"
                 )
 
             line_total = (
-                product.price * item.quantity
+                variant.price * item.quantity
             )
 
             subtotal += line_total
 
             OrderItem.objects.create(
                 order=order,
-                product_name=product.name,
-                product_price=product.price,
+                product_name=variant.product.name,
+                variant_name=variant.name,
+                unit_price=variant.price,
                 quantity=item.quantity,
                 subtotal=line_total
             )
 
             # safe stock reduction
-            product.stock -= item.quantity
-            product.save()
+            variant.stock = (
+                F("stock") - item.quantity
+            )
+            variant.save()
 
-        total_amount = subtotal + delivery_fee
-
-        order.total_amount = total_amount
+        order.subtotal = subtotal
+        order.total_amount = subtotal + delivery_fee
         order.save()
 
         # clear cart
