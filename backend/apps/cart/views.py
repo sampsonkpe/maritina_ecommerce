@@ -36,19 +36,10 @@ class AddToCartView(APIView):
             session_id=get_session_id(request)
         )
 
-        product_id = request.data.get("product_id")
+        variant_id = request.data.get("variant_id")
         quantity = int(request.data.get("quantity", 1))
 
-        try:
-            item = CartService.add_to_cart(cart, product_id, quantity)
-
-            return Response({
-                "message": "Item added to cart",
-                "item_id": item.id
-            }, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=400)
+        item = CartService.add_to_cart(cart, variant_id, quantity)
 
 
 class UpdateCartItemView(APIView):
@@ -61,11 +52,11 @@ class UpdateCartItemView(APIView):
             session_id=get_session_id(request)
         )
 
-        product_id = request.data.get("product_id")
+        variant_id = request.data.get("variant_id")
         quantity = int(request.data.get("quantity"))
 
         try:
-            CartService.update_quantity(cart, product_id, quantity)
+            CartService.update_quantity(cart, variant_id, quantity)
             return Response({"message": "Cart updated"})
 
         except Exception as e:
@@ -82,7 +73,7 @@ class RemoveFromCartView(APIView):
             session_id=get_session_id(request)
         )
 
-        CartService.remove_item(cart, request.data.get("product_id"))
+        CartService.remove_item(cart, request.data.get("variant_id"))
 
         return Response({"message": "Item removed"})
 

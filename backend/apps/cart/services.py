@@ -1,6 +1,6 @@
 from django.db import transaction
 from .models import Cart, CartItem
-from apps.products.models import Product
+from apps.products.models import ProductVariant
 
 
 class CartService:
@@ -18,19 +18,19 @@ class CartService:
 
     @staticmethod
     @transaction.atomic
-    def add_to_cart(cart, product_id, quantity=1):
+    def add_to_cart(cart, variant_id, quantity=1):
 
-        product = Product.objects.select_for_update().get(id=product_id)
+        variant = ProductVariant.objects.select_for_update().get(id=variant_id)
 
         item, created = CartItem.objects.get_or_create(
             cart=cart,
-            product=product,
+            variant=variant,
             defaults={"quantity": quantity}
         )
 
         new_qty = item.quantity + quantity if not created else quantity
 
-        if product.stock < new_qty:
+        if variant.stock < new_qty:
             raise ValueError("Insufficient stock")
 
         item.quantity = new_qty
@@ -40,15 +40,15 @@ class CartService:
 
 
     @staticmethod
-    def update_quantity(cart, product_id, quantity):
+    def update_quantity(cart, variant_id, quantity):
 
         if quantity <= 0:
-            CartItem.objects.filter(cart=cart, product_id=product_id).delete()
+            CartItem.objects.filter(cart=cart, variant_id=variant_id).delete()
             return
 
-        item = CartItem.objects.get(cart=cart, product_id=product_id)
+        item = CartItem.objects.get(cart=cart, variant_id=variant_id)
 
-        if item.product.stock < quantity:
+        if item.variant.stock < quantity:
             raise ValueError("Insufficient stock")
 
         item.quantity = quantity
@@ -58,8 +58,8 @@ class CartService:
 
 
     @staticmethod
-    def remove_item(cart, product_id):
-        CartItem.objects.filter(cart=cart, product_id=product_id).delete()
+    def remove_item(cart, variant_id):
+        CartItem.objects.filter(cart=cart, variant_id=variant_id).delete()
 
 
     @staticmethod

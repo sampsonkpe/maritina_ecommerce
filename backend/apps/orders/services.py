@@ -64,7 +64,7 @@ class OrderService:
 
         for item in items:
 
-            product = Product.objects.select_for_update().get(id=item.product_id)
+            product = Product.objects.select_for_update().get(id=item.variant_id)
 
             if product.stock < item.quantity:
                 raise ValueError(
