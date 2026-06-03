@@ -86,5 +86,9 @@ class OrderItem(models.Model):
 
     subtotal = models.IntegerField()
 
+
+    class Meta:
+        verbose_name_plural = "Order Items"
+
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"

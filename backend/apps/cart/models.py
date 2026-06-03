@@ -27,6 +27,9 @@ class CartItem(models.Model):
 
     quantity = models.PositiveIntegerField(default=1)
 
+    class Meta:
+        verbose_name_plural = "Cart Items"
+
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"
 
