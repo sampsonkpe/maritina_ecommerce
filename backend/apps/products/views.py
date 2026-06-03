@@ -45,9 +45,9 @@ class ProductListView(ListAPIView):
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
-    filterset_fields = ["category", "is_available"]
+    filterset_fields = ["category"]
     search_fields = ["name", "description"]
-    ordering_fields = ["price", "created_at"]
+    ordering_fields = ["created_at"]
 
 
 class ProductCreateView(APIView):
