@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.db.models import F
 
 from .models import Order, OrderItem
 from .delivery import DeliveryService
@@ -91,9 +90,7 @@ class OrderService:
             )
 
             # safe stock reduction
-            variant.stock = (
-                F("stock") - item.quantity
-            )
+            variant.stock -= item.quantity
             variant.save()
 
         order.subtotal = subtotal
