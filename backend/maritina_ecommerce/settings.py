@@ -43,11 +43,13 @@ INSTALLED_APPS = [
     'apps.orders',
     'apps.payments',
     'apps.addresses',
+    'corsheaders',
 ]
 
 AUTH_USER_MODEL = "users.User"
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -145,3 +147,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 PAYMENT_PROVIDER = "mock"  # switch to "paystack" later
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]

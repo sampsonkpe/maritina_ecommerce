@@ -2,7 +2,7 @@ import api from "../api/axios";
 
 export const productService = {
   async getProducts() {
-    const response = await api.get("/products/products/");
+    const response = await api.get("/products/");
     return response.data;
   },
 

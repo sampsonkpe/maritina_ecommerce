@@ -1,15 +1,32 @@
 import { useEffect, useState } from "react";
+
+import ProductCard from "../../components/products/ProductCard";
+
 import { productService } from "../../services/productService";
 
+import type { Product } from "../../types/product";
+import type { Category } from "../../types/category";
+
 export default function ProductsPage() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const [selectedCategory, setSelectedCategory] =
+    useState<number | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
-        const data = await productService.getProducts();
-        setProducts(data);
+        const productsData =
+          await productService.getProducts();
+
+        const categoriesData =
+          await productService.getCategories();
+
+        setProducts(productsData);
+        setCategories(categoriesData);
       } catch (error) {
         console.error(error);
       } finally {
@@ -17,8 +34,16 @@ export default function ProductsPage() {
       }
     };
 
-    loadProducts();
+    loadData();
   }, []);
+
+  const filteredProducts =
+    selectedCategory === null
+      ? products
+      : products.filter(
+          (product) =>
+            product.category === selectedCategory
+        );
 
   if (loading) {
     return (
@@ -30,28 +55,37 @@ export default function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-7xl p-8">
-      <h1 className="mb-8 text-3xl font-bold">
+      <h1 className="mb-6 text-3xl font-bold">
         Products
       </h1>
 
-      <div className="space-y-4">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="rounded border p-4"
+      <div className="mb-8 flex flex-wrap gap-3">
+        <button
+          onClick={() => setSelectedCategory(null)}
+          className="rounded border px-4 py-2"
+        >
+          All
+        </button>
+
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            onClick={() =>
+              setSelectedCategory(category.id)
+            }
+            className="rounded border px-4 py-2"
           >
-            <h2 className="font-semibold">
-              {product.name}
-            </h2>
+            {category.name}
+          </button>
+        ))}
+      </div>
 
-            <p>
-              GHS {product.price}
-            </p>
-
-            <p>
-              Stock: {product.stock}
-            </p>
-          </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {filteredProducts.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+          />
         ))}
       </div>
     </div>
