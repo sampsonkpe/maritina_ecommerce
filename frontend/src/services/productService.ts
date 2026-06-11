@@ -10,4 +10,9 @@ export const productService = {
     const response = await api.get("/products/categories/");
     return response.data;
   },
+
+  async getProduct(id: string) {
+    const response = await api.get(`/products/${id}/`);
+    return response.data;
+  },
 };

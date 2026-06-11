@@ -9,7 +9,9 @@ export default function ProductCard({ product }: Props) {
   return (
     <div className="rounded-lg border p-4">
       <h2 className="text-lg font-semibold">
-        <Link to={`/products/${product.id}`}>
+        <Link to={`/products/${product.id}`}
+          className="block"
+        >
           {product.name}
         </Link>
       </h2>
