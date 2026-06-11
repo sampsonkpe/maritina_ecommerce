@@ -45,6 +45,42 @@ export default function CartPage() {
     }
   };
 
+  const handleIncrease = async (
+    variantId: number,
+    currentQty: number
+  ) => {
+    try {
+      await cartService.updateCart(
+        variantId,
+        currentQty + 1
+      );
+
+      loadCart();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDecrease = async (
+    variantId: number,
+    currentQty: number
+  ) => {
+    if (currentQty <= 1) {
+      return;
+    }
+
+    try {
+      await cartService.updateCart(
+        variantId,
+        currentQty - 1
+      );
+
+      loadCart();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8">
@@ -86,11 +122,36 @@ export default function CartPage() {
                       {item.variant_name}
                     </p>
 
-                    <p>
-                      Qty:
-                      {" "}
-                      {item.quantity}
-                    </p>
+                    <div className="mt-2 flex items-center gap-3">
+                      <button
+                        disabled={item.quantity <= 1}
+                        onClick={() =>
+                          handleDecrease(
+                            item.variant,
+                            item.quantity
+                          )
+                        }
+                        className="h-8 w-8 rounded border"
+                      >
+                        -
+                      </button>
+
+                      <span>
+                        {item.quantity}
+                      </span>
+
+                      <button
+                        onClick={() =>
+                          handleIncrease(
+                            item.variant,
+                            item.quantity
+                          )
+                        }
+                        className="h-8 w-8 rounded border"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
 
                   <div className="text-right">
