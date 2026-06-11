@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { cartService } from "../../services/cartService";
 import { productService } from "../../services/productService";
 
 import type {
@@ -42,6 +43,22 @@ export default function ProductDetailPage() {
 
     loadProduct();
   }, [id]);
+
+  const handleAddToCart = async () => {
+    if (!selectedVariant) return;
+
+    try {
+      await cartService.addToCart(
+        selectedVariant.id,
+        quantity
+      );
+
+      alert("Added to cart!");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add to cart.");
+    }
+};
 
   if (loading) {
     return (
@@ -113,7 +130,7 @@ export default function ProductDetailPage() {
               value={quantity}
               onChange={(e) =>
                 setQuantity(
-                  Number(e.target.value)
+                  Math.max(1, Number(e.target.value))
                 )
               }
               className="mt-2 w-24 rounded border p-2"
@@ -126,6 +143,7 @@ export default function ProductDetailPage() {
             </div>
 
             <button
+              onClick={handleAddToCart}
               className="mt-4 rounded bg-black px-6 py-3 text-white"
             >
               Add To Cart

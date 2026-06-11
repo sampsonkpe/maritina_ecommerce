@@ -21,6 +21,21 @@ export const cartService = {
     return response.data;
   },
 
+  async updateCart(
+    variantId: number,
+    quantity: number
+  ) {
+    const response = await api.post(
+      "/cart/update/",
+      {
+        variant_id: variantId,
+        quantity,
+      }
+    );
+
+    return response.data;
+  },
+
   async removeItem(
     variantId: number
   ) {
