@@ -1,4 +1,5 @@
 import type { Product } from "../../types/product";
+import { Link } from "react-router-dom";
 
 interface Props {
   product: Product;
@@ -8,7 +9,9 @@ export default function ProductCard({ product }: Props) {
   return (
     <div className="rounded-lg border p-4">
       <h2 className="text-lg font-semibold">
-        {product.name}
+        <Link to={`/products/${product.id}`}>
+          {product.name}
+        </Link>
       </h2>
 
       <p className="mt-2 text-sm text-gray-600">
