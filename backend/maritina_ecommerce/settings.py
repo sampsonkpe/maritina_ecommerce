@@ -1,6 +1,9 @@
 from pathlib import Path
 from datetime import timedelta
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=3),
@@ -146,7 +149,18 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-PAYMENT_PROVIDER = "mock"  # switch to "paystack" later
+PAYSTACK_PUBLIC_KEY = os.getenv(
+    "PAYSTACK_PUBLIC_KEY"
+)
+
+PAYSTACK_SECRET_KEY = os.getenv(
+    "PAYSTACK_SECRET_KEY"
+)
+
+PAYMENT_PROVIDER = os.getenv(
+    "PAYMENT_PROVIDER",
+    "mock"
+)
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",

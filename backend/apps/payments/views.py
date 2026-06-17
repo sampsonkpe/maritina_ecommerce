@@ -22,7 +22,7 @@ class InitializePaymentView(APIView):
 
             if order.status not in [
                 Order.STATUS_PENDING,
-                Order.STATUS_PAYMENT_PENDING
+                Order.STATUS_PAYMENT_IN_PROGRESS
             ]:
                 return Response({
                     "error": "Order not eligible for payment"

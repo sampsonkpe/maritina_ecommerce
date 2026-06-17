@@ -1,5 +1,6 @@
 from django.conf import settings
 from .mock import MockPaymentService
+from .paystack import PaystackPaymentService
 
 
 class PaymentServiceFactory:
@@ -8,7 +9,7 @@ class PaymentServiceFactory:
     def get_service():
         provider = getattr(settings, "PAYMENT_PROVIDER", "mock")
 
-        if provider == "mock":
-            return MockPaymentService()
+        if provider == "paystack":
+            return PaystackPaymentService()
 
         return MockPaymentService()

@@ -51,8 +51,7 @@ export default function OrdersPage() {
               key={order.id}
               className="rounded border p-5"
             >
-              <div className="flex items-center justify-between">
-
+              <div className="flex items-start justify-between">
                 <div>
                   <h2 className="font-semibold">
                     Order #{order.id}
@@ -61,18 +60,24 @@ export default function OrdersPage() {
                   <p>
                     {order.delivery_type}
                   </p>
+
+                  <p className="text-sm text-gray-500">
+                    {order.items.length} item
+                    {order.items.length !== 1
+                      ? "s"
+                      : ""}
+                  </p>
                 </div>
 
                 <div className="text-right">
-                  <p>
+                  <span className="rounded-full border px-3 py-1 text-xs font-semibold">
                     {order.status}
-                  </p>
+                  </span>
 
-                  <p>
+                  <p className="mt-3 font-semibold">
                     GHS {order.total_amount}
                   </p>
                 </div>
-
               </div>
 
               <div className="mt-4 text-sm text-gray-600">
@@ -82,22 +87,46 @@ export default function OrdersPage() {
               </div>
 
               <div className="mt-4">
-                {order.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="text-sm"
-                  >
-                    {item.product_name}
-                    {" "}
-                    ({item.variant_name})
-                    {" "}
-                    ×
-                    {" "}
-                    {item.quantity}
+                <div className="mb-3 rounded border p-3 text-sm">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>
+                      GHS {order.subtotal}
+                    </span>
                   </div>
-                ))}
-              </div>
 
+                  <div className="mt-1 flex justify-between">
+                    <span>Delivery Fee</span>
+                    <span>
+                      GHS {order.delivery_fee}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 flex justify-between font-semibold">
+                    <span>Total</span>
+                    <span>
+                      GHS {order.total_amount}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  {order.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="text-sm"
+                    >
+                      {item.product_name}
+                      {" "}
+                      ({item.variant_name})
+                      {" "}
+                      ×
+                      {" "}
+                      {item.quantity}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ))}
         </div>
