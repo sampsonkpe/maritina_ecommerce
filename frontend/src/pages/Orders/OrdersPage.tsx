@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { orderService } from "../../services/orderService";
+import { paymentService } from "../../services/paymentService";
 
 import type { Order } from "../../types/order";
 
@@ -11,9 +12,53 @@ export default function OrdersPage() {
   const [loading, setLoading] =
     useState(true);
 
+  const handlePayment = async (
+    orderId: number
+  ) => {
+    try {
+      const response =
+        await paymentService.initializePayment(
+          orderId
+        );
+
+      window.location.href =
+        response.data.authorization_url;
+    } catch (error) {
+      console.error(error);
+      alert("Payment failed.");
+    }
+  };
+
   useEffect(() => {
     const loadOrders = async () => {
       try {
+        const params =
+          new URLSearchParams(
+            window.location.search
+          );
+
+        const reference =
+          params.get("reference");
+
+        if (reference) {
+          try {
+            await paymentService.verifyPayment(
+              reference
+            );
+
+            window.history.replaceState(
+              {},
+              document.title,
+              "/orders"
+            );
+          } catch (error) {
+            console.error(
+              "Payment verification failed:",
+              error
+            );
+          }
+        }
+
         const data =
           await orderService.getOrders();
 
@@ -74,6 +119,20 @@ export default function OrdersPage() {
                     {order.status}
                   </span>
 
+                  {order.status ===
+                    "PENDING" && (
+                    <button
+                      onClick={() =>
+                        handlePayment(
+                          order.id
+                        )
+                      }
+                      className="ml-3 rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white"
+                    >
+                      Pay Now
+                    </button>
+                  )}
+
                   <p className="mt-3 font-semibold">
                     GHS {order.total_amount}
                   </p>
@@ -111,20 +170,30 @@ export default function OrdersPage() {
                 </div>
 
                 <div className="space-y-1">
-                  {order.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="text-sm"
-                    >
-                      {item.product_name}
-                      {" "}
-                      ({item.variant_name})
-                      {" "}
-                      ×
-                      {" "}
-                      {item.quantity}
-                    </div>
-                  ))}
+                  {order.items.map(
+                    (item) => (
+                      <div
+                        key={item.id}
+                        className="text-sm"
+                      >
+                        {
+                          item.product_name
+                        }
+                        {" "}
+                        (
+                        {
+                          item.variant_name
+                        }
+                        )
+                        {" "}
+                        ×
+                        {" "}
+                        {
+                          item.quantity
+                        }
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>
