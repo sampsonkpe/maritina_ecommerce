@@ -10,6 +10,7 @@ import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Register/RegisterPage";
 import AddressesPage from "./pages/Addresses/AddressesPage";
 import CheckoutPage from "./pages/Checkout/CheckoutPage";
+import OrdersPage from "./pages/Orders/OrdersPage";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/addresses" element={<AddressesPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
