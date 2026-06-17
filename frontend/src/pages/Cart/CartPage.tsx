@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import {useNavigate} from "react-router-dom";
 import { cartService } from "../../services/cartService";
 
 import type {
@@ -10,6 +10,8 @@ import type {
 export default function CartPage() {
   const [cart, setCart] =
     useState<Cart | null>(null);
+
+  const navigate = useNavigate();
 
   const [loading, setLoading] =
     useState(true);
@@ -181,6 +183,7 @@ export default function CartPage() {
             </h2>
 
             <button
+              onClick={() => navigate("/checkout")}
               className="mt-4 rounded bg-black px-6 py-3 text-white"
             >
               Checkout

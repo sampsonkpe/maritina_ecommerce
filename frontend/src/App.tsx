@@ -9,6 +9,7 @@ import CartPage from "./pages/Cart/CartPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Register/RegisterPage";
 import AddressesPage from "./pages/Addresses/AddressesPage";
+import CheckoutPage from "./pages/Checkout/CheckoutPage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/addresses" element={<AddressesPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
