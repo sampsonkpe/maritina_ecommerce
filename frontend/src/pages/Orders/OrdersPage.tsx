@@ -9,6 +9,15 @@ export default function OrdersPage() {
   const [orders, setOrders] =
     useState<Order[]>([]);
 
+  const formatStatus = (status: string) => {
+    return status
+      .replaceAll("_", " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) =>
+      char.toUpperCase()
+      );
+  };
+
   const [loading, setLoading] =
     useState(true);
 
@@ -119,7 +128,7 @@ export default function OrdersPage() {
                   </h2>
 
                   <p>
-                    {order.delivery_type}
+                    {formatStatus(order.delivery_type)}
                   </p>
 
                   <p className="text-sm text-gray-500">
@@ -132,7 +141,7 @@ export default function OrdersPage() {
 
                 <div className="text-right">
                   <span className="rounded-full border px-3 py-1 text-xs font-semibold">
-                    {order.status}
+                    {formatStatus(order.status)}
                   </span>
 
                   {order.status ===

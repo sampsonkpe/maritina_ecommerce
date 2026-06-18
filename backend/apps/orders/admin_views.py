@@ -37,17 +37,34 @@ class UpdateOrderStatusView(APIView):
 
         new_status = request.data.get("status")
 
-        valid_statuses = [
-            Order.STATUS_PENDING,
+        allowed_transitions = {
+        Order.STATUS_PENDING: [
             Order.STATUS_PAID,
-            Order.STATUS_PREPARING,
-            Order.STATUS_OUT_FOR_DELIVERY,
-            Order.STATUS_DELIVERED,
-        ]
+        ],
 
-        if new_status not in valid_statuses:
+        Order.STATUS_PAID: [
+            Order.STATUS_PREPARING,
+        ],
+
+        Order.STATUS_PREPARING: [
+            Order.STATUS_OUT_FOR_DELIVERY,
+        ],
+
+        Order.STATUS_OUT_FOR_DELIVERY: [
+            Order.STATUS_DELIVERED,
+        ],
+
+        Order.STATUS_DELIVERED: [],
+    }
+
+        if new_status not in allowed_transitions.get(order.status, []):
             return Response(
-                {"error": "Invalid status"},
+                {
+                    "error": 
+                    f"Cannot move Order#{order.id} from "
+                    f"{order.status} "
+                    f"to {new_status}"
+                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
 
