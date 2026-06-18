@@ -21,11 +21,27 @@ export default function OrdersPage() {
           orderId
         );
 
+      if (!response.status) {
+        alert(response.message);
+        return;
+      }
+
       window.location.href =
         response.data.authorization_url;
-    } catch (error) {
-      console.error(error);
-      alert("Payment failed.");
+    } catch (error: any) {
+      console.error("FULL ERROR:", error);
+
+      console.log(
+        "RESPONSE DATA:",
+        error?.response?.data
+      );
+      
+      const message =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        "Payment initialisation failed. Please try again.";
+
+      alert(message);
     }
   };
 
