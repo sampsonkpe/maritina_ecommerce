@@ -13,7 +13,12 @@ export interface Order {
   delivery_fee: number;
   total_amount: number;
   delivery_type: string;
+  delivery_type_display: string;
   status: string;
+  address: number | null;
+  address_text: string | null;
+  user_email: string;
   created_at: string;
+  updated_at: string;
   items: OrderItem[];
 }

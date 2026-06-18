@@ -21,6 +21,14 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only=True
         )
     
+    address_text = serializers.SerializerMethodField()
+
+    def get_address_text(self, obj):
+        if not obj.address:
+            return None
+        
+        return str(obj.address)
+
     delivery_type_display = (
         serializers.SerializerMethodField()
     )
@@ -45,6 +53,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "delivery_type_display",
             "status",
             "address",
+            "address_text",
             "items",
             "created_at",
             "updated_at",
