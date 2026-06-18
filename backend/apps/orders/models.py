@@ -100,3 +100,41 @@ class OrderItem(models.Model):
             f"({self.variant_name} "
             f"x {self.quantity})"
         )
+    
+class OrderStatusHistory(models.Model):
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="status_history"
+    )
+
+    old_status = models.CharField(
+        max_length=30
+    )
+
+    new_status = models.CharField(
+        max_length=30
+    )
+
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = "Order Status History"
+        verbose_name_plural = "Order Status Histories"
+
+    def __str__(self):
+        return (
+            f"Order #{self.order.id}: "
+            f"{self.old_status} → "
+            f"{self.new_status}"
+        )

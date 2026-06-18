@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Order, OrderItem
+from .models import Order, OrderItem, OrderStatusHistory
 
 
 @admin.register(Order)
@@ -84,4 +84,26 @@ class OrderItemAdmin(admin.ModelAdmin):
         "variant_name",
         "quantity",
         "subtotal",
+    )
+
+
+@admin.register(OrderStatusHistory)
+class OrderStatusHistoryAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "order",
+        "old_status",
+        "new_status",
+        "updated_by",
+        "created_at",
+    )
+
+    list_filter = (
+        "new_status",
+        "created_at",
+    )
+
+    search_fields = (
+        "=order__id",
+        "updated_by__email",
     )

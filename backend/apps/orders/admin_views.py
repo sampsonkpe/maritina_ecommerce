@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework import status
 
 from .models import Order
+from .models import OrderStatusHistory
 from .serializers import OrderSerializer
 
 
@@ -67,8 +68,18 @@ class UpdateOrderStatusView(APIView):
                  },
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        old_status = order.status
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            old_status=old_status,
+            new_status=new_status,
+            updated_by=request.user
+        )
 
         order.status = new_status
+        order.updated_by = request.user
         order.save()
 
         return Response({

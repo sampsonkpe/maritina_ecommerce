@@ -11,6 +11,7 @@ import RegisterPage from "./pages/Register/RegisterPage";
 import AddressesPage from "./pages/Addresses/AddressesPage";
 import CheckoutPage from "./pages/Checkout/CheckoutPage";
 import OrdersPage from "./pages/Orders/OrdersPage";
+import AdminOrdersPage from "./pages/Admin/AdminOrdersPage";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/addresses" element={<AddressesPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
