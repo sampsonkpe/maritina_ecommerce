@@ -1,15 +1,23 @@
 # Maritina E-commerce
 
-API-first e-commerce backend for KAHWƐ by MARITINA FOODS.
+API-first e-commerce platform for KAHWƐ by MARITINA FOODS.
 
 ## Tech Stack
 - Django
 - Django REST Framework
-- PostgreSQL
+- JWT Authentication
+- Paystack Payments
+- React
+- TypeScript
+- Tailwind CSS
+- React Router
+- Axios
 
 ## Features
-- Authentication (JWT)
-- Products & categories
-- Cart system
-- Orders & payments (Paystack)
-- Delivery logic
+- Authentication
+- Product Catalogue
+- Shopping Cart
+- Checkout
+- Address Book
+- Order Management
+- Payment Processing
