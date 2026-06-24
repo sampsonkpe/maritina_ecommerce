@@ -16,15 +16,11 @@ export default function OrdersPage() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  const formatCurrency = (
-    amount: number | string
-  ) => {
+  const formatCurrency = (amount: number | string) => {
     return `GH₵${Number(amount).toFixed(2)}`;
   };
 
-  const getStatusClasses = (
-    status: string
-  ) => {
+  const getStatusClasses = (status: string) => {
     switch (status) {
       case "PENDING":
         return "bg-gray-100 text-gray-700";
@@ -46,22 +42,16 @@ export default function OrdersPage() {
     }
   };
 
-  const handlePayment = async (
-    orderId: number
-  ) => {
+  const handlePayment = async (orderId: number) => {
     try {
-      const response =
-        await paymentService.initializePayment(
-          orderId
-        );
+      const response = await paymentService.initializePayment(orderId);
 
       if (!response.status) {
         alert(response.message);
         return;
       }
 
-      window.location.href =
-        response.data.authorization_url;
+      window.location.href = response.data.authorization_url;
     } catch (error: any) {
       console.error("FULL ERROR:", error);
 
@@ -77,19 +67,12 @@ export default function OrdersPage() {
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        const params =
-          new URLSearchParams(
-            window.location.search
-          );
-
-        const reference =
-          params.get("reference");
+        const params = new URLSearchParams(window.location.search);
+        const reference = params.get("reference");
 
         if (reference) {
           try {
-            await paymentService.verifyPayment(
-              reference
-            );
+            await paymentService.verifyPayment(reference);
 
             window.history.replaceState(
               {},
@@ -104,9 +87,7 @@ export default function OrdersPage() {
           }
         }
 
-        const data =
-          await orderService.getOrders();
-
+        const data = await orderService.getOrders();
         setOrders(data);
       } catch (error) {
         console.error(error);
@@ -146,99 +127,71 @@ export default function OrdersPage() {
                   Order #{order.id}
                 </h2>
 
-                <div className="mt-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-700">
-                      {order.delivery_type_display}
-                      {order.address_text
-                        ? ` - ${order.address_text}`
-                        : ""}
-                    </p>
-                  </div>
-
-                <div className="text-right">
+                <div className="mt-3 flex w-full items-center justify-between">
+                  <p className="text-gray-700">
+                    {order.delivery_type_display}
+                    {order.address_text
+                      ? ` - ${order.address_text}`
+                      : ""}
+                  </p>
+                      
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                    className={`rounded-lg px-3 py-1 font-semibold ${getStatusClasses(
                       order.status
                     )}`}
                   >
                     {formatStatus(order.status)}
                   </span>
-
-                  <p className="mt-2 text-xl font-bold">
-                    {formatCurrency(order.total_amount)}
-                  </p>
                 </div>
               </div>
-            </div>
 
               <div className="mt-6">
                 <h3 className="mb-3 text-sm font-semibold text-gray-700">
-                  Order Items (
-                  {order.items.length})
+                  Order Items ({order.items.length})
                 </h3>
 
                 <div className="space-y-3">
-                  {order.items.map(
-                    (item) => (
-                      <div
-                        key={item.id}
-                        className="rounded-lg bg-gray-50 p-4"
-                      >
-                        <p className="font-medium">
-                          {
-                            item.product_name
-                          }
-                        </p>
+                  {order.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-lg bg-gray-50 p-4"
+                    >
+                      <p className="font-medium">
+                        {item.product_name}
+                      </p>
 
-                        <p className="text-sm text-gray-500">
-                          {
-                            item.variant_name
-                          }
-                        </p>
+                      <p className="text-sm text-gray-500">
+                        {item.variant_name}
+                      </p>
 
-                        <div className="mt-2 flex justify-between text-sm">
-                          <span>
-                            Qty:{" "}
-                            {
-                              item.quantity
-                            }
-                          </span>
+                      <div className="mt-2 flex justify-between text-sm">
+                        <span>
+                          Qty: {item.quantity}
+                        </span>
 
-                          <span className="font-medium">
-                            {formatCurrency(
-                              item.subtotal
-                            )}
-                          </span>
-                        </div>
+                        <span className="font-medium">
+                          {formatCurrency(item.subtotal)}
+                        </span>
                       </div>
-                    )
-                  )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="mt-5 rounded-xl border bg-gray-50 p-4">
                 <div className="flex justify-between text-sm">
-                  <span>
-                    Subtotal
-                  </span>
+                  <span>Subtotal</span>
 
                   <span>
-                    {formatCurrency(
-                      order.subtotal
-                    )}
+                    {formatCurrency(order.subtotal)}
                   </span>
                 </div>
 
                 <div className="mt-2 flex justify-between text-sm">
-                  <span>
-                    Delivery Fee
-                  </span>
+                  <span>Delivery Fee</span>
 
                   <span>
-                    {formatCurrency(
-                      order.delivery_fee
-                    )}
+                    {formatCurrency(order.delivery_fee)}
                   </span>
                 </div>
 
@@ -246,34 +199,29 @@ export default function OrdersPage() {
                   <span>Total</span>
 
                   <span>
-                    {formatCurrency(
-                      order.total_amount
-                    )}
+                    {formatCurrency(order.total_amount)}
                   </span>
                 </div>
               </div>
 
-                  {order.status ===
-                    "PENDING" && (
-                    <div className="mt-4 flex justify-end">
-                    <button
-                      onClick={() =>
-                        handlePayment(
-                          order.id
-                        )
-                      }
-                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
-                    >
-                      Pay Now
-                    </button>
-                  </div>
-                  )}
-
+              <div className="mt-5 flex items-center justify-between">
               <div className="mt-5 text-sm text-gray-500">
-                Ordered on{" "}
+                Ordered placed on{" "}
                 {new Date(
                   order.created_at
                 ).toLocaleString()}
+              </div>
+
+              {order.status === "PENDING" && (
+                  <button
+                    onClick={() =>
+                      handlePayment(order.id)
+                    }
+                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
+                  >
+                    Pay Now
+                  </button>
+                )}
               </div>
             </div>
           ))}
