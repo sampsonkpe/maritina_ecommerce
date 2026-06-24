@@ -1,8 +1,8 @@
 class DeliveryService:
 
-    BASE_FEE = 1000
-    PER_KM_RATE = 200
-    MAX_FEE = 5000
+    BASE_FEE = 10
+    PER_KM_RATE = 2
+    MAX_FEE = 50
 
     @staticmethod
     def calculate_fee(distance_km):
