@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { orderService } from "../../services/orderService";
 import { paymentService } from "../../services/paymentService";
@@ -8,6 +9,7 @@ import type { Order } from "../../types/order";
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedOrders, setExpandedOrders] = useState<number[]>([]);
 
   const formatStatus = (status: string) => {
     return status
@@ -40,6 +42,14 @@ export default function OrdersPage() {
       default:
         return "bg-gray-100 text-gray-700";
     }
+  };
+
+  const toggleOrder = (orderId: number) => {
+    setExpandedOrders((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId]
+    );
   };
 
   const handlePayment = async (orderId: number) => {
@@ -146,10 +156,22 @@ export default function OrdersPage() {
               </div>
 
               <div className="mt-6">
-                <h3 className="mb-3 text-sm font-semibold text-gray-700">
-                  Order Items ({order.items.length})
-                </h3>
+                <button
+                  onClick={() => toggleOrder(order.id)}
+                  className="mb-3 flex w-full items-center justify-between rounded-lg p-2 hover:bg-gray-50"
+                >
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    Order Items ({order.items.length})
+                  </h3>
 
+                  {expandedOrders.includes(order.id) ? (
+                    <ChevronUp size={18} />
+                  ) : (
+                    <ChevronDown size={18} />
+                  )}
+                </button>
+
+                {expandedOrders.includes(order.id) && (
                 <div className="space-y-3">
                   {order.items.map((item) => (
                     <div
@@ -176,6 +198,7 @@ export default function OrdersPage() {
                     </div>
                   ))}
                 </div>
+                )}
               </div>
 
               <div className="mt-5 rounded-xl border bg-gray-50 p-4">
@@ -205,11 +228,20 @@ export default function OrdersPage() {
               </div>
 
               <div className="mt-5 flex items-center justify-between">
-              <div className="mt-5 text-sm text-gray-500">
-                Ordered placed on{" "}
+              <div className="text-sm text-gray-500">
+                Order placed on{" "}
                 {new Date(
                   order.created_at
-                ).toLocaleString()}
+                ).toLocaleString(
+                  "en-GB",
+                  {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  }
+                )}
               </div>
 
               {order.status === "PENDING" && (
