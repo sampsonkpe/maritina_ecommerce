@@ -130,7 +130,7 @@ export default function OrdersPage() {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="rounded-2xl border bg-white p-6 shadow-sm"
+              className="rounded-lg border bg-white p-6 shadow-sm"
             >
               <div>
                 <h2 className="text-lg font-semibold">
@@ -201,7 +201,7 @@ export default function OrdersPage() {
                 )}
               </div>
 
-              <div className="mt-5 rounded-xl border bg-gray-50 p-4">
+              <div className="mt-5 rounded-lg border bg-gray-50 p-4">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
 

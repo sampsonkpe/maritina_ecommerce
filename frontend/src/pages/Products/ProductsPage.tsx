@@ -62,7 +62,7 @@ export default function ProductsPage() {
       <div className="mb-8 flex flex-wrap gap-3">
         <button
           onClick={() => setSelectedCategory(null)}
-          className="rounded border px-4 py-2"
+          className="rounded-lg border px-4 py-2"
         >
           All
         </button>
@@ -73,7 +73,7 @@ export default function ProductsPage() {
             onClick={() =>
               setSelectedCategory(category.id)
             }
-            className="rounded border px-4 py-2"
+            className="rounded-lg border px-4 py-2"
           >
             {category.name}
           </button>

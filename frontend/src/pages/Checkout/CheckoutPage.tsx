@@ -85,7 +85,7 @@ export default function CheckoutPage() {
               onClick={() =>
                 setDeliveryType("DELIVERY")
               }
-              className={`rounded border px-5 py-3 ${
+              className={`rounded-lg border px-5 py-3 ${
                 deliveryType === "DELIVERY"
                   ? "bg-black text-white"
                   : ""
@@ -98,7 +98,7 @@ export default function CheckoutPage() {
               onClick={() =>
                 setDeliveryType("PICKUP")
               }
-              className={`rounded border px-5 py-3 ${
+              className={`rounded-lg border px-5 py-3 ${
                 deliveryType === "PICKUP"
                   ? "bg-black text-white"
                   : ""
@@ -124,7 +124,7 @@ export default function CheckoutPage() {
                       address.id
                     )
                   }
-                  className={`block w-full rounded border p-4 text-left ${
+                  className={`block w-full rounded-lg border p-4 text-left ${
                     selectedAddress === address.id
                       ? "border-black"
                       : ""
@@ -146,7 +146,7 @@ export default function CheckoutPage() {
         <button
           onClick={handleCheckout}
           disabled={loading}
-          className="rounded bg-black px-6 py-3 text-white"
+          className="rounded-lg bg-black px-6 py-3 text-white"
         >
           {loading
             ? "Creating Order..."

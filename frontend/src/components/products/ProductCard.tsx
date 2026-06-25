@@ -24,7 +24,7 @@ export default function ProductCard({ product }: Props) {
         {product.variants.map((variant) => (
           <div
             key={variant.id}
-            className="flex justify-between rounded border p-2"
+            className="flex justify-between rounded-lg border p-2"
           >
             <span>{variant.name}</span>
 

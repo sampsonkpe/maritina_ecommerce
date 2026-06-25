@@ -107,7 +107,7 @@ export default function ProductDetailPage() {
                   onClick={() =>
                     setSelectedVariant(variant)
                   }
-                  className={`block w-full rounded border p-3 text-left ${
+                  className={`block w-full rounded-lg border p-3 text-left ${
                     selectedVariant?.id === variant.id
                       ? "border-black"
                       : ""
@@ -133,7 +133,7 @@ export default function ProductDetailPage() {
                   Math.max(1, Number(e.target.value))
                 )
               }
-              className="mt-2 w-24 rounded border p-2"
+              className="mt-2 w-24 rounded-lg border p-2"
             />
           </div>
 
@@ -144,7 +144,7 @@ export default function ProductDetailPage() {
 
             <button
               onClick={handleAddToCart}
-              className="mt-4 rounded bg-black px-6 py-3 text-white"
+              className="mt-4 rounded-lg bg-black px-6 py-3 text-white"
             >
               Add To Cart
             </button>

@@ -113,7 +113,7 @@ export default function CartPage() {
               (item: CartItem) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded border p-4"
+                  className="flex items-center justify-between rounded-lg border p-4"
                 >
                   <div>
                     <h2 className="font-semibold">
@@ -133,7 +133,7 @@ export default function CartPage() {
                             item.quantity
                           )
                         }
-                        className="h-8 w-8 rounded border"
+                        className="h-8 w-8 rounded-lg border"
                       >
                         -
                       </button>
@@ -149,7 +149,7 @@ export default function CartPage() {
                             item.quantity
                           )
                         }
-                        className="h-8 w-8 rounded border"
+                        className="h-8 w-8 rounded-lg border"
                       >
                         +
                       </button>
@@ -184,7 +184,7 @@ export default function CartPage() {
 
             <button
               onClick={() => navigate("/checkout")}
-              className="mt-4 rounded bg-black px-6 py-3 text-white"
+              className="mt-4 rounded-lg bg-black px-6 py-3 text-white"
             >
               Checkout
             </button>

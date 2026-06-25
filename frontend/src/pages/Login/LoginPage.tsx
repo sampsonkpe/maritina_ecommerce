@@ -63,7 +63,7 @@ export default function LoginPage() {
               e.target.value
             )
           }
-          className="w-full rounded border p-3"
+          className="w-full rounded-lg border p-3"
         />
 
         <input
@@ -75,7 +75,7 @@ export default function LoginPage() {
               e.target.value
             )
           }
-          className="w-full rounded border p-3"
+          className="w-full rounded-lg border p-3"
         />
 
         {error && (
@@ -86,7 +86,7 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="w-full rounded bg-black px-4 py-3 text-white"
+          className="w-full rounded-lg bg-black px-4 py-3 text-white"
         >
           Login
         </button>
