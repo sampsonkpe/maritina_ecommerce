@@ -11,7 +11,11 @@ class AddressListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        addresses = Address.objects.filter(user=request.user)
+        addresses = Address.objects.filter(
+            user=request.user).order_by(
+                "-is_default",
+                "-created_at",
+            )
         
         serializer = AddressSerializer(addresses, many=True)
         return Response(serializer.data)
@@ -20,11 +24,24 @@ class AddressListCreateView(APIView):
         serializer = AddressSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            has_addresses = Address.objects.filter(
+                user=request.user
+            ).exists()
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save(
+                user=request.user,
+                is_default=not has_addresses,
+            )
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     
 class AddressDetailView(APIView):
     permission_classes = [IsAuthenticated]
