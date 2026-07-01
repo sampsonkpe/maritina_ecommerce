@@ -94,7 +94,7 @@ export default function CartPage() {
   const total =
     cart?.items.reduce(
       (sum, item) =>
-        sum + Number(item.total_price),
+        sum + Number(item.subtotal),
       0
     ) ?? 0;
 
@@ -158,7 +158,7 @@ export default function CartPage() {
 
                   <div className="text-right">
                     <p>
-                      GHS {item.total_price}
+                      GHS {item.subtotal}
                     </p>
 
                     <button

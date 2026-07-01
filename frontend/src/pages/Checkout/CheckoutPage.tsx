@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import { addressService } from "../../services/addressService";
 import { orderService } from "../../services/orderService";
+import { cartService } from "../../services/cartService";
 
 import type { Address } from "../../types/address";
+import type { Cart } from "../../types/cart";
 
 export default function CheckoutPage() {
   const [addresses, setAddresses] =
@@ -16,28 +18,56 @@ export default function CheckoutPage() {
   const [selectedAddress, setSelectedAddress] =
     useState<number | null>(null);
 
-  const [loading, setLoading] =
+  const [cart, setCart] =
+    useState<Cart | null>(null);
+
+  const [pageLoading, setPageLoading] =
+    useState(true);
+
+  const [placingOrder, setPlacingOrder] =
     useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadAddresses = async () => {
+    const loadData = async () => {
       try {
-        const data =
-          await addressService.getAddresses();
+        const [
+          addressesData,
+          cartData,
+        ] = await Promise.all([
+          addressService.getAddresses(),
+          cartService.getCart(),
+        ]);
 
-        setAddresses(data);
+        setAddresses(addressesData);
+        setCart(cartData);
 
-        if (data.length > 0) {
-          setSelectedAddress(data[0].id);
+        const defaultAddress =
+          addressesData.find(
+            (address: Address) =>
+              address.is_default
+          );
+
+        if (defaultAddress) {
+          setSelectedAddress(
+            defaultAddress.id
+          );
+        } else if (
+          addressesData.length > 0
+        ) {
+          setSelectedAddress(
+            addressesData[0].id
+          );
         }
       } catch (error) {
         console.error(error);
+      } finally {
+        setPageLoading(false);
       }
     };
 
-    loadAddresses();
+    loadData();
   }, []);
 
   const handleCheckout = async () => {
@@ -45,12 +75,14 @@ export default function CheckoutPage() {
       deliveryType === "DELIVERY" &&
       !selectedAddress
     ) {
-      alert("Please select an address");
+      alert(
+        "Please select an address."
+      );
       return;
     }
 
     try {
-      setLoading(true);
+      setPlacingOrder(true);
 
       await orderService.createOrder(
         deliveryType,
@@ -62,96 +94,236 @@ export default function CheckoutPage() {
       navigate("/orders");
     } catch (error) {
       console.error(error);
-      alert("Failed to create order");
+      alert("Failed to create order.");
     } finally {
-      setLoading(false);
+      setPlacingOrder(false);
     }
   };
 
+  if (pageLoading) {
+    return (
+      <div className="p-8">
+        Loading checkout...
+      </div>
+    );
+  }
+
+  const deliveryFee =
+    deliveryType === "DELIVERY"
+      ? Number(cart?.delivery_fee ?? 0)
+      : 0;
+
+  const total =
+    Number(cart?.subtotal ?? 0) +
+    deliveryFee;
+
   return (
-    <div className="mx-auto max-w-4xl p-8">
+    <div className="mx-auto max-w-7xl p-8">
       <h1 className="mb-8 text-3xl font-bold">
         Checkout
       </h1>
 
-      <div className="space-y-8">
-        <div>
-          <h2 className="mb-3 text-xl font-semibold">
+      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+
+        {/* LEFT COLUMN */}
+
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+
+          <h2 className="mb-5 text-xl font-semibold">
             Delivery Method
           </h2>
 
           <div className="flex gap-4">
+
             <button
+              type="button"
               onClick={() =>
-                setDeliveryType("DELIVERY")
+                setDeliveryType(
+                  "DELIVERY"
+                )
               }
-              className={`rounded-lg border px-5 py-3 ${
-                deliveryType === "DELIVERY"
+              className={`rounded-lg border px-5 py-3 transition ${
+                deliveryType ===
+                "DELIVERY"
                   ? "bg-black text-white"
-                  : ""
+                  : "hover:bg-gray-50"
               }`}
             >
               Delivery
             </button>
 
             <button
+              type="button"
               onClick={() =>
-                setDeliveryType("PICKUP")
+                setDeliveryType(
+                  "PICKUP"
+                )
               }
-              className={`rounded-lg border px-5 py-3 ${
-                deliveryType === "PICKUP"
+              className={`rounded-lg border px-5 py-3 transition ${
+                deliveryType ===
+                "PICKUP"
                   ? "bg-black text-white"
-                  : ""
+                  : "hover:bg-gray-50"
               }`}
             >
               Pickup
             </button>
+
           </div>
+
+          {deliveryType ===
+            "DELIVERY" && (
+            <>
+
+              <div className="my-8 border-t" />
+
+              <h2 className="mb-5 text-xl font-semibold">
+                Delivery Address
+              </h2>
+
+              <div className="space-y-3">
+
+                {addresses.map(
+                  (address) => (
+                    <button
+                      key={
+                        address.id
+                      }
+                      type="button"
+                      onClick={() =>
+                        setSelectedAddress(
+                          address.id
+                        )
+                      }
+                      className={`block w-full rounded-lg border p-4 text-left transition ${
+                        selectedAddress ===
+                        address.id
+                          ? "border-black bg-gray-50"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <p className="font-semibold">
+                        {
+                          address.label
+                        }
+                      </p>
+
+                      <p className="mt-1 text-sm text-gray-600">
+                        {
+                          address.address_text
+                        }
+                      </p>
+                    </button>
+                  )
+                )}
+
+              </div>
+
+            </>
+          )}
+
         </div>
 
-        {deliveryType === "DELIVERY" && (
-          <div>
-            <h2 className="mb-3 text-xl font-semibold">
-              Select Address
-            </h2>
+        {/* RIGHT COLUMN */}
 
-            <div className="space-y-3">
-              {addresses.map((address) => (
-                <button
-                  key={address.id}
-                  onClick={() =>
-                    setSelectedAddress(
-                      address.id
-                    )
-                  }
-                  className={`block w-full rounded-lg border p-4 text-left ${
-                    selectedAddress === address.id
-                      ? "border-black"
-                      : ""
-                  }`}
-                >
-                  <strong>
-                    {address.label}
-                  </strong>
+        <div className="rounded-lg border bg-white p-6 shadow-sm lg:sticky lg:top-8 lg:self-start">
 
-                  <br />
+          <h2 className="mb-5 text-xl font-semibold">
+            Order Summary
+          </h2>
 
-                  {address.address_text}
-                </button>
-              ))}
+          {cart?.items.map((item) => (
+            <div
+              key={item.id}
+              className="mb-4 border-b pb-4 last:mb-0 last:border-b-0"
+            >
+              <p className="font-medium">
+                {item.product_name}
+              </p>
+
+              <p className="text-sm text-gray-500">
+                {item.variant_name}
+              </p>
+
+              <div className="mt-2 flex justify-between text-sm">
+
+                <span>
+                  Qty: {item.quantity}
+                </span>
+
+                <span className="font-medium">
+                  GH₵
+                  {Number(
+                    item.subtotal
+                  ).toFixed(2)}
+                </span>
+
+              </div>
+
             </div>
-          </div>
-        )}
+          ))}
 
-        <button
-          onClick={handleCheckout}
-          disabled={loading}
-          className="rounded-lg bg-black px-6 py-3 text-white"
-        >
-          {loading
-            ? "Creating Order..."
-            : "Place Order"}
-        </button>
+          <div className="mt-6 space-y-3 border-t pt-4">
+
+            <div className="flex justify-between">
+              <span>
+                Subtotal
+              </span>
+
+              <span>
+                GH₵
+                {Number(
+                  cart?.subtotal ?? 0
+                ).toFixed(2)}
+              </span>
+            </div>
+
+            {deliveryType ===
+              "DELIVERY" && (
+              <div className="flex justify-between">
+                <span>
+                  Delivery Fee
+                </span>
+
+                <span>
+                  GH₵
+                  {deliveryFee.toFixed(
+                    2
+                  )}
+                </span>
+              </div>
+            )}
+
+            <div className="flex justify-between border-t pt-3 text-lg font-semibold">
+
+              <span>Total</span>
+
+              <span>
+                GH₵
+                {total.toFixed(2)}
+              </span>
+
+            </div>
+
+          </div>
+
+          <button
+            type="button"
+            onClick={
+              handleCheckout
+            }
+            disabled={
+              placingOrder
+            }
+            className="mt-6 w-full rounded-lg bg-black px-6 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {placingOrder
+              ? "Creating Order..."
+              : "Place Order"}
+          </button>
+
+        </div>
+
       </div>
     </div>
   );
