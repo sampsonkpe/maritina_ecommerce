@@ -79,7 +79,6 @@ class UpdateOrderStatusView(APIView):
         )
 
         order.status = new_status
-        order.updated_by = request.user
         order.save()
 
         return Response({

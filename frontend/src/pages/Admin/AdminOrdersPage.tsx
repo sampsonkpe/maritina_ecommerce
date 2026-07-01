@@ -18,6 +18,12 @@ export default function AdminOrdersPage() {
   const [expandedOrders, setExpandedOrders] =
     useState<number[]>([]);
 
+  const [selectedStatuses, setSelectedStatuses] =
+  useState<Record<number, string>>({});
+
+  const [updatingOrders, setUpdatingOrders] =
+    useState<number[]>([]);
+
   useEffect(() => {
     const loadOrders = async () => {
       try {
@@ -25,13 +31,21 @@ export default function AdminOrdersPage() {
           await orderService.getAdminOrders();
 
         setOrders(data);
+
+    const initialStatuses: Record<number, string> = {};
+
+    data.forEach((order: Order) => {
+      initialStatuses[order.id] = order.status;
+    });
+
+    setSelectedStatuses(initialStatuses);
+
       } catch (error) {
         console.error(error);
       } finally {
         setLoading(false);
       }
     };
-
     loadOrders();
   }, []);
 
@@ -44,6 +58,56 @@ export default function AdminOrdersPage() {
           )
         : [...current, id]
     );
+  };
+
+  const handleUpdateStatus = async (
+    orderId: number
+  ) => {
+    try {
+      setUpdatingOrders((current) => [
+        ...current,
+        orderId,
+      ]);
+
+      const newStatus =
+        selectedStatuses[orderId];
+
+  const currentOrder = orders.find(
+    (order) => order.id === orderId
+  );
+
+  if (
+    !currentOrder ||
+    currentOrder.status === newStatus
+  ) {
+    return;
+  }
+
+      await orderService.updateOrderStatus(
+        orderId,
+        newStatus
+      );
+
+      setOrders((current) =>
+        current.map((order) =>
+          order.id === orderId
+            ? {
+                ...order,
+                status: newStatus,
+              }
+            : order
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update status.");
+    } finally {
+      setUpdatingOrders((current) =>
+        current.filter(
+          (id) => id !== orderId
+        )
+      );
+    }
   };
 
   const formatStatus = (status: string) => {
@@ -240,7 +304,13 @@ export default function AdminOrdersPage() {
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 
                       <select
-                        defaultValue={order.status}
+                        value={selectedStatuses[order.id] ?? order.status}
+                        onChange={(e) =>
+                          setSelectedStatuses((current) => ({
+                            ...current,
+                            [order.id]: e.target.value,
+                          }))
+                        }
                         className="rounded-lg border px-4 py-3"
                       >
                         <option value="PENDING">
@@ -267,13 +337,21 @@ export default function AdminOrdersPage() {
                           Delivered
                         </option>
                       </select>
-
-                      <button
-                        type="button"
-                        className="rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800"
-                      >
-                        Update Status
-                      </button>
+                      
+                      {order.status !== "DELIVERED" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleUpdateStatus(order.id)
+                          }
+                          disabled={updatingOrders.includes(order.id)}
+                          className="rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {updatingOrders.includes(order.id)
+                            ? "Updating..."
+                            : "Update Status"}
+                        </button>
+                      )}
 
                     </div>
 
