@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  ChevronDown,
+  ChevronUp,
+  MapPinned,
+} from "lucide-react";
 
 import { addressService } from "../../services/addressService";
 import { orderService } from "../../services/orderService";
@@ -17,6 +22,9 @@ export default function CheckoutPage() {
 
   const [selectedAddress, setSelectedAddress] =
     useState<number | null>(null);
+  
+  const [showAddresses, setShowAddresses] =
+  useState(false);
 
   const [cart, setCart] =
     useState<Cart | null>(null);
@@ -117,13 +125,19 @@ export default function CheckoutPage() {
     Number(cart?.subtotal ?? 0) +
     deliveryFee;
 
+  const currentAddress =
+  addresses.find(
+    (address) =>
+      address.id === selectedAddress
+  );
+
   return (
     <div className="mx-auto max-w-7xl p-8">
       <h1 className="mb-8 text-3xl font-bold">
         Checkout
       </h1>
 
-      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
 
         {/* LEFT COLUMN */}
 
@@ -177,48 +191,104 @@ export default function CheckoutPage() {
 
               <div className="my-8 border-t" />
 
-              <h2 className="mb-5 text-xl font-semibold">
-                Delivery Address
-              </h2>
-
-              <div className="space-y-3">
-
-                {addresses.map(
-                  (address) => (
-                    <button
-                      key={
-                        address.id
-                      }
-                      type="button"
-                      onClick={() =>
-                        setSelectedAddress(
-                          address.id
-                        )
-                      }
-                      className={`block w-full rounded-lg border p-4 text-left transition ${
-                        selectedAddress ===
-                        address.id
-                          ? "border-black bg-gray-50"
-                          : "hover:bg-gray-50"
-                      }`}
-                    >
-                      <p className="font-semibold">
-                        {
-                          address.label
-                        }
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-600">
-                        {
-                          address.address_text
-                        }
-                      </p>
-                    </button>
-                  )
-                )}
-
+              <div className="mb-5 flex items-center gap-2">
+                <MapPinned size={20} />
+                
+                <h2 className="text-xl font-semibold">
+                  Delivery Address
+                </h2>
               </div>
 
+              {currentAddress && (
+                <div className="rounded-lg border border-black bg-gray-50 p-4">
+
+                  <p className="text-lg font-semibold">
+                    {currentAddress.label}
+                  </p>
+
+                  <p className="mt-1 text-sm text-gray-600">
+                    {currentAddress.address_text}
+                  </p>
+
+                </div>
+              )}
+
+              {!currentAddress ? (
+                <div className="mt-5 rounded-lg border border-dashed p-6 text-center">
+                  <p className="text-gray-600">
+                    You don't have any saved delivery addresses.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/addresses")}
+                    className="mt-4 rounded-lg bg-black px-4 py-2 text-white transition hover:bg-gray-800"
+                  >
+                    Manage Addresses
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {addresses.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowAddresses(!showAddresses)
+                        }
+                        className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-black"
+                      >
+                        {showAddresses ? (
+                          <>
+                            Hide Addresses
+                            <ChevronUp size={16} />
+                          </>
+                        ) : (
+                          <>
+                            Change Address
+                            <ChevronDown size={16} />
+                          </>
+                        )}
+                      </button>
+
+                      {showAddresses && (
+                        <div className="mt-5 space-y-3">
+                          {addresses
+                            .filter(
+                              (address) =>
+                                address.id !==
+                                selectedAddress
+                            )
+                            .map((address) => (
+                              <button
+                                key={address.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedAddress(
+                                    address.id
+                                  );
+
+                                  setShowAddresses(
+                                    false
+                                  );
+                                }}
+                                className="block w-full rounded-lg border p-4 text-left transition hover:bg-gray-50"
+                              >
+                                <p className="font-semibold">
+                                  {address.label}
+                                </p>
+
+                                <p className="mt-1 text-sm leading-6 text-gray-600">
+                                  {address.address_text}
+                                </p>
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
             </>
           )}
 
