@@ -23,4 +23,23 @@ export const orderService = {
 
     return response.data;
   },
+
+  async getAdminOrders() {
+    const response = await api.get(
+      "/orders/admin/all"
+    );
+
+    return response.data;
+  },
+
+  async updateOrderStatus(orderId: number, status: string) {
+    const response = await api.patch(
+      `/orders/admin/update-status/${orderId}/`,
+      {
+        status,
+      }
+    );
+
+    return response.data;
+  },
 };
