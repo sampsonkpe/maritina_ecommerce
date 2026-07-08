@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   ChevronUp,
   ChevronDown,
@@ -15,6 +15,9 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] =
     useState(true);
 
+  const [initialLoad, setInitialLoad] =
+    useState(true);
+
   const [expandedOrders, setExpandedOrders] =
     useState<number[]>([]);
 
@@ -24,30 +27,70 @@ export default function AdminOrdersPage() {
   const [updatingOrders, setUpdatingOrders] =
     useState<number[]>([]);
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        const data =
-          await orderService.getAdminOrders();
+  const [statusFilter, setStatusFilter] =
+    useState("");
 
-        setOrders(data);
+  const [
+    deliveryTypeFilter,
+    setDeliveryTypeFilter,
+  ] = useState("");
 
-    const initialStatuses: Record<number, string> = {};
+  const [search, setSearch] =
+    useState("");
 
-    data.forEach((order: Order) => {
-      initialStatuses[order.id] = order.status;
-    });
+  const [debouncedSearch, setDebouncedSearch] =
+    useState(search);
 
-    setSelectedStatuses(initialStatuses);
+    useEffect(() => {
+      const timeout = setTimeout(() => {
+        setDebouncedSearch(search);
+      }, 500);
 
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
+      return () => clearTimeout(timeout);
+    }, [search]);
+
+  const loadOrders = useCallback(async () => {
+    try {
+      if (initialLoad) {
+        setLoading(true);
       }
-    };
+
+      const data =
+        await orderService.getAdminOrders({
+          status: statusFilter,
+          deliveryType:
+            deliveryTypeFilter,
+          search: debouncedSearch,
+        });
+
+      setOrders(data);
+
+      const initialStatuses:
+        Record<number, string> = {};
+
+      data.forEach((order: Order) => {
+        initialStatuses[order.id] =
+          order.status;
+      });
+
+      setSelectedStatuses(
+        initialStatuses
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setInitialLoad(false);
+    }
+  }, [
+    statusFilter,
+    deliveryTypeFilter,
+    debouncedSearch,
+  ]);
+
+  useEffect(() => {
     loadOrders();
-  }, []);
+  }, [loadOrders]);
 
   const toggleOrder = (id: number) => {
     setExpandedOrders((current) =>
@@ -147,7 +190,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  if (loading) {
+  if (loading && orders.length === 0) {
     return (
       <div className="p-8">
         Loading orders...
@@ -160,6 +203,90 @@ export default function AdminOrdersPage() {
       <h1 className="mb-8 text-3xl font-bold">
         All Orders
       </h1>
+
+    <div className="mb-8 flex flex-col gap-4 md:flex-row">
+
+      <input
+        type="text"
+        placeholder="Search by customer name, email, phone or order ID, ...."
+        value={search}
+        onChange={(e) =>
+          setSearch((e.target as HTMLInputElement).value)
+        }
+        className="flex-1 rounded-lg border px-4 py-3"
+      />
+
+      <select
+        value={statusFilter}
+        onChange={(e) =>
+          setStatusFilter(e.target.value)
+        }
+        className="rounded-lg border px-4 py-3"
+      >
+        <option value="">
+          All Statuses
+        </option>
+
+        <option value="PENDING">
+          Pending
+        </option>
+
+        <option value="PAYMENT_IN_PROGRESS">
+          Payment In Progress
+        </option>
+
+        <option value="PAID">
+          Paid
+        </option>
+
+        <option value="PREPARING">
+          Preparing
+        </option>
+
+        <option value="OUT_FOR_DELIVERY">
+          Out For Delivery
+        </option>
+
+        <option value="DELIVERED">
+          Delivered
+        </option>
+
+      </select>
+
+      <select
+        value={deliveryTypeFilter}
+        onChange={(e) =>
+          setDeliveryTypeFilter(e.target.value)
+        }
+        className="rounded-lg border px-4 py-3"
+      >
+        <option value="">
+          All Delivery Types
+        </option>
+
+        <option value="DELIVERY">
+          Delivery
+        </option>
+
+        <option value="PICKUP">
+          Pickup
+        </option>
+
+      </select>
+
+      <button
+        type="button"
+        onClick={() => {
+          setSearch("");
+          setStatusFilter("");
+          setDeliveryTypeFilter("");
+        }}
+        className="rounded-lg border px-5 py-3 transition hover:bg-gray-100"
+      >
+        Clear Filters
+      </button>
+
+    </div>
 
       {orders.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-gray-500">

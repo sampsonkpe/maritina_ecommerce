@@ -24,9 +24,23 @@ export const orderService = {
     return response.data;
   },
 
-  async getAdminOrders() {
+  async getAdminOrders(filters?: {
+    status?: string;
+    deliveryType?: string;
+    search?: string;
+  }) {
     const response = await api.get(
-      "/orders/admin/all"
+      "/orders/admin/all/",
+      {
+        params: {
+          status: filters?.status || undefined,
+          delivery_type:
+            filters?.deliveryType ||
+            undefined,
+          search:
+            filters?.search || undefined,
+        },
+      }
     );
 
     return response.data;
