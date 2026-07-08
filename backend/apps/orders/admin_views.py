@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework import status
 
+from django.db.models import Q
+
 from .models import Order
 from .models import OrderStatusHistory
 from .serializers import OrderSerializer
@@ -14,9 +16,40 @@ class AdminOrdersView(APIView):
 
     def get(self, request):
 
-        orders = Order.objects.all().order_by("-created_at")
+        orders = Order.objects.all()
 
-        serializer = OrderSerializer(orders, many=True)
+        status_filter = request.query_params.get("status")
+        delivery_filter = request.query_params.get("delivery_type")
+        search = request.query_params.get("search")
+
+        if status_filter:
+            orders = orders.filter(
+                status=status_filter
+            )
+
+        if delivery_filter:
+            orders = orders.filter(
+                delivery_type=delivery_filter
+            )
+
+        if search:
+
+            if search.isdigit():
+                orders = orders.filter(
+                    id=int(search)
+                )
+
+            else:
+                orders = orders.filter(
+                    Q(user__email__icontains=search)
+                )
+
+        orders = orders.order_by("-created_at")
+
+        serializer = OrderSerializer(
+            orders,
+            many=True
+        )
 
         return Response(serializer.data)
 
