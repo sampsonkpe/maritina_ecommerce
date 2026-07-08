@@ -34,15 +34,16 @@ class AdminOrdersView(APIView):
 
         if search:
 
-            if search.isdigit():
-                orders = orders.filter(
-                    id=int(search)
-                )
+            search_query = (
+                Q(user__email__icontains=search)
+                | Q(user__full_name__icontains=search)
+                | Q(user__phone__icontains=search)
+            )
 
-            else:
-                orders = orders.filter(
-                    Q(user__email__icontains=search)
-                )
+            if search.isdigit():
+                search_query |= Q(id=int(search))
+
+            orders = orders.filter(search_query)
 
         orders = orders.order_by("-created_at")
 
@@ -72,36 +73,36 @@ class UpdateOrderStatusView(APIView):
         new_status = request.data.get("status")
 
         allowed_transitions = {
-        Order.STATUS_PENDING: [
-            Order.STATUS_PAID,
-        ],
+            Order.STATUS_PENDING: [
+                Order.STATUS_PAID,
+            ],
 
-        Order.STATUS_PAID: [
-            Order.STATUS_PREPARING,
-        ],
+            Order.STATUS_PAID: [
+                Order.STATUS_PREPARING,
+            ],
 
-        Order.STATUS_PREPARING: [
-            Order.STATUS_OUT_FOR_DELIVERY,
-        ],
+            Order.STATUS_PREPARING: [
+                Order.STATUS_OUT_FOR_DELIVERY,
+            ],
 
-        Order.STATUS_OUT_FOR_DELIVERY: [
-            Order.STATUS_DELIVERED,
-        ],
+            Order.STATUS_OUT_FOR_DELIVERY: [
+                Order.STATUS_DELIVERED,
+            ],
 
-        Order.STATUS_DELIVERED: [],
-    }
+            Order.STATUS_DELIVERED: [],
+        }
 
         if new_status not in allowed_transitions.get(order.status, []):
             return Response(
                 {
-                    "error": 
+                    "error":
                     f"Cannot move Order#{order.id} from "
                     f"{order.status} "
                     f"to {new_status}"
-                 },
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         old_status = order.status
 
         OrderStatusHistory.objects.create(
