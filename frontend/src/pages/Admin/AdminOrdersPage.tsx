@@ -64,13 +64,9 @@ export default function AdminOrdersPage() {
     orderId: number
   ) => {
     try {
-      setUpdatingOrders((current) => [
-        ...current,
-        orderId,
-      ]);
 
-      const newStatus =
-        selectedStatuses[orderId];
+  const newStatus =
+    selectedStatuses[orderId];
 
   const currentOrder = orders.find(
     (order) => order.id === orderId
@@ -82,6 +78,11 @@ export default function AdminOrdersPage() {
   ) {
     return;
   }
+
+  setUpdatingOrders((current) => [
+    ...current,
+    orderId,
+  ]);
 
       await orderService.updateOrderStatus(
         orderId,
@@ -303,54 +304,65 @@ export default function AdminOrdersPage() {
 
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 
-                      <select
-                        value={selectedStatuses[order.id] ?? order.status}
-                        onChange={(e) =>
-                          setSelectedStatuses((current) => ({
-                            ...current,
-                            [order.id]: e.target.value,
-                          }))
-                        }
-                        className="rounded-lg border px-4 py-3"
-                      >
-                        <option value="PENDING">
-                          Pending
-                        </option>
-
-                        <option value="PAYMENT_IN_PROGRESS">
-                          Payment In Progress
-                        </option>
-
-                        <option value="PAID">
-                          Paid
-                        </option>
-
-                        <option value="PREPARING">
-                          Preparing
-                        </option>
-
-                        <option value="OUT_FOR_DELIVERY">
-                          Out for Delivery
-                        </option>
-
-                        <option value="DELIVERED">
+                      {order.status === "DELIVERED" ? (
+                        <div className="rounded-lg border bg-green-50 px-4 py-3 font-medium text-green-700 opacity-50">
                           Delivered
-                        </option>
-                      </select>
-                      
-                      {order.status !== "DELIVERED" && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleUpdateStatus(order.id)
-                          }
-                          disabled={updatingOrders.includes(order.id)}
-                          className="rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {updatingOrders.includes(order.id)
-                            ? "Updating..."
-                            : "Update Status"}
-                        </button>
+                        </div>
+                      ) : (
+                        <>
+                          <select
+                            value={
+                              selectedStatuses[order.id] ??
+                              order.status
+                            }
+                            onChange={(e) =>
+                              setSelectedStatuses((current) => ({
+                                ...current,
+                                [order.id]: e.target.value,
+                              }))
+                            }
+                            className="rounded-lg border px-4 py-3"
+                          >
+                            <option value="PENDING">
+                              Pending
+                            </option>
+
+                            <option value="PAYMENT_IN_PROGRESS">
+                              Payment In Progress
+                            </option>
+
+                            <option value="PAID">
+                              Paid
+                            </option>
+
+                            <option value="PREPARING">
+                              Preparing
+                            </option>
+
+                            <option value="OUT_FOR_DELIVERY">
+                              Out for Delivery
+                            </option>
+
+                            <option value="DELIVERED">
+                              Delivered
+                            </option>
+                          </select>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdateStatus(order.id)
+                            }
+                            disabled={
+                              updatingOrders.includes(order.id)
+                            }
+                            className="rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {updatingOrders.includes(order.id)
+                              ? "Updating..."
+                              : "Update Status"}
+                          </button>
+                        </>
                       )}
 
                     </div>
