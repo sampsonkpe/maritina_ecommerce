@@ -60,7 +60,10 @@ class OrderService:
             delivery_fee=delivery_fee,
             total_amount=0,
             delivery_type=delivery_type,
-            address=address
+            address=address,
+            
+            status=Order.STATUS_PENDING,
+            payment_status=Order.PAYMENT_PENDING,
         )
 
         for item in items:

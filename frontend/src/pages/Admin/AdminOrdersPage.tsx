@@ -170,20 +170,35 @@ export default function AdminOrdersPage() {
       case "PENDING":
         return "bg-gray-100 text-gray-700";
 
-      case "PAYMENT_IN_PROGRESS":
-        return "bg-orange-100 text-orange-700";
-
-      case "PAID":
-        return "bg-yellow-100 text-yellow-800";
-
       case "PREPARING":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-yellow-800";
 
       case "OUT_FOR_DELIVERY":
         return "bg-purple-100 text-purple-800";
 
       case "DELIVERED":
         return "bg-green-100 text-green-800";
+
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const getPaymentStatusClasses = (
+    status: string
+  ) => {
+    switch (status) {
+      case "PAID":
+        return "bg-green-100 text-green-800";
+
+      case "FAILED":
+        return "bg-red-100 text-red-800";
+
+      case "REFUNDED":
+        return "bg-yellow-100 text-yellow-800";
 
       default:
         return "bg-gray-100 text-gray-700";
@@ -231,14 +246,6 @@ export default function AdminOrdersPage() {
           Pending
         </option>
 
-        <option value="PAYMENT_IN_PROGRESS">
-          Payment In Progress
-        </option>
-
-        <option value="PAID">
-          Paid
-        </option>
-
         <option value="PREPARING">
           Preparing
         </option>
@@ -249,6 +256,10 @@ export default function AdminOrdersPage() {
 
         <option value="DELIVERED">
           Delivered
+        </option>
+
+        <option value="CANCELLED">
+          Cancelled
         </option>
 
       </select>
@@ -454,14 +465,6 @@ export default function AdminOrdersPage() {
                               Pending
                             </option>
 
-                            <option value="PAYMENT_IN_PROGRESS">
-                              Payment In Progress
-                            </option>
-
-                            <option value="PAID">
-                              Paid
-                            </option>
-
                             <option value="PREPARING">
                               Preparing
                             </option>
@@ -472,6 +475,10 @@ export default function AdminOrdersPage() {
 
                             <option value="DELIVERED">
                               Delivered
+                            </option>
+
+                            <option value="CANCELLED">
+                              Cancelled
                             </option>
                           </select>
 

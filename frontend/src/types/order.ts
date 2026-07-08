@@ -15,6 +15,9 @@ export interface Order {
   delivery_type: string;
   delivery_type_display: string;
   status: string;
+  payment_status: string;
+  payment_reference: string | null;
+  paid_at: string | null;
   address: number | null;
   address_text: string | null;
   user_email: string;

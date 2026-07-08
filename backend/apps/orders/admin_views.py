@@ -74,15 +74,13 @@ class UpdateOrderStatusView(APIView):
 
         allowed_transitions = {
             Order.STATUS_PENDING: [
-                Order.STATUS_PAID,
-            ],
-
-            Order.STATUS_PAID: [
                 Order.STATUS_PREPARING,
+                Order.STATUS_CANCELLED,
             ],
 
             Order.STATUS_PREPARING: [
                 Order.STATUS_OUT_FOR_DELIVERY,
+                Order.STATUS_CANCELLED,
             ],
 
             Order.STATUS_OUT_FOR_DELIVERY: [
@@ -90,6 +88,8 @@ class UpdateOrderStatusView(APIView):
             ],
 
             Order.STATUS_DELIVERED: [],
+
+            Order.STATUS_CANCELLED: [],
         }
 
         if new_status not in allowed_transitions.get(order.status, []):

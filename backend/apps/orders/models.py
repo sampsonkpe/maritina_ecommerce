@@ -4,20 +4,34 @@ from django.conf import settings
 
 class Order(models.Model):
 
+    # Fulfilment status
+
     STATUS_PENDING = "PENDING"
-    STATUS_PAYMENT_IN_PROGRESS = "PAYMENT_IN_PROGRESS"
-    STATUS_PAID = "PAID"
     STATUS_PREPARING = "PREPARING"
     STATUS_OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
     STATUS_DELIVERED = "DELIVERED"
+    STATUS_CANCELLED = "CANCELLED"
 
     STATUS_CHOICES = [
         (STATUS_PENDING, "Pending"),
-        (STATUS_PAYMENT_IN_PROGRESS, "Payment In Progress"),
-        (STATUS_PAID, "Paid"),
         (STATUS_PREPARING, "Preparing"),
         (STATUS_OUT_FOR_DELIVERY, "Out for Delivery"),
         (STATUS_DELIVERED, "Delivered"),
+        (STATUS_CANCELLED, "Cancelled"),
+    ]
+
+    # Payment status
+
+    PAYMENT_PENDING = "PENDING"
+    PAYMENT_PAID = "PAID"
+    PAYMENT_FAILED = "FAILED"
+    PAYMENT_REFUNDED = "REFUNDED"
+
+    PAYMENT_STATUS_CHOICES = [
+        (PAYMENT_PENDING, "Pending"),
+        (PAYMENT_PAID, "Paid"),
+        (PAYMENT_FAILED, "Failed"),
+        (PAYMENT_REFUNDED, "Refunded"),
     ]
 
     DELIVERY = "DELIVERY"
@@ -45,6 +59,24 @@ class Order(models.Model):
         default=STATUS_PENDING
     )
 
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default=PAYMENT_PENDING
+    )
+
+    payment_reference = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        unique=True
+    )
+
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
     delivery_type = models.CharField(
         max_length=20,
         choices=DELIVERY_CHOICES,
@@ -65,6 +97,7 @@ class Order(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["user", "status"]),
+            models.Index(fields=["payment_status"]),
             models.Index(fields=["created_at"]),
         ]
 
