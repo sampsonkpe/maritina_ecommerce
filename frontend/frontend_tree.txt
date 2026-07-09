@@ -1,0 +1,70 @@
+.
+├── eslint.config.js
+├── frontend_tree.txt
+├── index.html
+├── package-lock.json
+├── package.json
+├── public
+├── README.md
+├── src
+│   ├── api
+│   │   └── axios.ts
+│   ├── App.tsx
+│   ├── assets
+│   ├── components
+│   │   ├── Footer.tsx
+│   │   ├── NavBar.tsx
+│   │   └── products
+│   │       └── ProductCard.tsx
+│   ├── context
+│   ├── hooks
+│   ├── index.css
+│   ├── layouts
+│   │   └── MainLayout.tsx
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── Addresses
+│   │   │   └── AddressesPage.tsx
+│   │   ├── Admin
+│   │   │   ├── AdminAnalyticsPage.tsx
+│   │   │   ├── AdminCustomersPage.tsx
+│   │   │   ├── AdminDashboardPage.tsx
+│   │   │   ├── AdminOrdersPage.tsx
+│   │   │   └── AdminProductsPage.tsx
+│   │   ├── Cart
+│   │   │   └── CartPage.tsx
+│   │   ├── Checkout
+│   │   │   └── CheckoutPage.tsx
+│   │   ├── Home
+│   │   │   └── HomePage.tsx
+│   │   ├── Login
+│   │   │   └── LoginPage.tsx
+│   │   ├── Orders
+│   │   │   └── OrdersPage.tsx
+│   │   ├── Products
+│   │   │   ├── ProductDetailPage.tsx
+│   │   │   └── ProductsPage.tsx
+│   │   └── Register
+│   │       └── RegisterPage.tsx
+│   ├── routes
+│   ├── services
+│   │   ├── addressService.ts
+│   │   ├── authService.ts
+│   │   ├── cartService.ts
+│   │   ├── orderService.ts
+│   │   ├── paymentService.ts
+│   │   └── productService.ts
+│   ├── types
+│   │   ├── address.ts
+│   │   ├── cart.ts
+│   │   ├── category.ts
+│   │   ├── order.ts
+│   │   └── product.ts
+│   └── utils
+│       └── auth.ts
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+
+24 directories, 44 files

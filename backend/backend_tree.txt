@@ -1,0 +1,84 @@
+.
+├── apps
+│   ├── addresses
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── cart
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── orders
+│   │   ├── __init__.py
+│   │   ├── admin_views.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── delivery.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── payments
+│   │   ├── __init__.py
+│   │   ├── admin_urls.py
+│   │   ├── admin_views.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── services
+│   │   │   ├── base.py
+│   │   │   ├── factory.py
+│   │   │   ├── mock.py
+│   │   │   ├── payment_service.py
+│   │   │   └── paystack.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── views.py
+│   │   └── webhooks.py
+│   ├── products
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   └── users
+│       ├── __init__.py
+│       ├── admin.py
+│       ├── apps.py
+│       ├── models.py
+│       ├── serializers.py
+│       ├── services.py
+│       ├── tests.py
+│       ├── urls.py
+│       └── views.py
+├── backend_tree.txt
+├── db.sqlite3
+├── manage.py
+├── maritina_ecommerce
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── package-lock.json
+├── package.json
+└── requirements.txt
+
+10 directories, 72 files
