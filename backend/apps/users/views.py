@@ -24,10 +24,11 @@ class RegisterView(APIView):
 
             try:
                 user = UserService.register(
+                    username=data.get("username"),
                     email=data.get("email"),
                     phone=data.get("phone"),
                     full_name=data["full_name"],
-                    password=data["password"]
+                    password=data["password"],
                 )
 
                 tokens = UserService.get_tokens(user)
@@ -35,6 +36,7 @@ class RegisterView(APIView):
                 return Response({
                     "user": {
                         "id": user.id,
+                        "username": user.username,
                         "email": user.email,
                         "phone": user.phone,
                         "full_name": user.full_name,
@@ -54,10 +56,13 @@ class MeView(APIView):
         user = request.user
 
         return Response({
-            "id": user.id,
-            "email": user.email,
-            "phone": user.phone,
-            "full_name": user.full_name,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "phone": user.phone,
+                "full_name": user.full_name,
+            }
         })
 
 class LoginView(APIView):
@@ -79,11 +84,12 @@ class LoginView(APIView):
 
         return Response({
             "user": {
-                "id": user.id,
-                "email": user.email,
-                "phone": user.phone,
-                "full_name": user.full_name,
-            },
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "phone": user.phone,
+            "full_name": user.full_name,
+        },
             "tokens": tokens
         })
 class LogoutView(APIView):

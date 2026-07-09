@@ -2,13 +2,13 @@ import api from "../api/axios";
 
 export const authService = {
   async login(
-    email: string,
+    identifier: string,
     password: string
   ) {
     const response = await api.post(
-      "/token/",
+      "/auth/login/",
       {
-        email,
+        identifier,
         password,
       }
     );

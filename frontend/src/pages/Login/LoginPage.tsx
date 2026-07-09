@@ -10,7 +10,7 @@ import {
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const [email, setEmail] =
+  const [identifier, setIdentifier] =
     useState("");
 
   const [password, setPassword] =
@@ -27,13 +27,13 @@ export default function LoginPage() {
     try {
       const data =
         await authService.login(
-          email,
+          identifier,
           password
         );
 
       saveTokens(
-        data.access,
-        data.refresh
+        data.tokens.access,
+        data.tokens.refresh
       );
 
       navigate("/products");
@@ -55,11 +55,11 @@ export default function LoginPage() {
         className="space-y-4"
       >
         <input
-          type="email"
-          placeholder="Email"
-          value={email}
+          type="text"
+          placeholder="Username, Email or Phone"
+          value={identifier}
           onChange={(e) =>
-            setEmail(
+            setIdentifier(
               e.target.value
             )
           }

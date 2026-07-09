@@ -32,11 +32,25 @@ class UserService:
         email_pattern = r"[^@]+@[^@]+\.[^@]+"
 
         if re.match(email_pattern, identifier):
-            user = User.objects.filter(email=identifier).first()
-        else:
-            user = User.objects.filter(phone=identifier).first()
+            user = User.objects.filter(
+                email=identifier
+            ).first()
 
-        if user and user.is_active and user.check_password(password):
+        elif identifier.isdigit():
+            user = User.objects.filter(
+                phone=identifier
+            ).first()
+
+        else:
+            user = User.objects.filter(
+                username=identifier
+            ).first()
+
+        if (
+            user
+            and user.is_active
+            and user.check_password(password)
+        ):
             return user
 
         return None

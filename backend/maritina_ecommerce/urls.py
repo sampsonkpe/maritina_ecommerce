@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.urls import include, path
 from django.http import JsonResponse
 from rest_framework_simplejwt.views import (
-     TokenObtainPairView,
      TokenRefreshView,
 )
 
@@ -24,7 +23,6 @@ urlpatterns = [
     path("api/orders/", include("apps.orders.urls")),
     path("api/payments/", include("apps.payments.urls")),
     path("api/addresses/", include("apps.addresses.urls")),
-
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
