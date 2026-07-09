@@ -8,6 +8,17 @@ import { orderService } from "../../services/orderService";
 
 import type { Order } from "../../types/order";
 
+import {
+  formatStatus,
+  getOrderStatusClasses,
+} from "../../utils/order";
+
+import {
+  ORDER_STATUS,
+  ORDER_STATUS_OPTIONS,
+  DELIVERY_TYPE,
+} from "../../constants/order";
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] =
     useState<Order[]>([]);
@@ -154,57 +165,8 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const formatStatus = (status: string) => {
-    return status
-      .replaceAll("_", " ")
-      .toLowerCase()
-      .replace(/\b\w/g, (char) =>
-        char.toUpperCase()
-      );
-  };
 
-  const getStatusClasses = (
-    status: string
-  ) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-gray-100 text-gray-700";
-
-      case "PREPARING":
-        return "bg-blue-100 text-yellow-800";
-
-      case "OUT_FOR_DELIVERY":
-        return "bg-purple-100 text-purple-800";
-
-      case "DELIVERED":
-        return "bg-green-100 text-green-800";
-
-      case "CANCELLED":
-        return "bg-red-100 text-red-800";
-
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const getPaymentStatusClasses = (
-    status: string
-  ) => {
-    switch (status) {
-      case "PAID":
-        return "bg-green-100 text-green-800";
-
-      case "FAILED":
-        return "bg-red-100 text-red-800";
-
-      case "REFUNDED":
-        return "bg-yellow-100 text-yellow-800";
-
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
+  
   if (loading && orders.length === 0) {
     return (
       <div className="p-8">
@@ -242,25 +204,14 @@ export default function AdminOrdersPage() {
           All Statuses
         </option>
 
-        <option value="PENDING">
-          Pending
-        </option>
-
-        <option value="PREPARING">
-          Preparing
-        </option>
-
-        <option value="OUT_FOR_DELIVERY">
-          Out For Delivery
-        </option>
-
-        <option value="DELIVERED">
-          Delivered
-        </option>
-
-        <option value="CANCELLED">
-          Cancelled
-        </option>
+        {ORDER_STATUS_OPTIONS.map((status) => (
+          <option
+            key={status.value}
+            value={status.value}
+          >
+            {status.label}
+          </option>
+        ))}
 
       </select>
 
@@ -275,11 +226,11 @@ export default function AdminOrdersPage() {
           All Delivery Types
         </option>
 
-        <option value="DELIVERY">
+        <option value={DELIVERY_TYPE.DELIVERY}>
           Delivery
         </option>
 
-        <option value="PICKUP">
+        <option value={DELIVERY_TYPE.PICKUP}>
           Pickup
         </option>
 
@@ -343,9 +294,7 @@ export default function AdminOrdersPage() {
                 <div className="flex flex-col items-start gap-4 md:items-end">
 
                   <span
-                    className={`rounded-lg px-4 py-1 text-sm font-medium ${getStatusClasses(
-                      order.status
-                    )}`}
+                    className={`rounded-lg px-4 py-1 text-sm font-medium ${getOrderStatusClasses(order.status)}`}
                   >
                     {formatStatus(order.status)}
                   </span>
@@ -442,7 +391,7 @@ export default function AdminOrdersPage() {
 
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 
-                      {order.status === "DELIVERED" ? (
+                      {order.status === ORDER_STATUS.DELIVERED ? (
                         <div className="rounded-lg border bg-green-50 px-4 py-3 font-medium text-green-700 opacity-50">
                           Delivered
                         </div>

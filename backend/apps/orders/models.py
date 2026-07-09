@@ -19,21 +19,6 @@ from apps.common.constants import (
 )
 
 class Order(models.Model):
-    # Compatibility aliases (to be removed after refactor)
-
-    STATUS_PENDING = STATUS_PENDING
-    STATUS_PREPARING = STATUS_PREPARING
-    STATUS_OUT_FOR_DELIVERY = STATUS_OUT_FOR_DELIVERY
-    STATUS_DELIVERED = STATUS_DELIVERED
-    STATUS_CANCELLED = STATUS_CANCELLED
-
-    PAYMENT_PENDING = PAYMENT_PENDING
-    PAYMENT_PAID = PAYMENT_PAID
-    PAYMENT_FAILED = PAYMENT_FAILED
-    PAYMENT_REFUNDED = PAYMENT_REFUNDED
-
-    DELIVERY = DELIVERY
-    PICKUP = PICKUP
     
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

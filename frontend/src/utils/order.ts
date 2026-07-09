@@ -1,0 +1,57 @@
+import { ORDER_STATUS } from "../constants/order";
+import { PAYMENT_STATUS } from "../constants/payment";
+
+export function formatStatus(status: string) {
+  return status
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export function formatCurrency(
+  amount: number | string
+) {
+  return `GH₵${Number(amount).toFixed(2)}`;
+}
+
+export function getOrderStatusClasses(
+  status: string
+) {
+  switch (status) {
+    case ORDER_STATUS.PENDING:
+      return "bg-gray-100 text-gray-700";
+
+    case ORDER_STATUS.PREPARING:
+      return "bg-blue-100 text-blue-800";
+
+    case ORDER_STATUS.OUT_FOR_DELIVERY:
+      return "bg-purple-100 text-purple-800";
+
+    case ORDER_STATUS.DELIVERED:
+      return "bg-green-100 text-green-800";
+
+    case ORDER_STATUS.CANCELLED:
+      return "bg-red-100 text-red-800";
+
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}
+
+export function getPaymentStatusClasses(
+  status: string
+) {
+  switch (status) {
+    case PAYMENT_STATUS.PAID:
+      return "bg-green-100 text-green-800";
+
+    case PAYMENT_STATUS.FAILED:
+      return "bg-red-100 text-red-800";
+
+    case PAYMENT_STATUS.REFUNDED:
+      return "bg-yellow-100 text-yellow-800";
+
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}

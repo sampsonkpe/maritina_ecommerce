@@ -6,43 +6,18 @@ import { paymentService } from "../../services/paymentService";
 
 import type { Order } from "../../types/order";
 
+import {
+  formatStatus,
+  formatCurrency,
+  getOrderStatusClasses,
+} from "../../utils/order";
+
+import { ORDER_STATUS } from "../../constants/order";
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrders, setExpandedOrders] = useState<number[]>([]);
-
-  const formatStatus = (status: string) => {
-    return status
-      .replaceAll("_", " ")
-      .toLowerCase()
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-  };
-
-  const formatCurrency = (amount: number | string) => {
-    return `GH₵${Number(amount).toFixed(2)}`;
-  };
-
-  const getStatusClasses = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-gray-100 text-gray-700";
-
-      case "PAID":
-        return "bg-yellow-100 text-yellow-800";
-
-      case "PREPARING":
-        return "bg-blue-100 text-blue-800";
-
-      case "OUT_FOR_DELIVERY":
-        return "bg-purple-100 text-purple-800";
-
-      case "DELIVERED":
-        return "bg-green-100 text-green-800";
-
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
 
   const toggleOrder = (orderId: number) => {
     setExpandedOrders((prev) =>
@@ -146,7 +121,7 @@ export default function OrdersPage() {
                   </p>
                       
                   <span
-                    className={`rounded-lg px-3 py-1 font-semibold ${getStatusClasses(
+                    className={`rounded-lg px-3 py-1 font-semibold ${getOrderStatusClasses(
                       order.status
                     )}`}
                   >
@@ -244,7 +219,7 @@ export default function OrdersPage() {
                 )}
               </div>
 
-              {order.status === "PENDING" && (
+              {order.status === ORDER_STATUS.PENDING && (
                   <button
                     onClick={() =>
                       handlePayment(order.id)
