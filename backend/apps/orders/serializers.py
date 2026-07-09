@@ -6,7 +6,15 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = "__all__"
+        fields = [
+            "id",
+            "product_name",
+            "variant_name",
+            "unit_price",
+            "quantity",
+            "subtotal",
+            "order",
+        ]
 
 
 class OrderSerializer(serializers.ModelSerializer):
