@@ -12,7 +12,7 @@ import {
   getOrderStatusClasses,
 } from "../../utils/order";
 
-import { ORDER_STATUS } from "../../constants/order";
+import { PAYMENT_STATUS } from "../../constants/order";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -219,7 +219,7 @@ export default function OrdersPage() {
                 )}
               </div>
 
-              {order.status === ORDER_STATUS.PENDING && (
+              {order.payment_status === PAYMENT_STATUS.PENDING && (
                   <button
                     onClick={() =>
                       handlePayment(order.id)

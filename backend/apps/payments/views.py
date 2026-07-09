@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.orders.models import Order
 from apps.payments.services.payment_service import PaymentService
 
-from apps.common.constants import STATUS_PENDING
+from apps.common.constants import PAYMENT_PENDING
 
 class InitializePaymentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -21,10 +21,13 @@ class InitializePaymentView(APIView):
                 user=request.user
             )
 
-            if order.status != STATUS_PENDING:
-                return Response({
-                    "error": "Order not eligible for payment"
-                }, status=status.HTTP_400_BAD_REQUEST)
+            if order.payment_status != PAYMENT_PENDING:
+                return Response(
+                    {
+                        "error": "Order has already been paid or cannot be paid."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             response = PaymentService.initialize_payment(
                 order=order,

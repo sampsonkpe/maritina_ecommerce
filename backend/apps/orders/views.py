@@ -64,11 +64,3 @@ class UserOrdersView(APIView):
         )
 
         return Response(serializer.data)
-    
-class OrderListView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        orders = Order.objects.filter(user=request.user).order_by("-created_at")
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)

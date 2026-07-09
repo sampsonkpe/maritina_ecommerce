@@ -110,4 +110,4 @@ class PaystackPaymentService:
 
         order = payment.order
         order.payment_status = PAYMENT_PAID
-        order.save()
+        order.save(update_fields=["payment_status"])
