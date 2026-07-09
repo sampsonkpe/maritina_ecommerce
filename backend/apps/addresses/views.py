@@ -5,101 +5,86 @@ from rest_framework import status
 
 from .models import Address
 from .serializers import AddressSerializer
-from django.shortcuts import get_object_or_404
+from .services import AddressService
+
 
 class AddressListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        addresses = Address.objects.filter(
-            user=request.user).order_by(
-                "-is_default",
-                "-created_at",
-            )
-        
-        serializer = AddressSerializer(addresses, many=True)
+        addresses = AddressService.list_addresses(
+            request.user
+        )
+
+        serializer = AddressSerializer(
+            addresses,
+            many=True,
+        )
+
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = AddressSerializer(data=request.data)
+        serializer = AddressSerializer(
+            data=request.data
+        )
 
-        if serializer.is_valid():
-            has_addresses = Address.objects.filter(
-                user=request.user
-            ).exists()
+        serializer.is_valid(
+            raise_exception=True
+        )
 
-            serializer.save(
-                user=request.user,
-                is_default=not has_addresses,
-            )
-
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED,
-            )
+        address = AddressService.create_address(
+            request.user,
+            serializer.validated_data,
+        )
 
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST,
+            AddressSerializer(address).data,
+            status=status.HTTP_201_CREATED,
         )
-    
+
+
 class AddressDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, pk):
-        address = get_object_or_404(
-            Address,
-            pk=pk,
-            user=request.user
-        )
-
         serializer = AddressSerializer(
-            address,
             data=request.data,
-            partial=True
+            partial=True,
         )
 
-        if serializer.is_valid():
-            serializer.save()
+        serializer.is_valid(
+            raise_exception=True
+        )
 
-            return Response(serializer.data)
+        address = AddressService.update_address(
+            request.user,
+            pk,
+            serializer.validated_data,
+        )
 
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            AddressSerializer(address).data
         )
 
     def delete(self, request, pk):
-        address = get_object_or_404(
-            Address,
-            pk=pk,
-            user=request.user
+        AddressService.delete_address(
+            request.user,
+            pk,
         )
-
-        address.delete()
 
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
-    
+
+
 class SetDefaultAddressView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-
-        address = get_object_or_404(
-            Address,
-            pk=pk,
-            user=request.user
+        AddressService.set_default_address(
+            request.user,
+            pk,
         )
-
-        Address.objects.filter(
-            user=request.user,
-            is_default=True
-        ).update(is_default=False)
-
-        address.is_default = True
-        address.save()
 
         return Response({
             "message": "Default address updated"
