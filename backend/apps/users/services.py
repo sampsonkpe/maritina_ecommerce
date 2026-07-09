@@ -8,7 +8,10 @@ User = get_user_model()
 class UserService:
 
     @staticmethod
-    def register(email, phone, full_name, password):
+    def register(username, email, phone, full_name, password):
+
+        if username and User.objects.filter(username=username).exists():
+            raise ValueError("Username already exists")
 
         if email and User.objects.filter(email=email).exists():
             raise ValueError("Email already exists")
@@ -17,10 +20,11 @@ class UserService:
             raise ValueError("Phone already exists")
 
         user = User.objects.create_user(
+            username=username,
             email=email,
             phone=phone,
             full_name=full_name,
-            password=password
+            password=password,
         )
 
         return user

@@ -10,12 +10,9 @@ from .models import OrderStatusHistory
 from .serializers import OrderSerializer
 
 from apps.common.constants import (
-    STATUS_PENDING,
-    STATUS_PREPARING,
-    STATUS_OUT_FOR_DELIVERY,
     STATUS_DELIVERED,
-    STATUS_CANCELLED,
     ORDER_STATUS_TRANSITIONS,
+    PAYMENT_PAID,
 )
 
 class AdminOrdersView(APIView):
@@ -92,6 +89,17 @@ class UpdateOrderStatusView(APIView):
                     f"to {new_status}"
                 },
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if (
+            new_status == STATUS_DELIVERED
+            and order.payment_status != PAYMENT_PAID
+        ):
+            return Response(
+                {
+                    "error": "Cannot mark an Unpaid order as delivered."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         old_status = order.status
