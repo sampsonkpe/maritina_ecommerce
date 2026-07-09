@@ -17,23 +17,30 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
+        serializer = RegisterSerializer(
+            data=request.data,
+        )
 
-        if serializer.is_valid():
-            data = serializer.validated_data
+        serializer.is_valid(
+            raise_exception=True,
+        )
 
-            try:
-                user = UserService.register(
-                    username=data.get("username"),
-                    email=data.get("email"),
-                    phone=data.get("phone"),
-                    full_name=data["full_name"],
-                    password=data["password"],
-                )
+        data = serializer.validated_data
 
-                tokens = UserService.get_tokens(user)
+        try:
 
-                return Response({
+            user = UserService.register(
+                username=data.get("username"),
+                email=data.get("email"),
+                phone=data.get("phone"),
+                full_name=data["full_name"],
+                password=data["password"],
+            )
+
+            tokens = UserService.get_tokens(user)
+
+            return Response(
+                {
                     "user": {
                         "id": user.id,
                         "username": user.username,
@@ -41,13 +48,17 @@ class RegisterView(APIView):
                         "phone": user.phone,
                         "full_name": user.full_name,
                     },
-                    "tokens": tokens
-                }, status=status.HTTP_201_CREATED)
+                    "tokens": tokens,
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
-            except ValueError as e:
-                return Response({"error": str(e)}, status=400)
+        except ValueError as e:
 
-        return Response(serializer.errors, status=400)
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]

@@ -28,13 +28,20 @@ class CategoryListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = CategorySerializer(data=request.data)
+        serializer = CategorySerializer(
+            data=request.data,
+        )
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer.is_valid(
+            raise_exception=True,
+        )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class ProductListView(ListAPIView):
@@ -54,16 +61,22 @@ class ProductCreateView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request):
-        serializer = ProductSerializer(data=request.data)
+        serializer = ProductSerializer(
+            data=request.data,
+        )
 
-        if serializer.is_valid():
-            product = ProductService.create_product(serializer.validated_data)
-            return Response(
-                ProductSerializer(product).data,
-                status=status.HTTP_201_CREATED
-            )
+        serializer.is_valid(
+            raise_exception=True,
+        )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        product = ProductService.create_product(
+            serializer.validated_data,
+        )
+
+        return Response(
+            ProductSerializer(product).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class ProductDetailView(APIView):

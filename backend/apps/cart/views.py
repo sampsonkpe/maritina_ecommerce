@@ -19,7 +19,7 @@ class CartView(APIView):
     def get(self, request):
 
         cart = CartService.get_or_create_cart(
-            user=request.user if request.user.is_authenticated else None,
+            user=request.user,
             session_id=get_session_id(request)
         )
 
@@ -54,7 +54,7 @@ class AddToCartView(APIView):
                 status=status.HTTP_201_CREATED
             )
 
-        except Exception as e:
+        except ValueError as e:
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -66,7 +66,7 @@ class UpdateCartItemView(APIView):
     def post(self, request):
 
         cart = CartService.get_or_create_cart(
-            user=request.user if request.user.is_authenticated else None,
+            user=request.user,
             session_id=get_session_id(request)
         )
 
@@ -77,8 +77,11 @@ class UpdateCartItemView(APIView):
             CartService.update_quantity(cart, variant_id, quantity)
             return Response({"message": "Cart updated"})
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=400)
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class RemoveFromCartView(APIView):
@@ -87,7 +90,7 @@ class RemoveFromCartView(APIView):
     def post(self, request):
 
         cart = CartService.get_or_create_cart(
-            user=request.user if request.user.is_authenticated else None,
+            user=request.user,
             session_id=get_session_id(request)
         )
 
@@ -102,7 +105,7 @@ class ClearCartView(APIView):
     def post(self, request):
 
         cart = CartService.get_or_create_cart(
-            user=request.user if request.user.is_authenticated else None,
+            user=request.user,
             session_id=get_session_id(request)
         )
 
