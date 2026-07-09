@@ -15,6 +15,7 @@ from apps.common.constants import (
     STATUS_OUT_FOR_DELIVERY,
     STATUS_DELIVERED,
     STATUS_CANCELLED,
+    ORDER_STATUS_TRANSITIONS,
 )
 
 class AdminOrdersView(APIView):
@@ -78,24 +79,11 @@ class UpdateOrderStatusView(APIView):
             )
 
         new_status = request.data.get("status")
-
-        allowed_transitions = {
-            STATUS_PENDING: [
-                STATUS_PREPARING,
-                STATUS_CANCELLED,
-            ],
-            STATUS_PREPARING: [
-                STATUS_OUT_FOR_DELIVERY,
-                STATUS_CANCELLED,
-            ],
-            STATUS_OUT_FOR_DELIVERY: [
-                STATUS_DELIVERED,
-            ],
-            STATUS_DELIVERED: [],
-            STATUS_CANCELLED: [],
-        }
         
-        if new_status not in allowed_transitions.get(order.status, []):
+        if new_status not in ORDER_STATUS_TRANSITIONS.get(
+            order.status,
+            [],
+        ):
             return Response(
                 {
                     "error":
