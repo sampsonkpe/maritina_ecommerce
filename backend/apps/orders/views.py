@@ -7,6 +7,7 @@ from .services import OrderService
 from .serializers import OrderSerializer
 from .models import Order
 
+from apps.common.constants import DELIVERY
 
 class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
@@ -15,7 +16,7 @@ class CreateOrderView(APIView):
 
         delivery_type = request.data.get(
             "delivery_type",
-            Order.DELIVERY
+            DELIVERY
         )
 
         address_id = request.data.get("address_id")

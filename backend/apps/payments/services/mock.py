@@ -6,13 +6,14 @@ from .base import BasePaymentService
 from ..models import Payment
 from apps.orders.models import Order
 
+from apps.common.constants import PAYMENT_PAID
 
 class MockPaymentService(BasePaymentService):
 
     def initialize_payment(self, order, email):
 
         # Prevent duplicate payments
-        if order.status == Order.STATUS_PAID:
+        if order.payment_status == PAYMENT_PAID:
             raise ValidationError("Order is already paid")
 
         reference = f"MOCK-{uuid.uuid4().hex[:10].upper()}"
@@ -45,7 +46,7 @@ class MockPaymentService(BasePaymentService):
         payment.save()
 
         order = payment.order
-        order.status = Order.STATUS_PAID
+        order.payment_status = PAYMENT_PAID
         order.save()
 
         return {

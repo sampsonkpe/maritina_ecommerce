@@ -7,13 +7,15 @@ from django.core.exceptions import ValidationError
 from ..models import Payment
 from apps.orders.models import Order
 
+from apps.common.constants import PAYMENT_PAID
+
 class PaystackPaymentService:
 
     BASE_URL = "https://api.paystack.co"
 
     def initialize_payment(self, order, email):
 
-        if order.status == Order.STATUS_PAID:
+        if order.payment_status == PAYMENT_PAID:
             raise ValidationError("Order is already paid")
         
         reference = (
@@ -107,5 +109,5 @@ class PaystackPaymentService:
         payment.save()
 
         order = payment.order
-        order.status = Order.STATUS_PAID
+        order.payment_status = PAYMENT_PAID
         order.save()

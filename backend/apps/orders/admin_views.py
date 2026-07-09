@@ -9,6 +9,13 @@ from .models import Order
 from .models import OrderStatusHistory
 from .serializers import OrderSerializer
 
+from apps.common.constants import (
+    STATUS_PENDING,
+    STATUS_PREPARING,
+    STATUS_OUT_FOR_DELIVERY,
+    STATUS_DELIVERED,
+    STATUS_CANCELLED,
+)
 
 class AdminOrdersView(APIView):
 
@@ -73,25 +80,21 @@ class UpdateOrderStatusView(APIView):
         new_status = request.data.get("status")
 
         allowed_transitions = {
-            Order.STATUS_PENDING: [
-                Order.STATUS_PREPARING,
-                Order.STATUS_CANCELLED,
+            STATUS_PENDING: [
+                STATUS_PREPARING,
+                STATUS_CANCELLED,
             ],
-
-            Order.STATUS_PREPARING: [
-                Order.STATUS_OUT_FOR_DELIVERY,
-                Order.STATUS_CANCELLED,
+            STATUS_PREPARING: [
+                STATUS_OUT_FOR_DELIVERY,
+                STATUS_CANCELLED,
             ],
-
-            Order.STATUS_OUT_FOR_DELIVERY: [
-                Order.STATUS_DELIVERED,
+            STATUS_OUT_FOR_DELIVERY: [
+                STATUS_DELIVERED,
             ],
-
-            Order.STATUS_DELIVERED: [],
-
-            Order.STATUS_CANCELLED: [],
+            STATUS_DELIVERED: [],
+            STATUS_CANCELLED: [],
         }
-
+        
         if new_status not in allowed_transitions.get(order.status, []):
             return Response(
                 {

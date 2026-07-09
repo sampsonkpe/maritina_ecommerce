@@ -6,6 +6,11 @@ from .delivery import DeliveryService
 from apps.cart.models import Cart
 from apps.addresses.models import Address
 
+from apps.common.constants import (
+    DELIVERY,
+    STATUS_PENDING,
+    PAYMENT_PENDING,
+)
 
 class OrderService:
 
@@ -13,8 +18,8 @@ class OrderService:
     @transaction.atomic
     def create_order_from_cart(
         user,
-        delivery_type="DELIVERY",
-        address_id=None
+        delivery_type=DELIVERY,
+        address_id=None,
     ):
 
         cart = Cart.objects.select_for_update().get(user=user)
@@ -35,7 +40,7 @@ class OrderService:
         delivery_fee = 0
 
         # DELIVERY FLOW
-        if delivery_type == Order.DELIVERY:
+        if delivery_type == DELIVERY:
 
             if not address_id:
                 raise ValueError("Address is required")
@@ -62,8 +67,8 @@ class OrderService:
             delivery_type=delivery_type,
             address=address,
             
-            status=Order.STATUS_PENDING,
-            payment_status=Order.PAYMENT_PENDING,
+            status=STATUS_PENDING,
+            payment_status=PAYMENT_PENDING,
         )
 
         for item in items:

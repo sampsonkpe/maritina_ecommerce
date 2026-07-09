@@ -2,6 +2,11 @@ from django.contrib import admin
 
 from .models import Order, OrderItem, OrderStatusHistory
 
+from apps.common.constants import (
+    STATUS_PREPARING,
+    STATUS_OUT_FOR_DELIVERY,
+    STATUS_DELIVERED,
+)
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -47,7 +52,7 @@ class OrderAdmin(admin.ModelAdmin):
         queryset
     ):
         queryset.update(
-            status=Order.STATUS_PREPARING
+            status=STATUS_PREPARING
         )
 
     @admin.action(
@@ -59,7 +64,7 @@ class OrderAdmin(admin.ModelAdmin):
         queryset
     ):
         queryset.update(
-            status=Order.STATUS_OUT_FOR_DELIVERY
+            status=STATUS_OUT_FOR_DELIVERY
         )
 
     @admin.action(
@@ -71,7 +76,7 @@ class OrderAdmin(admin.ModelAdmin):
         queryset
     ):
         queryset.update(
-            status=Order.STATUS_DELIVERED
+            status=STATUS_DELIVERED
         )
 
 

@@ -1,47 +1,40 @@
 from django.db import models
 from django.conf import settings
 
+from apps.common.constants import (
+    STATUS_PENDING,
+    STATUS_PREPARING,
+    STATUS_OUT_FOR_DELIVERY,
+    STATUS_DELIVERED,
+    STATUS_CANCELLED,
+    FULFILMENT_STATUS_CHOICES,
+    PAYMENT_PENDING,
+    PAYMENT_PAID,
+    PAYMENT_FAILED,
+    PAYMENT_REFUNDED,
+    PAYMENT_STATUS_CHOICES,
+    DELIVERY,
+    PICKUP,
+    DELIVERY_TYPE_CHOICES,
+)
 
 class Order(models.Model):
+    # Compatibility aliases (to be removed after refactor)
 
-    # Fulfilment status
+    STATUS_PENDING = STATUS_PENDING
+    STATUS_PREPARING = STATUS_PREPARING
+    STATUS_OUT_FOR_DELIVERY = STATUS_OUT_FOR_DELIVERY
+    STATUS_DELIVERED = STATUS_DELIVERED
+    STATUS_CANCELLED = STATUS_CANCELLED
 
-    STATUS_PENDING = "PENDING"
-    STATUS_PREPARING = "PREPARING"
-    STATUS_OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
-    STATUS_DELIVERED = "DELIVERED"
-    STATUS_CANCELLED = "CANCELLED"
+    PAYMENT_PENDING = PAYMENT_PENDING
+    PAYMENT_PAID = PAYMENT_PAID
+    PAYMENT_FAILED = PAYMENT_FAILED
+    PAYMENT_REFUNDED = PAYMENT_REFUNDED
 
-    STATUS_CHOICES = [
-        (STATUS_PENDING, "Pending"),
-        (STATUS_PREPARING, "Preparing"),
-        (STATUS_OUT_FOR_DELIVERY, "Out for Delivery"),
-        (STATUS_DELIVERED, "Delivered"),
-        (STATUS_CANCELLED, "Cancelled"),
-    ]
-
-    # Payment status
-
-    PAYMENT_PENDING = "PENDING"
-    PAYMENT_PAID = "PAID"
-    PAYMENT_FAILED = "FAILED"
-    PAYMENT_REFUNDED = "REFUNDED"
-
-    PAYMENT_STATUS_CHOICES = [
-        (PAYMENT_PENDING, "Pending"),
-        (PAYMENT_PAID, "Paid"),
-        (PAYMENT_FAILED, "Failed"),
-        (PAYMENT_REFUNDED, "Refunded"),
-    ]
-
-    DELIVERY = "DELIVERY"
-    PICKUP = "PICKUP"
-
-    DELIVERY_CHOICES = [
-        (DELIVERY, "Delivery"),
-        (PICKUP, "Pickup"),
-    ]
-
+    DELIVERY = DELIVERY
+    PICKUP = PICKUP
+    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
@@ -55,14 +48,14 @@ class Order(models.Model):
 
     status = models.CharField(
         max_length=30,
-        choices=STATUS_CHOICES,
-        default=STATUS_PENDING
+        choices=FULFILMENT_STATUS_CHOICES,
+        default=STATUS_PENDING,
     )
 
     payment_status = models.CharField(
         max_length=20,
         choices=PAYMENT_STATUS_CHOICES,
-        default=PAYMENT_PENDING
+        default=PAYMENT_PENDING,
     )
 
     payment_reference = models.CharField(
@@ -79,8 +72,8 @@ class Order(models.Model):
 
     delivery_type = models.CharField(
         max_length=20,
-        choices=DELIVERY_CHOICES,
-        default=DELIVERY
+        choices=DELIVERY_TYPE_CHOICES,
+        default=DELIVERY,
     )
 
     address = models.ForeignKey(
