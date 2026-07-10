@@ -6,15 +6,11 @@ import { paymentService } from "../../services/paymentService";
 
 import type { Order } from "../../types/order";
 
-import {
-  formatStatus,
-  getStatusClasses,
-} from "../../utils/status";
-
 import { formatCurrency } from "../../utils/currency";
 import { formatDate } from "../../utils/date";
 
 import { PAYMENT_STATUS } from "../../constants/payment";
+import StatusBadge from "../../components/common/StatusBadge";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -122,13 +118,7 @@ export default function OrdersPage() {
                       : ""}
                   </p>
                       
-                  <span
-                    className={`rounded-lg px-3 py-1 font-semibold ${getStatusClasses(
-                      order.status
-                    )}`}
-                  >
-                    {formatStatus(order.status)}
-                  </span>
+                  <StatusBadge status={order.status} />
                 </div>
               </div>
 

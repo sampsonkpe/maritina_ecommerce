@@ -7,11 +7,7 @@ import {
 import { orderService } from "../../services/orderService";
 
 import type { Order } from "../../types/order";
-
-import {
-  formatStatus,
-  getStatusClasses,
-} from "../../utils/status";
+import { formatStatus } from "../../utils/status";
 
 import { formatCurrency } from "../../utils/currency";
 import { formatDate } from "../../utils/date";
@@ -22,6 +18,8 @@ import {
   ORDER_STATUS_TRANSITIONS,
   DELIVERY_TYPE,
 } from "../../constants/order";
+
+import StatusBadge from "../../components/common/StatusBadge";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] =
@@ -311,11 +309,7 @@ export default function AdminOrdersPage() {
 
                 <div className="flex flex-col items-start gap-4 md:items-end">
 
-                  <span
-                    className={`rounded-lg px-4 py-1 text-sm font-medium ${getStatusClasses(order.status)}`}
-                  >
-                    {formatStatus(order.status)}
-                  </span>
+                  <StatusBadge status={order.status} />
 
                   <div className="flex items-center gap-4 pr-4">
 
@@ -407,13 +401,7 @@ export default function AdminOrdersPage() {
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 
                       {isFinalStatus ? (
-                        <div
-                          className={`rounded-lg px-4 py-3 font-medium ${getStatusClasses(
-                            order.status
-                          )}`}
-                        >
-                          {formatStatus(order.status)}
-                        </div>
+                        <StatusBadge status={order.status} />
                       ) : (
                         <>
                           <select
