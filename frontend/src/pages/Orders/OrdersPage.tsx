@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { orderService } from "../../services/orderService";
 import { paymentService } from "../../services/paymentService";
 
 import type { Order } from "../../types/order";
 
-import { formatCurrency } from "../../utils/currency";
-import { formatDate } from "../../utils/date";
-
 import { PAYMENT_STATUS } from "../../constants/payment";
-import StatusBadge from "../../components/common/StatusBadge";
+import OrderItemsList from "../../components/orders/OrderItemsList";
+import OrderSummary from "../../components/orders/OrderSummary";
+import PageHeader from "../../components/common/PageHeader";
+import OrderHeader from "../../components/orders/OrderHeader";
+import OrderFooter from "../../components/orders/OrderFooter";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -92,9 +92,7 @@ export default function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-5xl p-8">
-      <h1 className="mb-8 text-3xl font-bold">
-        My Orders
-      </h1>
+      <PageHeader title="My Orders" />
 
       {orders.length === 0 ? (
         <p>No orders found.</p>
@@ -105,112 +103,29 @@ export default function OrdersPage() {
               key={order.id}
               className="rounded-lg border bg-white p-6 shadow-sm"
             >
-              <div>
-                <h2 className="text-lg font-semibold">
-                  Order #{order.id}
-                </h2>
+              <OrderHeader
+                order={order}
+                expanded={expandedOrders.includes(order.id)}
+                onToggle={() => toggleOrder(order.id)}
+              />
 
-                <div className="mt-3 flex w-full items-center justify-between">
-                  <p className="text-gray-700">
-                    {order.delivery_type_display}
-                    {order.address_text
-                      ? ` - ${order.address_text}`
-                      : ""}
-                  </p>
-                      
-                  <StatusBadge status={order.status} />
-                </div>
-              </div>
+              {expandedOrders.includes(order.id) && (
+                <OrderItemsList items={order.items} />
+              )}
 
-              <div className="mt-6">
-                <button
-                  onClick={() => toggleOrder(order.id)}
-                  className="mb-3 flex w-full items-center justify-between rounded-lg p-2 hover:bg-gray-50"
-                >
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    Order Items ({order.items.length})
-                  </h3>
+              <OrderSummary
+                subtotal={order.subtotal}
+                deliveryFee={order.delivery_fee}
+                total={order.total_amount}
+              />
 
-                  {expandedOrders.includes(order.id) ? (
-                    <ChevronUp size={18} />
-                  ) : (
-                    <ChevronDown size={18} />
-                  )}
-                </button>
-
-                {expandedOrders.includes(order.id) && (
-                <div className="space-y-3">
-                  {order.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-lg bg-gray-50 p-4"
-                    >
-                      <p className="font-medium">
-                        {item.product_name}
-                      </p>
-
-                      <p className="text-sm text-gray-500">
-                        {item.variant_name}
-                      </p>
-
-                      <div className="mt-2 flex justify-between text-sm">
-                        <span>
-                          Qty: {item.quantity}
-                        </span>
-
-                        <span className="font-medium">
-                          {formatCurrency(item.subtotal)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                )}
-              </div>
-
-              <div className="mt-5 rounded-lg border bg-gray-50 p-4">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal</span>
-
-                  <span>
-                    {formatCurrency(order.subtotal)}
-                  </span>
-                </div>
-
-                <div className="mt-2 flex justify-between text-sm">
-                  <span>Delivery Fee</span>
-
-                  <span>
-                    {formatCurrency(order.delivery_fee)}
-                  </span>
-                </div>
-
-                <div className="mt-3 flex justify-between border-t pt-3 font-semibold">
-                  <span>Total</span>
-
-                  <span>
-                    {formatCurrency(order.total_amount)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between">
-              <div className="text-sm text-gray-500">
-                Order placed on{" "}
-                {formatDate(order.created_at)}
-              </div>
-
-              {order.payment_status === PAYMENT_STATUS.PENDING && (
-                  <button
-                    onClick={() =>
-                      handlePayment(order.id)
-                    }
-                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
-                  >
-                    Pay Now
-                  </button>
-                )}
-              </div>
+              <OrderFooter
+              createdAt={order.created_at}
+              showPayButton={
+                order.payment_status === PAYMENT_STATUS.PENDING
+              }
+              onPay={() => handlePayment(order.id)}
+            />
             </div>
           ))}
         </div>
