@@ -74,6 +74,8 @@ export default function AdminOrdersPage() {
           search: debouncedSearch,
         });
 
+      console.log("Admin orders:", data);
+
       setOrders(data);
 
       const initialStatuses:

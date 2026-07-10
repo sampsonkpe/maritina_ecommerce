@@ -35,12 +35,12 @@ class UserService:
 
         email_pattern = r"[^@]+@[^@]+\.[^@]+"
 
-        if re.match(email_pattern, identifier):
+        if re.match(email_pattern, str(identifier)):
             user = User.objects.filter(
                 email=identifier
             ).first()
 
-        elif identifier.isdigit():
+        elif str(identifier).isdigit():
             user = User.objects.filter(
                 phone=identifier
             ).first()
