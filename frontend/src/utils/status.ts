@@ -36,14 +36,17 @@ export function getPaymentStatusClasses(
   status: string
 ) {
   switch (status) {
+    case PAYMENT_STATUS.PENDING:
+      return "bg-amber-100 text-amber-800";
+
     case PAYMENT_STATUS.PAID:
-      return "bg-green-100 text-green-800";
+      return "bg-emerald-100 text-emerald-800";
 
     case PAYMENT_STATUS.FAILED:
       return "bg-red-100 text-red-800";
 
     case PAYMENT_STATUS.REFUNDED:
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-indigo-100 text-indigo-800";
 
     default:
       return "bg-gray-100 text-gray-700";

@@ -19,6 +19,7 @@ import { formatDate } from "../../utils/date";
 import {
   ORDER_STATUS,
   ORDER_STATUS_OPTIONS,
+  ORDER_STATUS_TRANSITIONS,
   DELIVERY_TYPE,
 } from "../../constants/order";
 
@@ -261,7 +262,21 @@ export default function AdminOrdersPage() {
         </div>
       ) : (
         <div className="space-y-5">
-          {orders.map((order) => (
+          {orders.map((order) => {
+
+            const availableStatuses = [
+              order.status,
+              ...ORDER_STATUS_TRANSITIONS[
+                order.status as keyof typeof ORDER_STATUS_TRANSITIONS
+              ],
+            ];
+
+            const isFinalStatus =
+              order.status === ORDER_STATUS.DELIVERED ||
+              order.status === ORDER_STATUS.CANCELLED;
+
+            return (
+
             <div
               key={order.id}
               className="rounded-lg border bg-white p-6 shadow-sm"
@@ -387,13 +402,17 @@ export default function AdminOrdersPage() {
 
                     <h3 className="mb-4 font-semibold">
                       Order Status
-                    </h3>
+                    </h3>     
 
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 
-                      {order.status === ORDER_STATUS.DELIVERED ? (
-                        <div className="rounded-lg border bg-green-50 px-4 py-3 font-medium text-green-700 opacity-50">
-                          Delivered
+                      {isFinalStatus ? (
+                        <div
+                          className={`rounded-lg px-4 py-3 font-medium ${getStatusClasses(
+                            order.status
+                          )}`}
+                        >
+                          {formatStatus(order.status)}
                         </div>
                       ) : (
                         <>
@@ -410,25 +429,14 @@ export default function AdminOrdersPage() {
                             }
                             className="rounded-lg border px-4 py-3"
                           >
-                            <option value="PENDING">
-                              Pending
-                            </option>
-
-                            <option value="PREPARING">
-                              Preparing
-                            </option>
-
-                            <option value="OUT_FOR_DELIVERY">
-                              Out for Delivery
-                            </option>
-
-                            <option value="DELIVERED">
-                              Delivered
-                            </option>
-
-                            <option value="CANCELLED">
-                              Cancelled
-                            </option>
+                            {availableStatuses.map((status) => (
+                              <option
+                                key={status}
+                                value={status}
+                              >
+                                {formatStatus(status)}
+                              </option>
+                            ))}
                           </select>
 
                           <button
@@ -437,7 +445,8 @@ export default function AdminOrdersPage() {
                               handleUpdateStatus(order.id)
                             }
                             disabled={
-                              updatingOrders.includes(order.id)
+                              updatingOrders.includes(order.id) ||
+                              (selectedStatuses[order.id] ?? order.status) === order.status
                             }
                             className="rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                           >
@@ -455,7 +464,7 @@ export default function AdminOrdersPage() {
                 </div>
               )}
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

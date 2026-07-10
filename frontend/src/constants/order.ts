@@ -33,3 +33,23 @@ export const ORDER_STATUS_OPTIONS = [
     label: "Cancelled",
   },
 ];
+
+export const ORDER_STATUS_TRANSITIONS = {
+  PENDING: [
+    ORDER_STATUS.PREPARING,
+    ORDER_STATUS.CANCELLED,
+  ],
+
+  PREPARING: [
+    ORDER_STATUS.OUT_FOR_DELIVERY,
+    ORDER_STATUS.CANCELLED,
+  ],
+
+  OUT_FOR_DELIVERY: [
+    ORDER_STATUS.DELIVERED,
+  ],
+
+  DELIVERED: [],
+
+  CANCELLED: [],
+} as const;
