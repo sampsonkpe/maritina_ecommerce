@@ -13,6 +13,8 @@ import { cartService } from "../../services/cartService";
 import type { Address } from "../../types/address";
 import type { Cart } from "../../types/cart";
 
+import { formatCurrency } from "../../utils/currency";
+
 export default function CheckoutPage() {
   const [addresses, setAddresses] =
     useState<Address[]>([]);
@@ -322,10 +324,7 @@ export default function CheckoutPage() {
                 </span>
 
                 <span className="font-medium">
-                  GH₵
-                  {Number(
-                    item.subtotal
-                  ).toFixed(2)}
+                  {formatCurrency(item.subtotal)}
                 </span>
 
               </div>
@@ -341,10 +340,7 @@ export default function CheckoutPage() {
               </span>
 
               <span>
-                GH₵
-                {Number(
-                  cart?.subtotal ?? 0
-                ).toFixed(2)}
+                {formatCurrency(cart?.subtotal ?? 0)}
               </span>
             </div>
 
@@ -356,10 +352,7 @@ export default function CheckoutPage() {
                 </span>
 
                 <span>
-                  GH₵
-                  {deliveryFee.toFixed(
-                    2
-                  )}
+                  {formatCurrency(deliveryFee)}
                 </span>
               </div>
             )}
@@ -369,8 +362,7 @@ export default function CheckoutPage() {
               <span>Total</span>
 
               <span>
-                GH₵
-                {total.toFixed(2)}
+                {formatCurrency(total)}
               </span>
 
             </div>

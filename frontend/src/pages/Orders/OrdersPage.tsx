@@ -8,11 +8,13 @@ import type { Order } from "../../types/order";
 
 import {
   formatStatus,
-  formatCurrency,
-  getOrderStatusClasses,
-} from "../../utils/order";
+  getStatusClasses,
+} from "../../utils/status";
 
-import { PAYMENT_STATUS } from "../../constants/order";
+import { formatCurrency } from "../../utils/currency";
+import { formatDate } from "../../utils/date";
+
+import { PAYMENT_STATUS } from "../../constants/payment";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -121,7 +123,7 @@ export default function OrdersPage() {
                   </p>
                       
                   <span
-                    className={`rounded-lg px-3 py-1 font-semibold ${getOrderStatusClasses(
+                    className={`rounded-lg px-3 py-1 font-semibold ${getStatusClasses(
                       order.status
                     )}`}
                   >
@@ -205,18 +207,7 @@ export default function OrdersPage() {
               <div className="mt-5 flex items-center justify-between">
               <div className="text-sm text-gray-500">
                 Order placed on{" "}
-                {new Date(
-                  order.created_at
-                ).toLocaleString(
-                  "en-GB",
-                  {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  }
-                )}
+                {formatDate(order.created_at)}
               </div>
 
               {order.payment_status === PAYMENT_STATUS.PENDING && (

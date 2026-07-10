@@ -7,6 +7,8 @@ import type {
   CartItem,
 } from "../../types/cart";
 
+import { formatCurrency } from "../../utils/currency";
+
 export default function CartPage() {
   const [cart, setCart] =
     useState<Cart | null>(null);
@@ -158,7 +160,7 @@ export default function CartPage() {
 
                   <div className="text-right">
                     <p>
-                      GHS {item.subtotal}
+                      {formatCurrency(item.subtotal)}
                     </p>
 
                     <button
@@ -179,7 +181,7 @@ export default function CartPage() {
 
           <div className="mt-8 border-t pt-6">
             <h2 className="text-2xl font-bold">
-              Total: GHS {total}
+              Total: {formatCurrency(total)}
             </h2>
 
             <button

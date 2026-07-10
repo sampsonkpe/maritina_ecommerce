@@ -8,13 +8,7 @@ export function formatStatus(status: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-export function formatCurrency(
-  amount: number | string
-) {
-  return `GH₵${Number(amount).toFixed(2)}`;
-}
-
-export function getOrderStatusClasses(
+export function getStatusClasses(
   status: string
 ) {
   switch (status) {

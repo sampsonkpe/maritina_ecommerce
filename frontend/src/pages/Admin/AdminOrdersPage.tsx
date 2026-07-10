@@ -10,8 +10,11 @@ import type { Order } from "../../types/order";
 
 import {
   formatStatus,
-  getOrderStatusClasses,
-} from "../../utils/order";
+  getStatusClasses,
+} from "../../utils/status";
+
+import { formatCurrency } from "../../utils/currency";
+import { formatDate } from "../../utils/date";
 
 import {
   ORDER_STATUS,
@@ -285,9 +288,7 @@ export default function AdminOrdersPage() {
                   </p>
 
                   <p className="mt-2 text-sm text-gray-500">
-                    {new Date(
-                      order.created_at
-                    ).toLocaleString()}
+                    {formatDate(order.created_at)}
                   </p>
                 </div>
 
@@ -296,7 +297,7 @@ export default function AdminOrdersPage() {
                 <div className="flex flex-col items-start gap-4 md:items-end">
 
                   <span
-                    className={`rounded-lg px-4 py-1 text-sm font-medium ${getOrderStatusClasses(order.status)}`}
+                    className={`rounded-lg px-4 py-1 text-sm font-medium ${getStatusClasses(order.status)}`}
                   >
                     {formatStatus(order.status)}
                   </span>
@@ -304,10 +305,7 @@ export default function AdminOrdersPage() {
                   <div className="flex items-center gap-4 pr-4">
 
                     <p className="text-3xl font-bold">
-                      GH₵
-                      {Number(
-                        order.total_amount
-                      ).toFixed(2)}
+                      {formatCurrency(order.total_amount)}
                     </p>
 
                     <button
