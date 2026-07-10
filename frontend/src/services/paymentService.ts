@@ -1,9 +1,25 @@
 import api from "../api/axios";
 
+interface InitializePaymentResponse {
+  status: boolean;
+  message: string;
+
+  data: {
+    authorization_url: string;
+    access_code: string;
+    reference: string;
+  };
+}
+
+interface VerifyPaymentResponse {
+  message: string;
+  data: unknown;
+}
+
 export const paymentService = {
   async initializePayment(
     orderId: number
-  ) {
+  ): Promise<InitializePaymentResponse> {
     const response = await api.post(
       "/payments/initialize/",
       {
@@ -16,7 +32,7 @@ export const paymentService = {
 
   async verifyPayment(
     reference: string
-  ) {
+  ): Promise<VerifyPaymentResponse> {
     const response = await api.get(
       `/payments/verify/${reference}/`
     );
