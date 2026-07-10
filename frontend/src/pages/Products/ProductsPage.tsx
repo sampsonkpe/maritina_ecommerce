@@ -7,6 +7,9 @@ import { productService } from "../../services/productService";
 import type { Product } from "../../types/product";
 import type { Category } from "../../types/category";
 
+
+import LoadingState from "../../components/common/LoadingState";
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -47,9 +50,9 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        Loading products...
-      </div>
+      <LoadingState
+        message="Loading orders..."
+      />
     );
   }
 

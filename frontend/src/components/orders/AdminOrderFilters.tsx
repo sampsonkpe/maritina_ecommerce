@@ -3,6 +3,8 @@ import {
   ORDER_STATUS_OPTIONS,
 } from "../../constants/order";
 
+import Button from "../common/Button";
+
 interface AdminOrderFiltersProps {
   search: string;
   statusFilter: string;
@@ -76,13 +78,13 @@ export default function AdminOrderFilters({
         </option>
       </select>
 
-      <button
+      <Button
         type="button"
+        variant="secondary"
         onClick={onClear}
-        className="rounded-lg border px-5 py-3 transition hover:bg-gray-100"
       >
         Clear Filters
-      </button>
+      </Button>
 
     </div>
   );

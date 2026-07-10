@@ -5,6 +5,10 @@ import { orderService } from "../../services/orderService";
 import type { Order } from "../../types/order";
 
 import PageHeader from "../../components/common/PageHeader";
+import LoadingState from "../../components/common/LoadingState";
+import EmptyState from "../../components/common/EmptyState";
+import PageContainer from "../../components/common/PageContainer";
+
 import OrderHeader from "../../components/orders/OrderHeader";
 import AdminOrderFilters from "../../components/orders/AdminOrderFilters";
 import AdminOrderDetails from "../../components/orders/AdminOrderDetails";
@@ -159,14 +163,14 @@ export default function AdminOrdersPage() {
   
   if (loading) {
     return (
-      <div className="p-8">
-        Loading orders...
-      </div>
+      <LoadingState
+        message="Loading orders..."
+      />
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl p-8">
+    <PageContainer>
       <PageHeader title="All Orders" />
 
       <AdminOrderFilters
@@ -184,9 +188,7 @@ export default function AdminOrdersPage() {
         />
 
         {orders.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-10 text-center text-gray-500">
-            No orders found.
-          </div>
+          <EmptyState title="No orders found." />
         ) : (
         <div className="space-y-5">
           {orders.map((order) => (
@@ -228,6 +230,6 @@ export default function AdminOrdersPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

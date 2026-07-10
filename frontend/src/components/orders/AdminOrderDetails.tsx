@@ -1,5 +1,7 @@
 import type { Order } from "../../types/order";
 
+import SectionTitle from "../common/SectionTitle";
+
 import OrderItemsList from "./OrderItemsList";
 import OrderStatusEditor from "./OrderStatusEditor";
 
@@ -22,9 +24,9 @@ export default function AdminOrderDetails({
     <div className="mt-6 border-t pt-6">
 
       <div>
-        <h3 className="font-semibold">
+        <SectionTitle>
           Delivery Address
-        </h3>
+        </SectionTitle>
 
         <p className="mt-2 text-gray-600">
           {order.address_text ??
@@ -33,9 +35,9 @@ export default function AdminOrderDetails({
       </div>
 
       <div className="mt-8">
-        <h3 className="font-semibold">
-          Items ({order.items.length})
-        </h3>
+        <SectionTitle>
+          Items
+        </SectionTitle>
 
         <OrderItemsList
           items={order.items}

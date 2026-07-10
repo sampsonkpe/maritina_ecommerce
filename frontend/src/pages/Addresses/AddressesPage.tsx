@@ -4,6 +4,8 @@ import { addressService } from "../../services/addressService";
 
 import type { Address } from "../../types/address";
 
+import LoadingState from "../../components/common/LoadingState";
+
 export default function AddressesPage() {
   const [addresses, setAddresses] =
     useState<Address[]>([]);
@@ -114,9 +116,9 @@ export default function AddressesPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        Loading addresses...
-      </div>
+      <LoadingState
+        message="Loading orders..."
+      />
     );
   }
 

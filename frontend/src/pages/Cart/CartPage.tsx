@@ -8,6 +8,8 @@ import type {
 } from "../../types/cart";
 
 import { formatCurrency } from "../../utils/currency";
+import LoadingState from "../../components/common/LoadingState";
+import PageContainer from "../../components/common/PageContainer";
 
 export default function CartPage() {
   const [cart, setCart] =
@@ -87,9 +89,9 @@ export default function CartPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        Loading cart...
-      </div>
+      <LoadingState
+        message="Loading orders..."
+      />
     );
   }
 
@@ -101,7 +103,7 @@ export default function CartPage() {
     ) ?? 0;
 
   return (
-    <div className="mx-auto max-w-5xl p-8">
+    <PageContainer>
       <h1 className="mb-8 text-3xl font-bold">
         Cart
       </h1>
@@ -193,6 +195,6 @@ export default function CartPage() {
           </div>
         </>
       )}
-    </div>
+    </PageContainer>
   );
 }

@@ -1,6 +1,7 @@
 import type { Order } from "../../types/order";
 
 import StatusBadge from "../common/StatusBadge";
+import Button from "../common/Button";
 
 import {
   ORDER_STATUS,
@@ -63,19 +64,19 @@ export default function OrderStatusEditor({
               ))}
             </select>
 
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={onUpdate}
               disabled={
                 updating ||
                 selectedStatus === order.status
               }
-              className="rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {updating
                 ? "Updating..."
                 : "Update Status"}
-            </button>
+            </Button>
           </>
         )}
       </div>

@@ -6,9 +6,13 @@ import { paymentService } from "../../services/paymentService";
 import type { Order } from "../../types/order";
 
 import { PAYMENT_STATUS } from "../../constants/payment";
+import PageHeader from "../../components/common/PageHeader";
+import LoadingState from "../../components/common/LoadingState";
+import EmptyState from "../../components/common/EmptyState";
+import PageContainer from "../../components/common/PageContainer";
+
 import OrderItemsList from "../../components/orders/OrderItemsList";
 import OrderSummary from "../../components/orders/OrderSummary";
-import PageHeader from "../../components/common/PageHeader";
 import OrderHeader from "../../components/orders/OrderHeader";
 import OrderFooter from "../../components/orders/OrderFooter";
 
@@ -84,18 +88,18 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        Loading orders...
-      </div>
+      <LoadingState
+        message="Loading orders..."
+      />
     );
   }
 
   return (
-    <div className="mx-auto max-w-5xl p-8">
+    <PageContainer>
       <PageHeader title="My Orders" />
 
       {orders.length === 0 ? (
-        <p>No orders found.</p>
+        <EmptyState title="No orders found." />
       ) : (
         <div className="space-y-6">
           {orders.map((order) => (
@@ -130,6 +134,6 @@ export default function OrdersPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

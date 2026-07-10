@@ -1,5 +1,7 @@
 import { formatDate } from "../../utils/date";
 
+import Button from "../common/Button";
+
 interface OrderFooterProps {
   createdAt: string;
   showPayButton?: boolean;
@@ -18,13 +20,13 @@ export default function OrderFooter({
       </div>
 
       {showPayButton && (
-        <button
+        <Button
           type="button"
+          variant="success"
           onClick={onPay}
-          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
         >
           Pay Now
-        </button>
+        </Button>
       )}
     </div>
   );

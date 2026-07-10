@@ -9,6 +9,9 @@ import type {
   ProductVariant,
 } from "../../types/product";
 
+import LoadingState from "../../components/common/LoadingState";
+import PageContainer from "../../components/common/PageContainer";
+
 export default function ProductDetailPage() {
   const { id } = useParams();
 
@@ -62,9 +65,9 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        Loading...
-      </div>
+      <LoadingState
+        message="Loading orders..."
+      />
     );
   }
 
@@ -77,7 +80,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl p-8">
+    <PageContainer>
       <div className="grid gap-10 md:grid-cols-2">
 
         <div>
@@ -152,6 +155,6 @@ export default function ProductDetailPage() {
         </div>
 
       </div>
-    </div>
+    </PageContainer>
   );
 }
