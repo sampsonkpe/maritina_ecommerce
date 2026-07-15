@@ -1,14 +1,17 @@
 import uuid
-
 import requests
+import logging
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import transaction
+
 from ..models import Payment
-from apps.orders.models import Order
+from requests.exceptions import RequestException
 
 from apps.common.constants import PAYMENT_PAID
 
+logger = logging.getLogger(__name__)
 class PaystackPaymentService:
 
     BASE_URL = "https://api.paystack.co"
@@ -45,13 +48,26 @@ class PaystackPaymentService:
             "callback_url": f"{settings.FRONTEND_URL}/orders",
         }
 
-        response = requests.post(
-            url,
-            json=payload,
-            headers=headers,
-        )
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                headers=headers,
+                timeout=15,
+            )
 
-        return response.json()
+            response.raise_for_status()
+
+            return response.json()
+
+        except RequestException as e:
+            logger.exception(
+                "Failed to initialise Paystack payment."
+            )
+
+            raise ValidationError(
+                "Unable to contact Paystack. Please try again."
+            ) from e
 
     def verify_payment(self, reference):
 
@@ -64,12 +80,26 @@ class PaystackPaymentService:
             "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
         }
 
-        response = requests.get(
-            url,
-            headers=headers,
-        )
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                timeout=15,
+            )
 
-        result = response.json()
+            response.raise_for_status()
+
+            result = response.json()
+
+        except RequestException:
+            logger.exception(
+                "Failed to verify Paystack payment."
+            )
+
+            return {
+                "status": False,
+                "message": "Payment verification failed.",
+            }
 
         if (
             result.get("status") is True
@@ -80,21 +110,48 @@ class PaystackPaymentService:
         return result
 
     def webhook(self, payload):
-        return payload
 
+        if payload.get("event") != "charge.success":
+            return
+
+        reference = (
+            payload.get("data", {})
+            .get("reference")
+        )
+
+        if reference:
+            self.mark_as_paid(reference)
+
+    @transaction.atomic
     def mark_as_paid(self, reference):
 
         try:
-            payment = Payment.objects.get(
-                reference=reference
-            )
+            payment = Payment.objects.select_related(
+                "order"
+            ).get(reference=reference)
+
         except Payment.DoesNotExist:
+            logger.warning(
+                "Payment reference %s not found.",
+                reference,
+            )
 
             return
-        
-        payment.status = Payment.STATUS_SUCCESS
-        payment.save()
 
         order = payment.order
+
+        if (
+            payment.status == Payment.STATUS_SUCCESS
+            and order.payment_status == PAYMENT_PAID
+        ):
+            return
+
+        payment.status = Payment.STATUS_SUCCESS
+        payment.save(update_fields=["status"])
+
         order.payment_status = PAYMENT_PAID
         order.save(update_fields=["payment_status"])
+        logger.info(
+            "Order %s marked as paid.",
+            order.id,
+        )
