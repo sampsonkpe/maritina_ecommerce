@@ -118,6 +118,7 @@ export default function CheckoutAddressSelector({
                     <>
                       <button
                         type="button"
+                        aria-expanded={showAddresses}
                         onClick={onToggleAddresses}
                         className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-black"
                       >

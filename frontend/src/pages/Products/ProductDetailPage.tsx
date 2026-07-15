@@ -140,6 +140,7 @@ export default function ProductDetailPage() {
             </label>
 
             <input
+              aria-label="Password"
               type="number"
               min="1"
               value={quantity}

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import { authService } from "../../services/authService";
 
+import Alert from "../../components/common/Alert";
+
 import {
   saveTokens,
 } from "../../utils/auth";
@@ -55,6 +57,7 @@ export default function LoginPage() {
         className="space-y-4"
       >
         <input
+          aria-label="Username, Email or Phone"
           type="text"
           placeholder="Username, Email or Phone"
           value={identifier}
@@ -67,6 +70,7 @@ export default function LoginPage() {
         />
 
         <input
+          aria-label="Password"
           type="password"
           placeholder="Password"
           value={password}
@@ -78,11 +82,7 @@ export default function LoginPage() {
           className="w-full rounded-lg border p-3"
         />
 
-        {error && (
-          <p className="text-red-600">
-            {error}
-          </p>
-        )}
+        {error && <Alert message={error} />}
 
         <button
           type="submit"

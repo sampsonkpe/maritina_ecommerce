@@ -130,6 +130,7 @@ export default function CartPage() {
 
                     <div className="mt-2 flex items-center gap-3">
                       <button
+                        aria-label="Decrease quantity"
                         disabled={item.quantity <= 1}
                         onClick={() =>
                           handleDecrease(
@@ -147,6 +148,7 @@ export default function CartPage() {
                       </span>
 
                       <button
+                        aria-label="Increase quantity"
                         onClick={() =>
                           handleIncrease(
                             item.variant,

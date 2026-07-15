@@ -59,6 +59,12 @@ export default function OrderHeader({
 
           <button
             type="button"
+            aria-label={
+              expanded
+                ? "Collapse order"
+                : "Expand order"
+            }
+            aria-expanded={expanded}
             onClick={onToggle}
             className="rounded-lg p-2 text-gray-600 transition hover:bg-gray-100 hover:text-black"
           >

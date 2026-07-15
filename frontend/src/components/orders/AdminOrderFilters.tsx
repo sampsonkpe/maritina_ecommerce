@@ -28,6 +28,7 @@ export default function AdminOrderFilters({
     <div className="mb-8 flex flex-col gap-4 md:flex-row">
 
       <input
+        aria-label="Search orders"
         type="text"
         placeholder="Search by customer name, email, phone or order ID..."
         value={search}
@@ -38,6 +39,7 @@ export default function AdminOrderFilters({
       />
 
       <select
+        aria-label="Filter by order status"
         value={statusFilter}
         onChange={(e) =>
           onStatusChange(e.target.value)
@@ -59,6 +61,7 @@ export default function AdminOrderFilters({
       </select>
 
       <select
+        aria-label="Filter by delivery type"
         value={deliveryTypeFilter}
         onChange={(e) =>
           onDeliveryTypeChange(e.target.value)

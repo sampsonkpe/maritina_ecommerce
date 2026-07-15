@@ -162,6 +162,7 @@ export default function AddressesPage() {
 
             <input
               type="text"
+              aria-label="Address label"
               placeholder="Home, Work, etc."
               value={label}
               onChange={(e) =>
@@ -172,6 +173,7 @@ export default function AddressesPage() {
             />
 
             <textarea
+              aria-label="Address"
               placeholder="Enter address"
               value={addressText}
               onChange={(e) =>
