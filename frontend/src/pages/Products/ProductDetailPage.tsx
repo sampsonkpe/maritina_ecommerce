@@ -11,6 +11,8 @@ import type {
 
 import LoadingState from "../../components/common/LoadingState";
 import PageContainer from "../../components/common/PageContainer";
+import EmptyState from "../../components/common/EmptyState";
+import Alert from "../../components/common/Alert";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -25,8 +27,12 @@ export default function ProductDetailPage() {
 
   const [loading, setLoading] = useState(true);
 
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+
   useEffect(() => {
     const loadProduct = async () => {
+      setError("");
       try {
         const data = await productService.getProduct(
           id!
@@ -50,18 +56,21 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!selectedVariant) return;
 
+    setError("");
+    setSuccess("");
+
     try {
       await cartService.addToCart(
         selectedVariant.id,
         quantity
       );
 
-      alert("Added to cart!");
+      setSuccess("Added to cart.");
     } catch (error) {
       console.error(error);
-      alert("Failed to add to cart.");
+      setError("Failed to add to cart.");
     }
-};
+  };
 
   if (loading) {
     return (
@@ -73,14 +82,17 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="p-8">
-        Product not found.
-      </div>
+      <EmptyState
+          title="Product not found."
+      />
     );
   }
 
   return (
     <PageContainer>
+      {success && <Alert message={success} />}
+      {error && <Alert message={error} />}
+      
       <div className="grid gap-10 md:grid-cols-2">
 
         <div>

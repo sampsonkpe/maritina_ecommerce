@@ -10,6 +10,7 @@ import PageHeader from "../../components/common/PageHeader";
 import LoadingState from "../../components/common/LoadingState";
 import EmptyState from "../../components/common/EmptyState";
 import PageContainer from "../../components/common/PageContainer";
+import Alert from "../../components/common/Alert";
 
 import OrderItemsList from "../../components/orders/OrderItemsList";
 import OrderSummary from "../../components/orders/OrderSummary";
@@ -19,6 +20,7 @@ import OrderFooter from "../../components/orders/OrderFooter";
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [expandedOrders, setExpandedOrders] = useState<number[]>([]);
 
   const toggleOrder = (orderId: number) => {
@@ -30,11 +32,13 @@ export default function OrdersPage() {
   };
 
   const handlePayment = async (orderId: number) => {
+    setError("");
+
     try {
       const response = await paymentService.initializePayment(orderId);
 
       if (!response.status) {
-        alert(response.message);
+        setError(response.message);
         return;
       }
 
@@ -47,12 +51,14 @@ export default function OrdersPage() {
         error?.response?.data?.message ||
         "Payment initialisation failed. Please try again.";
 
-      alert(message);
+      setError(message);
     }
   };
 
   useEffect(() => {
     const loadOrders = async () => {
+      setError("");
+
       try {
         const params = new URLSearchParams(window.location.search);
         const reference = params.get("reference");
@@ -71,6 +77,10 @@ export default function OrdersPage() {
               "Payment verification failed:",
               error
             );
+
+            setError(
+              "We couldn't verify your payment. If you've been charged, please contact Support."
+            );
           }
         }
 
@@ -78,6 +88,7 @@ export default function OrdersPage() {
         setOrders(data);
       } catch (error) {
         console.error(error);
+        setError("Failed to load orders.");
       } finally {
         setLoading(false);
       }
@@ -97,6 +108,7 @@ export default function OrdersPage() {
   return (
     <PageContainer>
       <PageHeader title="My Orders" />
+      {error && <Alert message={error} />}
 
       {orders.length === 0 ? (
         <EmptyState title="No orders found." />
@@ -124,12 +136,12 @@ export default function OrdersPage() {
               />
 
               <OrderFooter
-              createdAt={order.created_at}
-              showPayButton={
-                order.payment_status === PAYMENT_STATUS.PENDING
-              }
-              onPay={() => handlePayment(order.id)}
-            />
+                createdAt={order.created_at}
+                showPayButton={
+                  order.payment_status === PAYMENT_STATUS.PENDING
+                }
+                onPay={() => handlePayment(order.id)}
+              />
             </div>
           ))}
         </div>

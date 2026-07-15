@@ -8,6 +8,7 @@ import PageHeader from "../../components/common/PageHeader";
 import LoadingState from "../../components/common/LoadingState";
 import EmptyState from "../../components/common/EmptyState";
 import PageContainer from "../../components/common/PageContainer";
+import Alert from "../../components/common/Alert";
 
 import OrderHeader from "../../components/orders/OrderHeader";
 import AdminOrderFilters from "../../components/orders/AdminOrderFilters";
@@ -19,6 +20,8 @@ export default function AdminOrdersPage() {
 
   const [loading, setLoading] =
     useState(true);
+
+  const [error, setError] = useState("");
 
   const [initialLoad, setInitialLoad] =
     useState(true);
@@ -83,6 +86,9 @@ export default function AdminOrdersPage() {
       );
     } catch (error) {
       console.error(error);
+      setError(
+        "Failed to load orders. Please try again."
+      );
     } finally {
       setLoading(false);
       setInitialLoad(false);
@@ -111,6 +117,7 @@ export default function AdminOrdersPage() {
   const handleUpdateStatus = async (
     orderId: number
   ) => {
+    setError("");
     try {
 
   const newStatus =
@@ -149,7 +156,7 @@ export default function AdminOrdersPage() {
       );
     } catch (error) {
       console.error(error);
-      alert("Failed to update status.");
+      setError("Failed to update order status.");
     } finally {
       setUpdatingOrders((current) =>
         current.filter(
@@ -172,6 +179,7 @@ export default function AdminOrdersPage() {
   return (
     <PageContainer>
       <PageHeader title="All Orders" />
+      {error && <Alert message={error} />}
 
       <AdminOrderFilters
           search={search}

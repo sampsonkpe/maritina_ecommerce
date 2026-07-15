@@ -6,10 +6,16 @@ export const ORDER_STATUS = {
   CANCELLED: "CANCELLED",
 } as const;
 
+export type OrderStatus =
+  (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
+
 export const DELIVERY_TYPE = {
   DELIVERY: "DELIVERY",
   PICKUP: "PICKUP",
 } as const;
+
+export type DeliveryType =
+  (typeof DELIVERY_TYPE)[keyof typeof DELIVERY_TYPE];
 
 export const ORDER_STATUS_OPTIONS = [
   {
