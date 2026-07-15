@@ -55,19 +55,10 @@ class PaystackPaymentService:
 
     def verify_payment(self, reference):
 
-        print("\n========== VERIFY PAYMENT ==========")
-        print("REFERENCE:", reference)
-        print(
-            "SECRET KEY:",
-            settings.PAYSTACK_SECRET_KEY[:15] + "..."
-        )
-
         url = (
             f"{self.BASE_URL}/transaction/verify/"
             f"{reference}"
         )
-
-        print("VERIFY URL:", url)
 
         headers = {
             "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
@@ -77,10 +68,6 @@ class PaystackPaymentService:
             url,
             headers=headers,
         )
-
-        print("STATUS CODE:", response.status_code)
-        print("RESPONSE:", response.json())
-        print("===================================\n")
 
         result = response.json()
 

@@ -13,6 +13,9 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer
 from .services import ProductService
+from apps.common.pagination import (
+    StandardResultsSetPagination,
+)
 
 
 class CategoryListCreateView(APIView):
@@ -46,15 +49,20 @@ class CategoryListCreateView(APIView):
 
 class ProductListView(ListAPIView):
     permission_classes = [AllowAny]
+    serializer_class = ProductSerializer
+    pagination_class = StandardResultsSetPagination
 
     queryset = (
         Product.objects
         .select_related("category")
         .prefetch_related("variants")
     )
-    serializer_class = ProductSerializer
 
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+        OrderingFilter,
+    ]
 
     filterset_fields = ["category"]
     search_fields = ["name", "description"]
