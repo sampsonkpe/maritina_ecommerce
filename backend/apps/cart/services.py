@@ -8,12 +8,21 @@ class CartService:
     @staticmethod
     def get_or_create_cart(user=None, session_id=None):
 
-        if user:
-            cart, _ = Cart.objects.get_or_create(user=user)
-            return cart
+        lookup = (
+            {"user": user}
+            if user
+            else {"session_id": session_id}
+        )
 
-        cart, _ = Cart.objects.get_or_create(session_id=session_id)
-        return cart
+        cart, _ = Cart.objects.get_or_create(**lookup)
+
+        return (
+            Cart.objects
+            .prefetch_related(
+                "items__variant__product",
+            )
+            .get(id=cart.id)
+        )
 
 
     @staticmethod
@@ -46,7 +55,14 @@ class CartService:
             CartItem.objects.filter(cart=cart, variant_id=variant_id).delete()
             return
 
-        item = CartItem.objects.get(cart=cart, variant_id=variant_id)
+        item = (
+            CartItem.objects
+            .select_related("variant")
+            .get(
+                cart=cart,
+                variant_id=variant_id,
+            )
+        )
 
         if item.variant.stock < quantity:
             raise ValueError("Insufficient stock")

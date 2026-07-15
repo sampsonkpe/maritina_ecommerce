@@ -47,7 +47,11 @@ class CategoryListCreateView(APIView):
 class ProductListView(ListAPIView):
     permission_classes = [AllowAny]
 
-    queryset = Product.objects.all()
+    queryset = (
+        Product.objects
+        .select_related("category")
+        .prefetch_related("variants")
+    )
     serializer_class = ProductSerializer
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -83,7 +87,12 @@ class ProductDetailView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, pk):
-        product = get_object_or_404(Product, id=pk)
+        product = get_object_or_404(
+            Product.objects
+            .select_related("category")
+            .prefetch_related("variants"),
+            id=pk,
+        )
         return Response(
             ProductSerializer(product).data,
             status=status.HTTP_200_OK

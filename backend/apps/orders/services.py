@@ -121,6 +121,13 @@ class OrderService:
         return (
             Order.objects
             .filter(user=user)
+            .select_related(
+                "user",
+                "address"
+            )
+            .prefetch_related(
+                "items",
+            )
             .order_by("-created_at")
         )
 
@@ -131,7 +138,16 @@ class OrderService:
         search=None,
     ):
 
-        orders = Order.objects.all()
+        orders = (
+            Order.objects
+            .select_related(
+                "user",
+                "address",
+            )
+            .prefetch_related(
+                "items",
+            )
+        )
 
         if status_filter:
             orders = orders.filter(
