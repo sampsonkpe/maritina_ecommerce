@@ -42,7 +42,7 @@ class PaystackPaymentService:
             "email": email,
             "amount": int(float(order.total_amount) * 100),
             "reference": reference,
-            "callback_url": "http://localhost:5173/orders",
+            "callback_url": f"{settings.FRONTEND_URL}/orders",
         }
 
         response = requests.post(

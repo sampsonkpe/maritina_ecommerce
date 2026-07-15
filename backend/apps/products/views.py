@@ -50,7 +50,6 @@ class CategoryListCreateView(APIView):
 class ProductListView(ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = ProductSerializer
-    pagination_class = StandardResultsSetPagination
 
     queryset = (
         Product.objects
