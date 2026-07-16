@@ -47,6 +47,7 @@ class RegisterView(APIView):
                         "email": user.email,
                         "phone": user.phone,
                         "full_name": user.full_name,
+                        "is_staff": user.is_staff,
                     },
                     "tokens": tokens,
                 },
@@ -73,6 +74,7 @@ class MeView(APIView):
                 "email": user.email,
                 "phone": user.phone,
                 "full_name": user.full_name,
+                "is_staff": user.is_staff,
             }
         })
 
@@ -100,6 +102,7 @@ class LoginView(APIView):
             "email": user.email,
             "phone": user.phone,
             "full_name": user.full_name,
+            "is_staff": user.is_staff,
         },
             "tokens": tokens
         })

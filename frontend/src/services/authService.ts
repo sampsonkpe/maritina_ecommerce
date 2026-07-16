@@ -7,6 +7,7 @@ export interface AuthResponse {
     email: string | null;
     phone: string | null;
     full_name: string;
+    is_staff: boolean;
   };
 
   tokens: {
@@ -46,5 +47,11 @@ export const authService = {
     );
 
     return response.data;
+  },
+
+  async logout(refresh: string): Promise<void> {
+    await api.post("/auth/logout/", {
+      refresh,
+    });
   },
 };

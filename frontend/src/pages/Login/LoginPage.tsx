@@ -2,49 +2,61 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { authService } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 
 import Alert from "../../components/common/Alert";
 
 import {
   saveTokens,
+  saveUser,
 } from "../../utils/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const [identifier, setIdentifier] =
-    useState("");
+const {
+  setUser,
+  setAuthenticated,
+} = useAuth();
 
-  const [password, setPassword] =
-    useState("");
+const [identifier, setIdentifier] =
+  useState("");
 
-  const [error, setError] =
-    useState("");
+const [password, setPassword] =
+  useState("");
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
+const [error, setError] =
+  useState("");
 
-    try {
-      const data =
-        await authService.login(
-          identifier,
-          password
-        );
+const handleSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
 
-      saveTokens(
-        data.tokens.access,
-        data.tokens.refresh
+  try {
+    const data =
+      await authService.login(
+        identifier,
+        password
       );
 
-      navigate("/products");
-    } catch {
-      setError(
-        "Invalid credentials"
-      );
-    }
-  };
+    saveTokens(
+      data.tokens.access,
+      data.tokens.refresh
+    );
+
+    saveUser(data.user);
+
+    setUser(data.user);
+    setAuthenticated(true);
+
+    navigate("/products");
+  } catch {
+    setError(
+      "Invalid credentials"
+    );
+  }
+};
 
   return (
     <div className="mx-auto max-w-md p-8">
