@@ -33,6 +33,8 @@ class CartSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    item_count = serializers.SerializerMethodField()
+
     subtotal = serializers.SerializerMethodField()
     delivery_fee = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()
@@ -42,11 +44,15 @@ class CartSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "items",
+            "item_count",
             "subtotal",
             "delivery_fee",
             "total",
             "created_at",
         ]
+
+    def get_item_count(self, obj):
+        return obj.items.count()
 
     def get_subtotal(self, obj):
         return sum(

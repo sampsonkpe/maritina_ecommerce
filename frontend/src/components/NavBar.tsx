@@ -1,14 +1,20 @@
 import { Link } from "react-router-dom";
+
 import LogoutButton from "./auth/LogoutButton";
 
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 export default function NavBar() {
   const {
     authenticated,
     user,
   } = useAuth();
-  
+
+  const {
+    itemCount,
+  } = useCart();
+
   return (
     <nav className="border-b">
       <div className="mx-auto flex max-w-7xl items-center justify-between p-4">
@@ -21,25 +27,42 @@ export default function NavBar() {
 
         <div className="flex gap-6">
           <Link to="/">Home</Link>
-          <Link to="/products">Products</Link>
+
+          <Link to="/products">
+            Products
+          </Link>
 
           {!authenticated ? (
             <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
+              <Link to="/cart">
+                Cart [{itemCount}]
+              </Link>
+
+              <Link to="/login">
+                Login
+              </Link>
+
+              <Link to="/register">
+                Register
+              </Link>
             </>
           ) : user?.is_staff ? (
             <>
               <Link to="/admin/orders">
-                Admin Orders
+                All Orders
               </Link>
 
               <LogoutButton />
             </>
           ) : (
             <>
-              <Link to="/cart">Cart</Link>
-              <Link to="/orders">Orders</Link>
+              <Link to="/cart">
+                Cart [{itemCount}]
+              </Link>
+
+              <Link to="/orders">
+                Orders
+              </Link>
 
               <LogoutButton />
             </>

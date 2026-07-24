@@ -14,6 +14,8 @@ import PageContainer from "../../components/common/PageContainer";
 import EmptyState from "../../components/common/EmptyState";
 import Alert from "../../components/common/Alert";
 
+import { useCart } from "../../context/CartContext";
+
 export default function ProductDetailPage() {
   const { id } = useParams();
 
@@ -29,6 +31,8 @@ export default function ProductDetailPage() {
 
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+
+  const { refreshCart } = useCart();
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -70,6 +74,15 @@ export default function ProductDetailPage() {
       console.error(error);
       setError("Failed to add to cart.");
     }
+
+    await cartService.addToCart(
+      selectedVariant.id,
+      quantity
+    );
+
+    await refreshCart();
+
+    setSuccess("Added to cart.");
   };
 
   if (loading) {

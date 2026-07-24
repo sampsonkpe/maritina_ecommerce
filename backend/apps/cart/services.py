@@ -10,7 +10,7 @@ class CartService:
 
         lookup = (
             {"user": user}
-            if user
+            if user.is_authenticated
             else {"session_id": session_id}
         )
 

@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 
 from .services import CartService
 from .serializers import CartSerializer
@@ -14,7 +14,7 @@ def get_session_id(request):
 
 
 class CartView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get(self, request):
 
@@ -27,7 +27,7 @@ class CartView(APIView):
 
 
 class AddToCartView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
 
@@ -61,7 +61,7 @@ class AddToCartView(APIView):
             )
 
 class UpdateCartItemView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
 
@@ -85,7 +85,7 @@ class UpdateCartItemView(APIView):
 
 
 class RemoveFromCartView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
 
@@ -100,7 +100,7 @@ class RemoveFromCartView(APIView):
 
 
 class ClearCartView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
 

@@ -10,6 +10,7 @@ export interface CartItem {
 export interface Cart {
   id: number;
   items: CartItem[];
+  item_count: number;
   subtotal: number;
   delivery_fee: number;
   total: number;

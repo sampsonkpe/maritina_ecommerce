@@ -1,40 +1,35 @@
 import { useEffect, useState } from "react";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 import { cartService } from "../../services/cartService";
 
-import type {
-  Cart,
-  CartItem,
-} from "../../types/cart";
+import type { CartItem } from "../../types/cart";
+
+import { useCart } from "../../context/CartContext";
 
 import { formatCurrency } from "../../utils/currency";
+
 import LoadingState from "../../components/common/LoadingState";
 import PageContainer from "../../components/common/PageContainer";
 
 export default function CartPage() {
-  const [cart, setCart] =
-    useState<Cart | null>(null);
-
   const navigate = useNavigate();
+
+  const {
+    cart,
+    refreshCart,
+  } = useCart();
 
   const [loading, setLoading] =
     useState(true);
 
-  const loadCart = async () => {
-    try {
-      const data =
-        await cartService.getCart();
-
-      setCart(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadCart();
+    const load = async () => {
+      await refreshCart();
+      setLoading(false);
+    };
+
+    load();
   }, []);
 
   const handleRemove = async (
@@ -45,7 +40,7 @@ export default function CartPage() {
         variantId
       );
 
-      loadCart();
+      await refreshCart();
     } catch (error) {
       console.error(error);
     }
@@ -61,7 +56,7 @@ export default function CartPage() {
         currentQty + 1
       );
 
-      loadCart();
+      await refreshCart();
     } catch (error) {
       console.error(error);
     }
@@ -81,7 +76,7 @@ export default function CartPage() {
         currentQty - 1
       );
 
-      loadCart();
+      await refreshCart();
     } catch (error) {
       console.error(error);
     }
@@ -90,7 +85,7 @@ export default function CartPage() {
   if (loading) {
     return (
       <LoadingState
-        message="Loading orders..."
+        message="Loading cart..."
       />
     );
   }
@@ -131,7 +126,9 @@ export default function CartPage() {
                     <div className="mt-2 flex items-center gap-3">
                       <button
                         aria-label="Decrease quantity"
-                        disabled={item.quantity <= 1}
+                        disabled={
+                          item.quantity <= 1
+                        }
                         onClick={() =>
                           handleDecrease(
                             item.variant,
@@ -164,7 +161,9 @@ export default function CartPage() {
 
                   <div className="text-right">
                     <p>
-                      {formatCurrency(item.subtotal)}
+                      {formatCurrency(
+                        item.subtotal
+                      )}
                     </p>
 
                     <button
@@ -185,11 +184,14 @@ export default function CartPage() {
 
           <div className="mt-8 border-t pt-6">
             <h2 className="text-2xl font-bold">
-              Total: {formatCurrency(total)}
+              Total:{" "}
+              {formatCurrency(total)}
             </h2>
 
             <button
-              onClick={() => navigate("/checkout")}
+              onClick={() =>
+                navigate("/checkout")
+              }
               className="mt-4 rounded-lg bg-black px-6 py-3 text-white"
             >
               Checkout
