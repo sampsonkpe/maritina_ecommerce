@@ -1,7 +1,4 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import { cartService } from "../../services/cartService";
 
 import type { CartItem } from "../../types/cart";
 
@@ -17,30 +14,16 @@ export default function CartPage() {
 
   const {
     cart,
-    refreshCart,
+    loading,
+    updateCart,
+    removeItem,
   } = useCart();
-
-  const [loading, setLoading] =
-    useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      await refreshCart();
-      setLoading(false);
-    };
-
-    load();
-  }, []);
 
   const handleRemove = async (
     variantId: number
   ) => {
     try {
-      await cartService.removeItem(
-        variantId
-      );
-
-      await refreshCart();
+      await removeItem(variantId);
     } catch (error) {
       console.error(error);
     }
@@ -51,12 +34,10 @@ export default function CartPage() {
     currentQty: number
   ) => {
     try {
-      await cartService.updateCart(
+      await updateCart(
         variantId,
         currentQty + 1
       );
-
-      await refreshCart();
     } catch (error) {
       console.error(error);
     }
@@ -71,12 +52,10 @@ export default function CartPage() {
     }
 
     try {
-      await cartService.updateCart(
+      await updateCart(
         variantId,
         currentQty - 1
       );
-
-      await refreshCart();
     } catch (error) {
       console.error(error);
     }
@@ -103,12 +82,12 @@ export default function CartPage() {
         Cart
       </h1>
 
-      {cart?.items.length === 0 ? (
+      {cart?.items?.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
         <>
           <div className="space-y-4">
-            {cart?.items.map(
+            {cart?.items?.map(
               (item: CartItem) => (
                 <div
                   key={item.id}

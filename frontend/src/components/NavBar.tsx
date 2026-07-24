@@ -13,6 +13,7 @@ export default function NavBar() {
 
   const {
     itemCount,
+    loading,
   } = useCart();
 
   return (
@@ -35,7 +36,7 @@ export default function NavBar() {
           {!authenticated ? (
             <>
               <Link to="/cart">
-                Cart [{itemCount}]
+                Cart {loading ? "" : `[${itemCount}]`}
               </Link>
 
               <Link to="/login">

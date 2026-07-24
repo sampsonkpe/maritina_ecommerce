@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { cartService } from "../../services/cartService";
-import { productService } from "../../services/productService";
-
 import type {
   Product,
   ProductVariant,
@@ -15,9 +12,12 @@ import EmptyState from "../../components/common/EmptyState";
 import Alert from "../../components/common/Alert";
 
 import { useCart } from "../../context/CartContext";
+import { productService } from "../../services/productService";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+
+  const { addToCart } = useCart();
 
   const [product, setProduct] =
     useState<Product | null>(null);
@@ -31,8 +31,6 @@ export default function ProductDetailPage() {
 
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-
-  const { refreshCart } = useCart();
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -64,7 +62,7 @@ export default function ProductDetailPage() {
     setSuccess("");
 
     try {
-      await cartService.addToCart(
+      await addToCart(
         selectedVariant.id,
         quantity
       );
@@ -75,12 +73,10 @@ export default function ProductDetailPage() {
       setError("Failed to add to cart.");
     }
 
-    await cartService.addToCart(
+    await addToCart(
       selectedVariant.id,
       quantity
     );
-
-    await refreshCart();
 
     setSuccess("Added to cart.");
   };
