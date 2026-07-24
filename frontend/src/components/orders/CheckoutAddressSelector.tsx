@@ -33,7 +33,7 @@ export default function CheckoutAddressSelector({
   );
 
   return (
-    <div className="rounded-lg border bg-white p-6 shadow-sm">
+    <div className="rounded-md border bg-white p-6 shadow-sm">
           <h2 className="mb-5 text-xl font-semibold">
             Delivery Method
           </h2>
@@ -45,7 +45,7 @@ export default function CheckoutAddressSelector({
               onClick={() =>
                 onDeliveryTypeChange(DELIVERY_TYPE.DELIVERY)
               }
-              className={`rounded-lg border px-5 py-3 transition ${
+              className={`rounded-md border px-5 py-3 transition ${
                 deliveryType === DELIVERY_TYPE.DELIVERY
                   ? "bg-black text-white"
                   : "hover:bg-gray-50"
@@ -59,7 +59,7 @@ export default function CheckoutAddressSelector({
               onClick={() =>
                 onDeliveryTypeChange(DELIVERY_TYPE.PICKUP)
               }
-              className={`rounded-lg border px-5 py-3 transition ${
+              className={`rounded-md border px-5 py-3 transition ${
                 deliveryType === DELIVERY_TYPE.PICKUP
                   ? "bg-black text-white"
                   : "hover:bg-gray-50"
@@ -85,7 +85,7 @@ export default function CheckoutAddressSelector({
               </div>
 
               {currentAddress && (
-                <div className="rounded-lg border border-black bg-gray-50 p-4">
+                <div className="rounded-md border border-black bg-gray-50 p-4">
 
                   <p className="text-lg font-semibold">
                     {currentAddress.label}
@@ -99,7 +99,7 @@ export default function CheckoutAddressSelector({
               )}
 
               {!currentAddress ? (
-                <div className="mt-5 rounded-lg border border-dashed p-6 text-center">
+                <div className="mt-5 rounded-md border border-dashed p-6 text-center">
                   <p className="text-gray-600">
                     You don't have any saved delivery addresses.
                   </p>
@@ -107,7 +107,7 @@ export default function CheckoutAddressSelector({
                   <button
                     type="button"
                     onClick={() => navigate("/addresses")}
-                    className="mt-4 rounded-lg bg-black px-4 py-2 text-white transition hover:bg-gray-800"
+                    className="mt-4 rounded-md bg-black px-4 py-2 text-white transition hover:bg-gray-800"
                   >
                     Manage Addresses
                   </button>
@@ -148,7 +148,7 @@ export default function CheckoutAddressSelector({
                                 key={address.id}
                                 type="button"
                                 onClick={() => onSelectAddress(address.id)}
-                                className="block w-full rounded-lg border p-4 text-left transition hover:bg-gray-50"
+                                className="block w-full rounded-md border p-4 text-left transition hover:bg-gray-50"
                               >
                                 <p className="font-semibold">
                                   {address.label}

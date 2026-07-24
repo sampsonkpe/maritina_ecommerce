@@ -3,6 +3,7 @@ export interface CartItem {
   variant: number;
   product_name: string;
   variant_name: string;
+  unit_price: number;
   quantity: number;
   subtotal: number;
 }

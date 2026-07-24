@@ -35,7 +35,7 @@ export default function AdminOrderFilters({
         onChange={(e) =>
           onSearchChange(e.target.value)
         }
-        className="flex-1 rounded-lg border px-4 py-3"
+        className="flex-1 rounded-md border px-4 py-3"
       />
 
       <select
@@ -44,7 +44,7 @@ export default function AdminOrderFilters({
         onChange={(e) =>
           onStatusChange(e.target.value)
         }
-        className="rounded-lg border px-4 py-3"
+        className="rounded-md border px-4 py-3"
       >
         <option value="">
           All Statuses
@@ -66,7 +66,7 @@ export default function AdminOrderFilters({
         onChange={(e) =>
           onDeliveryTypeChange(e.target.value)
         }
-        className="rounded-lg border px-4 py-3"
+        className="rounded-md border px-4 py-3"
       >
         <option value="">
           All Delivery Types

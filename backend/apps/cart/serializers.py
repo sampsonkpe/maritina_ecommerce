@@ -11,6 +11,10 @@ class CartItemSerializer(serializers.ModelSerializer):
         source="variant.name"
     )
 
+    unit_price = serializers.ReadOnlyField(
+        source="variant.price"
+    )
+
     subtotal = serializers.ReadOnlyField(
         source="total_price"
     )
@@ -22,6 +26,7 @@ class CartItemSerializer(serializers.ModelSerializer):
             "variant",
             "product_name",
             "variant_name",
+            "unit_price",
             "quantity",
             "subtotal",
         ]
@@ -52,7 +57,10 @@ class CartSerializer(serializers.ModelSerializer):
         ]
 
     def get_item_count(self, obj):
-        return obj.items.count()
+        return sum(
+            item.quantity
+            for item in obj.items.all()
+        )
 
     def get_subtotal(self, obj):
         return sum(

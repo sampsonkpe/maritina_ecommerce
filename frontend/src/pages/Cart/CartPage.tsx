@@ -91,37 +91,41 @@ export default function CartPage() {
               (item: CartItem) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
+                  className="grid grid-cols-3 items-center border p-5 rounded-md"
                 >
+                  {/* Left */}
                   <div>
                     <h2 className="font-semibold">
                       {item.product_name}
                     </h2>
 
-                    <p>
+                    <p className="text-sm text-gray-500">
                       {item.variant_name}
                     </p>
+                  </div>
 
-                    <div className="mt-2 flex items-center gap-3">
+                  {/* Centre */}
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">
+                      {formatCurrency(item.unit_price)} × {item.quantity}
+                    </p>
+
+                    <div className="mt-2 flex items-center justify-center gap-3">
                       <button
                         aria-label="Decrease quantity"
-                        disabled={
-                          item.quantity <= 1
-                        }
+                        disabled={item.quantity <= 1}
                         onClick={() =>
                           handleDecrease(
                             item.variant,
                             item.quantity
                           )
                         }
-                        className="h-8 w-8 rounded-lg border"
+                        className="h-6 w-6 rounded-sm border"
                       >
-                        -
+                        −
                       </button>
 
-                      <span>
-                        {item.quantity}
-                      </span>
+                      <span>{item.quantity}</span>
 
                       <button
                         aria-label="Increase quantity"
@@ -131,27 +135,24 @@ export default function CartPage() {
                             item.quantity
                           )
                         }
-                        className="h-8 w-8 rounded-lg border"
+                        className="h-6 w-6 rounded-sm border"
                       >
                         +
                       </button>
                     </div>
                   </div>
 
+                  {/* Right */}
                   <div className="text-right">
-                    <p>
-                      {formatCurrency(
-                        item.subtotal
-                      )}
+                    <p className="font-semibold">
+                      {formatCurrency(item.subtotal)}
                     </p>
 
                     <button
                       onClick={() =>
-                        handleRemove(
-                          item.variant
-                        )
+                        handleRemove(item.variant)
                       }
-                      className="mt-2 text-red-600"
+                      className="mt-2 text-sm text-red-600 hover:text-red-700"
                     >
                       Remove
                     </button>
@@ -161,17 +162,20 @@ export default function CartPage() {
             )}
           </div>
 
-          <div className="mt-8 border-t pt-6">
-            <h2 className="text-2xl font-bold">
-              Total:{" "}
-              {formatCurrency(total)}
-            </h2>
+          <div className="mt-8 flex items-center justify-between border-t pt-6">
+            <div>
+              <p className="text-sm text-gray-500">
+                Total
+              </p>
+
+              <h2 className="text-2xl font-bold">
+                {formatCurrency(total)}
+              </h2>
+            </div>
 
             <button
-              onClick={() =>
-                navigate("/checkout")
-              }
-              className="mt-4 rounded-lg bg-black px-6 py-3 text-white"
+              onClick={() => navigate("/checkout")}
+              className="rounded-md bg-black px-8 py-3 text-white"
             >
               Checkout
             </button>

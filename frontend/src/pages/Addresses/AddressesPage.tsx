@@ -138,7 +138,7 @@ export default function AddressesPage() {
               resetForm();
               setShowForm(true);
             }}
-            className="rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800"
+            className="rounded-md bg-black px-5 py-3 text-white transition hover:bg-gray-800"
           >
             + Add Address
           </button>
@@ -149,7 +149,7 @@ export default function AddressesPage() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-10 rounded-lg border bg-white p-6 shadow-sm"
+          className="mb-10 rounded-md border bg-white p-6 shadow-sm"
         >
 
           <h2 className="mb-5 text-xl font-semibold">
@@ -168,7 +168,7 @@ export default function AddressesPage() {
               onChange={(e) =>
                 setLabel(e.target.value)
               }
-              className="w-full rounded-lg border p-3"
+              className="w-full rounded-md border p-3"
               required
             />
 
@@ -181,7 +181,7 @@ export default function AddressesPage() {
                   e.target.value
                 )
               }
-              className="w-full rounded-lg border p-3"
+              className="w-full rounded-md border p-3"
               rows={4}
               required
             />
@@ -190,7 +190,7 @@ export default function AddressesPage() {
 
               <button
                 type="submit"
-                className="rounded-lg bg-black px-5 py-3 text-white transition hover:bg-gray-800"
+                className="rounded-md bg-black px-5 py-3 text-white transition hover:bg-gray-800"
               >
                 {editingId
                   ? "Update Address"
@@ -200,7 +200,7 @@ export default function AddressesPage() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-lg border px-5 py-3 transition hover:bg-gray-50"
+                className="rounded-md border px-5 py-3 transition hover:bg-gray-50"
               >
                 Cancel
               </button>
@@ -215,14 +215,14 @@ export default function AddressesPage() {
       <div className="space-y-4">
 
         {addresses.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-10 text-center text-gray-500">
+          <div className="rounded-md border border-dashed p-10 text-center text-gray-500">
             You haven't added any delivery addresses yet.
           </div>
         ) : (
           addresses.map((address) => (
             <div
               key={address.id}
-              className="rounded-lg border bg-white p-5 shadow-sm"
+              className="rounded-md border bg-white p-5 shadow-sm"
             >
 
               <div className="flex items-start justify-between">
@@ -240,7 +240,7 @@ export default function AddressesPage() {
                 </div>
 
                 {address.is_default && (
-                  <span className="rounded-lg bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                  <span className="rounded-md bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                     Default
                   </span>
                 )}
@@ -254,7 +254,7 @@ export default function AddressesPage() {
                     onClick={() =>
                       handleSetDefault(address.id)
                     }
-                    className="rounded-lg border px-4 py-2 text-sm transition hover:bg-gray-50"
+                    className="rounded-md border px-4 py-2 text-sm transition hover:bg-gray-50"
                   >
                     Set Default
                   </button>
@@ -275,7 +275,7 @@ export default function AddressesPage() {
                       behavior: "smooth",
                     });
                   }}
-                  className="rounded-lg border px-4 py-2 text-sm transition hover:bg-gray-50"
+                  className="rounded-md border px-4 py-2 text-sm transition hover:bg-gray-50"
                 >
                   Edit
                 </button>
@@ -285,7 +285,7 @@ export default function AddressesPage() {
                   onClick={() =>
                     handleDelete(address.id)
                   }
-                  className="rounded-lg border border-red-400 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                  className="rounded-md border border-red-400 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
                 >
                   Delete
                 </button>

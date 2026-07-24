@@ -14,7 +14,7 @@ export default function StatusBadge({
 }: StatusBadgeProps) {
   return (
     <span
-      className={`rounded-lg px-4 py-1 text-sm font-medium ${getStatusClasses(
+      className={`rounded-md px-4 py-1 text-sm font-medium ${getStatusClasses(
         status
       )} ${className}`}
     >

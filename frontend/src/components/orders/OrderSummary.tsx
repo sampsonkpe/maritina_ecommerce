@@ -12,7 +12,7 @@ export default function OrderSummary({
   total,
 }: OrderSummaryProps) {
   return (
-    <div className="mt-5 rounded-lg border bg-gray-50 p-4">
+    <div className="mt-5 rounded-md border bg-gray-50 p-4">
       <div className="flex justify-between text-sm">
         <span>Subtotal</span>
 

@@ -117,7 +117,7 @@ export default function OrdersPage() {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="rounded-lg border bg-white p-6 shadow-sm"
+              className="rounded-md border bg-white p-6 shadow-sm"
             >
               <OrderHeader
                 order={order}

@@ -20,7 +20,7 @@ export default function Alert({
 
   return (
     <div
-      className={`rounded-lg border px-4 py-3 ${styles[variant]}`}
+      className={`rounded-md border px-4 py-3 ${styles[variant]}`}
     >
       {message}
     </div>

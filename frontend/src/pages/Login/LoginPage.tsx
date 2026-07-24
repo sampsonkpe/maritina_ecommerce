@@ -78,7 +78,7 @@ const handleSubmit = async (
               e.target.value
             )
           }
-          className="w-full rounded-lg border p-3"
+          className="w-full rounded-md border p-3"
         />
 
         <input
@@ -91,14 +91,14 @@ const handleSubmit = async (
               e.target.value
             )
           }
-          className="w-full rounded-lg border p-3"
+          className="w-full rounded-md border p-3"
         />
 
         {error && <Alert message={error} />}
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-black px-4 py-3 text-white"
+          className="w-full rounded-md bg-black px-4 py-3 text-white"
         >
           Login
         </button>

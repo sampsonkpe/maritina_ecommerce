@@ -52,7 +52,7 @@ export default function OrderStatusEditor({
               onChange={(e) =>
                 onStatusChange(e.target.value)
               }
-              className="rounded-lg border px-4 py-3"
+              className="rounded-md border px-4 py-3"
             >
               {availableStatuses.map((status) => (
                 <option

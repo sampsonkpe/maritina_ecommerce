@@ -20,7 +20,7 @@ export default function CheckoutSummary({
   onCheckout,
 }: CheckoutSummaryProps) {
   return (
-    <div className="rounded-lg border bg-white p-6 shadow-sm lg:sticky lg:top-8 lg:self-start">
+    <div className="rounded-md border bg-white p-6 shadow-sm lg:sticky lg:top-8 lg:self-start">
       <h2 className="mb-5 text-xl font-semibold">
         Order Summary
       </h2>
@@ -82,7 +82,7 @@ export default function CheckoutSummary({
         type="button"
         onClick={onCheckout}
         disabled={placingOrder}
-        className="mt-6 w-full rounded-lg bg-black px-6 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-6 w-full rounded-md bg-black px-6 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {placingOrder
           ? "Creating Order..."

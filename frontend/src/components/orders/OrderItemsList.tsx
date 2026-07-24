@@ -16,7 +16,7 @@ export default function OrderItemsList({
       {items.map((item) => (
         <div
           key={item.id}
-          className="rounded-lg border bg-gray-50 p-4"
+          className="rounded-md border bg-gray-50 p-4"
         >
           <p className="font-medium">
             {item.product_name}

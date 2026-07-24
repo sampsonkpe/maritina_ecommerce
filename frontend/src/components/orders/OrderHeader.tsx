@@ -66,7 +66,7 @@ export default function OrderHeader({
             }
             aria-expanded={expanded}
             onClick={onToggle}
-            className="rounded-lg p-2 text-gray-600 transition hover:bg-gray-100 hover:text-black"
+            className="rounded-md p-2 text-gray-600 transition hover:bg-gray-100 hover:text-black"
           >
             {expanded ? (
               <ChevronUp size={22} />
