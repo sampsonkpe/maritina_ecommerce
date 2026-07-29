@@ -2,27 +2,18 @@ import { ChevronDown, ChevronUp, MapPinned } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import type { Address } from "../../types/address";
-import {
-  DELIVERY_TYPE,
-  type DeliveryType,
-} from "../../constants/order";
-
 interface CheckoutAddressSelectorProps {
   addresses: Address[];
-  deliveryType: DeliveryType;
   selectedAddress: number | null;
   showAddresses: boolean;
-  onDeliveryTypeChange: (type: DeliveryType) => void;
   onSelectAddress: (id: number) => void;
   onToggleAddresses: () => void;
 }
 
 export default function CheckoutAddressSelector({
   addresses,
-  deliveryType,
   selectedAddress,
   showAddresses,
-  onDeliveryTypeChange,
   onSelectAddress,
   onToggleAddresses,
 }: CheckoutAddressSelectorProps) {
@@ -34,55 +25,14 @@ export default function CheckoutAddressSelector({
 
   return (
     <div className="rounded-md border bg-white p-6 shadow-sm">
-          <h2 className="mb-5 text-xl font-semibold">
-            Delivery Method
+
+      <div className="mb-5 flex items-center gap-2">
+          <MapPinned size={20} />
+
+          <h2 className="text-xl font-semibold">
+              Delivery Address
           </h2>
-
-          <div className="flex gap-4">
-
-            <button
-              type="button"
-              onClick={() =>
-                onDeliveryTypeChange(DELIVERY_TYPE.DELIVERY)
-              }
-              className={`rounded-md border px-5 py-3 transition ${
-                deliveryType === DELIVERY_TYPE.DELIVERY
-                  ? "bg-black text-white"
-                  : "hover:bg-gray-50"
-              }`}
-            >
-              Delivery
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                onDeliveryTypeChange(DELIVERY_TYPE.PICKUP)
-              }
-              className={`rounded-md border px-5 py-3 transition ${
-                deliveryType === DELIVERY_TYPE.PICKUP
-                  ? "bg-black text-white"
-                  : "hover:bg-gray-50"
-              }`}
-            >
-              Pickup
-            </button>
-
-          </div>
-
-          {deliveryType ===
-            "DELIVERY" && (
-            <>
-
-              <div className="my-8 border-t" />
-
-              <div className="mb-5 flex items-center gap-2">
-                <MapPinned size={20} />
-                
-                <h2 className="text-xl font-semibold">
-                  Delivery Address
-                </h2>
-              </div>
+      </div>
 
               {currentAddress && (
                 <div className="rounded-md border border-black bg-gray-50 p-4">
@@ -165,9 +115,6 @@ export default function CheckoutAddressSelector({
                   )}
                 </>
               )}
-            </>
-          )}
-
-        </div>
+    </div>
   );
 }
