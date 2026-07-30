@@ -9,17 +9,28 @@ class DeliveryService:
 
         fee = (
             DeliveryService.BASE_FEE
-            + (DeliveryService.PER_KM_RATE * distance_km)
+            + (
+                DeliveryService.PER_KM_RATE
+                * distance_km
+            )
         )
 
-        return int(min(fee, DeliveryService.MAX_FEE))
+        return int(
+            min(
+                fee,
+                DeliveryService.MAX_FEE,
+            )
+        )
 
     @staticmethod
-    def estimate_distance(address):
+    def estimate_distance(address_text):
 
         """
         MOCK distance estimator.
-        Replace later with Google Maps / GPS.
+
+        Later this will call
+        Google Maps / Mapbox
+        using the address text.
         """
 
-        return (len(address.address_text) % 10) + 1
+        return (len(address_text) % 10) + 1

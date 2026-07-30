@@ -27,12 +27,22 @@ class OrderService:
     @staticmethod
     @transaction.atomic
     def create_order_from_cart(
-        user,
-        delivery_type="DELIVERY",
+        *,
+        user=None,
+        session_id=None,
+        delivery_type,
         address_id=None,
+        guest_data=None,
     ):
 
-        cart = Cart.objects.select_for_update().get(user=user)
+        if user:
+            cart = Cart.objects.select_for_update().get(
+                user=user
+            )
+        else:
+            cart = Cart.objects.select_for_update().get(
+                session_id=session_id
+            )
 
         items = (
             cart.items
@@ -47,34 +57,92 @@ class OrderService:
             raise ValueError("Cart is empty")
 
         address = None
+        guest_address = ""
+
         delivery_fee = 0
 
         if delivery_type == DELIVERY:
 
-            if not address_id:
-                raise ValueError("Address is required")
+            if user:
 
-            try:
-                address = Address.objects.get(
-                    id=address_id,
-                    user=user,
+                if not address_id:
+                    raise ValueError(
+                        "Address is required."
+                    )
+
+                try:
+                    address = Address.objects.get(
+                        id=address_id,
+                        user=user,
+                    )
+
+                except Address.DoesNotExist:
+                    raise ValueError(
+                        "Invalid address."
+                    )
+
+                distance = (
+                    DeliveryService
+                    .estimate_distance(
+                        address.address_text
+                    )
                 )
 
-            except Address.DoesNotExist:
-                raise ValueError("Invalid address")
+                delivery_fee = (
+                    DeliveryService
+                    .calculate_fee(distance)
+                )
 
-            distance = DeliveryService.estimate_distance(address)
-            delivery_fee = DeliveryService.calculate_fee(distance)
+            else:
+
+                guest_address = guest_data[
+                    "address"
+                ]
+
+                distance = (
+                    DeliveryService
+                    .estimate_distance(
+                        guest_address
+                    )
+                )
+
+                delivery_fee = (
+                    DeliveryService
+                    .calculate_fee(distance)
+                )
 
         subtotal = 0
 
         order = Order.objects.create(
             user=user,
+
+            guest_full_name=(
+                guest_data.get("full_name", "")
+                if guest_data else ""
+            ),
+
+            guest_email=(
+                guest_data.get("email", "")
+                if guest_data else ""
+            ),
+
+            guest_phone=(
+                guest_data.get("phone", "")
+                if guest_data else ""
+            ),
+
+            guest_address=guest_address,
+
             delivery_fee=delivery_fee,
+
             total_amount=0,
+
             delivery_type=delivery_type,
+
             address=address,
+
             status=STATUS_PENDING,
+
             payment_status=PAYMENT_PENDING,
         )
 
@@ -165,6 +233,9 @@ class OrderService:
                 Q(user__email__icontains=search)
                 | Q(user__full_name__icontains=search)
                 | Q(user__phone__icontains=search)
+                | Q(guest_email__icontains=search)
+                | Q(guest_full_name__icontains=search)
+                | Q(guest_phone__icontains=search)
             )
 
             if search.isdigit():

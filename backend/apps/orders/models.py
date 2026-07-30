@@ -3,26 +3,39 @@ from django.conf import settings
 
 from apps.common.constants import (
     STATUS_PENDING,
-    STATUS_PREPARING,
-    STATUS_OUT_FOR_DELIVERY,
-    STATUS_DELIVERED,
-    STATUS_CANCELLED,
     FULFILMENT_STATUS_CHOICES,
     PAYMENT_PENDING,
-    PAYMENT_PAID,
-    PAYMENT_FAILED,
-    PAYMENT_REFUNDED,
     PAYMENT_STATUS_CHOICES,
     DELIVERY,
-    PICKUP,
     DELIVERY_TYPE_CHOICES,
 )
 
+
 class Order(models.Model):
-    
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    guest_full_name = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    guest_email = models.EmailField(
+        blank=True,
+    )
+
+    guest_phone = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+
+    guest_address = models.TextField(
+        blank=True
     )
 
     subtotal = models.IntegerField(default=0)
@@ -81,7 +94,7 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id}"
-    
+
 
 class OrderItem(models.Model):
 
@@ -95,12 +108,12 @@ class OrderItem(models.Model):
 
     variant_name = models.CharField(max_length=255, null=True, blank=True)
 
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    unit_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True)
 
     quantity = models.PositiveIntegerField()
 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
 
     class Meta:
         verbose_name_plural = "Order Items"
@@ -111,7 +124,8 @@ class OrderItem(models.Model):
             f"({self.variant_name} "
             f"x {self.quantity})"
         )
-    
+
+
 class OrderStatusHistory(models.Model):
 
     order = models.ForeignKey(
