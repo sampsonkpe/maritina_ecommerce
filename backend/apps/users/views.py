@@ -37,6 +37,19 @@ class RegisterView(APIView):
                 password=data["password"],
             )
 
+            if user.email:
+                verification_token = (
+                    UserService.create_email_verification_token(
+                        user
+                    )
+                )
+
+                if verification_token:
+                    UserService.send_email_verification(
+                        user,
+                        verification_token,
+                    )
+
             tokens = UserService.get_tokens(user)
 
             return Response(
@@ -106,6 +119,7 @@ class LoginView(APIView):
         },
             "tokens": tokens
         })
+        
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -119,3 +133,25 @@ class LogoutView(APIView):
 
         except Exception:
             return Response({"error": "Invalid token"}, status=400)
+    
+
+class VerifyEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, token):
+
+        try:
+            user = UserService.verify_email(token)
+
+            return Response(
+                {
+                    "message": "Email verified successfully.",
+                    "email": user.email,
+                }
+            )
+
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
