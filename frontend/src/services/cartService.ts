@@ -13,10 +13,7 @@ interface AddToCartResponse {
 
 export const cartService = {
   async getCart(): Promise<Cart> {
-    const response = await api.get(
-      "/cart/"
-    );
-
+    const response = await api.get("/cart/");
     return response.data;
   },
 
@@ -66,6 +63,17 @@ export const cartService = {
   async clearCart(): Promise<CartActionResponse> {
     const response = await api.post(
       "/cart/clear/"
+    );
+
+    return response.data;
+  },
+
+  async mergeGuestCart(): Promise<{
+    message: string;
+    merged_count: number;
+  }> {
+    const response = await api.post(
+      "/cart/merge-guest/"
     );
 
     return response.data;

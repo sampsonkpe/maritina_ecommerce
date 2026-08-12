@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .services import CartService
 from .serializers import CartSerializer
@@ -116,3 +116,31 @@ class ClearCartView(APIView):
         CartService.clear_cart(cart)
 
         return Response({"message": "Cart cleared"})
+
+class MergeGuestCartView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        if not request.session.session_key:
+            return Response({
+                "message": "No guest cart found.",
+                "merged_count": 0,
+            })
+
+        try:
+            merged_count = CartService.merge_guest_cart(
+                user=request.user,
+                session_id=request.session.session_key,
+            )
+
+            return Response({
+                "message": "Guest cart merged successfully.",
+                "merged_count": merged_count,
+            })
+
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import { orderService } from "../../services/orderService";
+import { cartService } from "../../services/cartService";
 
 import Alert from "../../components/common/Alert";
 
@@ -48,10 +49,20 @@ const handleSubmit = async (
 
     saveUser(data.user);
 
+    try {
+      await cartService.mergeGuestCart();
+    } catch {
+      // Continue login even if there is no guest cart to merge.
+    }
+
     setUser(data.user);
     setAuthenticated(true);
 
-    await orderService.claimGuestOrders();
+    try {
+      await orderService.claimGuestOrders();
+    } catch {
+      // Continue login even if there are no claimable orders.
+    }
 
     navigate("/products");
   } catch {

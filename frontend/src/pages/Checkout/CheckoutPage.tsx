@@ -229,7 +229,7 @@ export default function CheckoutPage() {
             }
             className="w-full rounded-md border py-3"
           >
-            Sign In
+            Log In
           </button>
 
         </div>

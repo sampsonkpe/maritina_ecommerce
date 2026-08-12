@@ -84,3 +84,94 @@ class CartService:
     @staticmethod
     def clear_cart(cart):
         cart.items.all().delete()
+
+    @staticmethod
+    @transaction.atomic
+    def merge_guest_cart(user, session_id):
+        if not user.is_authenticated:
+            raise ValueError("Authentication is required.")
+
+        if not session_id:
+            return None
+
+        guest_cart = (
+            Cart.objects
+            .select_for_update()
+            .filter(
+                session_id=session_id,
+                user__isnull=True,
+            )
+            .first()
+        )
+
+        if not guest_cart:
+            return CartService.get_or_create_cart(
+                user=user,
+                session_id=session_id,
+            )
+
+        user_cart = (
+            Cart.objects
+            .select_for_update()
+            .filter(user=user)
+            .first()
+        )
+
+        if not user_cart:
+            user_cart = Cart.objects.create(user=user)
+
+        guest_items = (
+            guest_cart.items
+            .select_related("variant")
+            .select_for_update()
+        )
+
+        for guest_item in guest_items:
+
+            variant = guest_item.variant
+
+            user_item = (
+                user_cart.items
+                .filter(variant=variant)
+                .first()
+            )
+
+            if user_item:
+                new_quantity = (
+                    user_item.quantity
+                    + guest_item.quantity
+                )
+
+                if new_quantity > variant.stock:
+                    raise ValueError(
+                        f"Insufficient stock for {variant.name}."
+                    )
+
+                user_item.quantity = new_quantity
+                user_item.save(
+                    update_fields=["quantity"]
+                )
+
+            else:
+
+                if guest_item.quantity > variant.stock:
+                    raise ValueError(
+                        f"Insufficient stock for {variant.name}."
+                    )
+
+                CartItem.objects.create(
+                    cart=user_cart,
+                    variant=variant,
+                    quantity=guest_item.quantity,
+                )
+
+        guest_cart.items.all().delete()
+        guest_cart.delete()
+
+        return (
+            Cart.objects
+            .prefetch_related(
+                "items__variant__product",
+            )
+            .get(id=user_cart.id)
+        )
