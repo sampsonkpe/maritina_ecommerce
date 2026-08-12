@@ -24,6 +24,8 @@ import GuestContactForm from "../../components/orders/GuestContactForm";
 import AddressForm from "../../components/orders/AddressForm";
 import DeliveryMethodSelector from "../../components/orders/DeliveryMethodSelector";
 
+import { useCheckoutSession } from "../../hooks/useCheckoutSession";
+
 export default function CheckoutPage() {
   const { authenticated } = useAuth();
 
@@ -43,11 +45,13 @@ export default function CheckoutPage() {
     useState<Address[]>([]);
 
   const [deliveryType, setDeliveryType] =
-    useState<DeliveryType>(DELIVERY_TYPE.DELIVERY);
+    useState<DeliveryType>(
+      DELIVERY_TYPE.DELIVERY
+    );
 
   const [selectedAddress, setSelectedAddress] =
     useState<number | null>(null);
-  
+
   const [showAddresses, setShowAddresses] =
     useState(false);
 
@@ -78,6 +82,17 @@ export default function CheckoutPage() {
   const { showToast } = useToast();
 
   const navigate = useNavigate();
+
+  const checkoutSessionEnabled =
+    authenticated || guestStarted;
+
+  const {
+    expired: checkoutExpired,
+    warning: checkoutWarning,
+    remainingSeconds,
+  } = useCheckoutSession(
+    checkoutSessionEnabled
+  );
 
   useEffect(() => {
     const loadData = async () => {
@@ -127,7 +142,6 @@ export default function CheckoutPage() {
   }, [authenticated, showToast]);
 
   const handleCheckout = async () => {
-
     if (
       authenticated &&
       deliveryType === DELIVERY_TYPE.DELIVERY &&
@@ -180,7 +194,11 @@ export default function CheckoutPage() {
       navigate("/orders");
     } catch (error) {
       console.error(error);
-      showToast("Failed to create order.", "error");
+
+      showToast(
+        "Failed to create order.",
+        "error"
+      );
     } finally {
       setPlacingOrder(false);
     }
@@ -200,7 +218,6 @@ export default function CheckoutPage() {
         <PageHeader title="Checkout" />
 
         <div className="mx-auto max-w-xl rounded-md border p-8 text-center">
-
           <h2 className="text-2xl font-semibold">
             Continue as Guest
           </h2>
@@ -231,15 +248,49 @@ export default function CheckoutPage() {
           >
             Log In
           </button>
-
         </div>
       </PageContainer>
     );
   }
 
+  if (checkoutExpired) {
+    return (
+      <PageContainer>
+        <PageHeader title="Checkout" />
+
+        <div className="mx-auto max-w-xl rounded-md border p-8 text-center">
+          <h2 className="text-2xl font-semibold">
+            Checkout session expired
+          </h2>
+
+          <p className="mt-3 text-gray-600">
+            Your checkout session expired because
+            there was no activity for 30 minutes.
+            Please review your cart and continue
+            checkout again.
+          </p>
+
+          <button
+            onClick={() =>
+              navigate("/cart")
+            }
+            className="mt-8 w-full rounded-md bg-black py-3 text-white"
+          >
+            Return to Cart
+          </button>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  const remainingMinutes =
+    Math.ceil(remainingSeconds / 60);
+
   const deliveryFee =
     deliveryType === DELIVERY_TYPE.DELIVERY
-      ? Number(cart?.delivery_fee ?? 0)
+      ? Number(
+          cart?.delivery_fee ?? 0
+        )
       : 0;
 
   const total =
@@ -249,6 +300,17 @@ export default function CheckoutPage() {
   return (
     <PageContainer>
       <PageHeader title="Checkout" />
+
+      {checkoutWarning && (
+        <div className="mb-6 rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-800">
+          Checkout will expire in{" "}
+          {remainingMinutes}{" "}
+          {remainingMinutes === 1
+            ? "minute"
+            : "minutes"}{" "}
+          due to inactivity.
+        </div>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
 
@@ -260,20 +322,29 @@ export default function CheckoutPage() {
             <>
               <DeliveryMethodSelector
                 deliveryType={deliveryType}
-                onDeliveryTypeChange={setDeliveryType}
+                onDeliveryTypeChange={
+                  setDeliveryType
+                }
               />
 
-              {deliveryType === DELIVERY_TYPE.DELIVERY && (
+              {deliveryType ===
+                DELIVERY_TYPE.DELIVERY && (
                 <CheckoutAddressSelector
                   addresses={addresses}
-                  selectedAddress={selectedAddress}
-                  showAddresses={showAddresses}
+                  selectedAddress={
+                    selectedAddress
+                  }
+                  showAddresses={
+                    showAddresses
+                  }
                   onSelectAddress={(id) => {
                     setSelectedAddress(id);
                     setShowAddresses(false);
                   }}
                   onToggleAddresses={() =>
-                    setShowAddresses((prev) => !prev)
+                    setShowAddresses(
+                      (prev) => !prev
+                    )
                   }
                 />
               )}
@@ -284,33 +355,53 @@ export default function CheckoutPage() {
                 fullName={guestFullName}
                 phone={guestPhone}
                 email={guestEmail}
-                onFullNameChange={setGuestFullName}
-                onPhoneChange={setGuestPhone}
-                onEmailChange={setGuestEmail}
+                onFullNameChange={
+                  setGuestFullName
+                }
+                onPhoneChange={
+                  setGuestPhone
+                }
+                onEmailChange={
+                  setGuestEmail
+                }
               />
 
               <DeliveryMethodSelector
                 deliveryType={deliveryType}
-                onDeliveryTypeChange={setDeliveryType}
+                onDeliveryTypeChange={
+                  setDeliveryType
+                }
               />
 
-              {deliveryType === DELIVERY_TYPE.DELIVERY && (
+              {deliveryType ===
+                DELIVERY_TYPE.DELIVERY && (
                 <AddressForm
-                  streetAddress={streetAddress}
+                  streetAddress={
+                    streetAddress
+                  }
                   area={area}
                   landmark={landmark}
                   city={city}
                   region={region}
-                  onStreetAddressChange={setStreetAddress}
-                  onAreaChange={setArea}
-                  onLandmarkChange={setLandmark}
-                  onCityChange={setCity}
-                  onRegionChange={setRegion}
+                  onStreetAddressChange={
+                    setStreetAddress
+                  }
+                  onAreaChange={
+                    setArea
+                  }
+                  onLandmarkChange={
+                    setLandmark
+                  }
+                  onCityChange={
+                    setCity
+                  }
+                  onRegionChange={
+                    setRegion
+                  }
                 />
               )}
             </>
           )}
-
         </div>
 
         {/* RIGHT COLUMN */}
@@ -323,7 +414,6 @@ export default function CheckoutPage() {
           placingOrder={placingOrder}
           onCheckout={handleCheckout}
         />
-
       </div>
     </PageContainer>
   );

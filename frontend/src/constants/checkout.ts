@@ -1,0 +1,3 @@
+export const CHECKOUT_SESSION_DURATION = 2 * 60 * 1000;
+
+export const CHECKOUT_WARNING_DURATION = 60 * 1000;
