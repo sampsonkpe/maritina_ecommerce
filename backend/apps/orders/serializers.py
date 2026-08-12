@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import Order, OrderItem
-
+from apps.common.constants import (
+    DELIVERY_TYPE_CHOICES,
+)
 
 class OrderItemSerializer(serializers.ModelSerializer):
 
@@ -77,7 +79,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class CheckoutSerializer(serializers.Serializer):
 
     delivery_type = serializers.ChoiceField(
-        choices=["DELIVERY", "PICKUP"]
+        choices=DELIVERY_TYPE_CHOICES
     )
 
     address_id = serializers.IntegerField(

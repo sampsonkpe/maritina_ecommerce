@@ -4,30 +4,47 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from .services import OrderService
-from .serializers import OrderSerializer
+from .serializers import CheckoutSerializer, OrderSerializer
 
 from apps.common.constants import DELIVERY
 
 
 class CreateOrderView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
     def post(self, request):
-
-        delivery_type = request.data.get(
-            "delivery_type",
-            DELIVERY,
+        if not request.session.session_key:
+            request.session.create()
+            
+        serializer = CheckoutSerializer(
+            data=request.data,
+            context={"request": request},
         )
 
-        address_id = request.data.get("address_id")
-        address_id = int(address_id) if address_id else None
+        serializer.is_valid(raise_exception=True)
+
+        data = serializer.validated_data
 
         try:
-
             order = OrderService.create_order_from_cart(
-                user=request.user,
-                delivery_type=delivery_type,
-                address_id=address_id,
+                user=(
+                    request.user
+                    if request.user.is_authenticated
+                    else None
+                ),
+
+                session_id=request.session.session_key,
+
+                delivery_type=data["delivery_type"],
+
+                address_id=data.get("address_id"),
+
+                guest_data={
+                    "full_name": data.get("full_name"),
+                    "email": data.get("email"),
+                    "phone": data.get("phone"),
+                    "address": data.get("address"),
+                },
             )
 
             return Response(
@@ -42,9 +59,7 @@ class CreateOrderView(APIView):
                 },
                 status=status.HTTP_201_CREATED,
             )
-
         except ValueError as e:
-
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,

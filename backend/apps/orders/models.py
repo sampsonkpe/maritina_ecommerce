@@ -95,6 +95,13 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id}"
 
+    @property
+    def delivery_address(self):
+        if self.address:
+            return str(self.address)
+
+        return self.guest_address or ""
+
 
 class OrderItem(models.Model):
 

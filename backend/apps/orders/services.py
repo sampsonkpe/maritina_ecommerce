@@ -95,9 +95,10 @@ class OrderService:
 
             else:
 
-                guest_address = guest_data[
-                    "address"
-                ]
+                guest_address = guest_data.get(
+                    "address",
+                    ""
+                )
 
                 distance = (
                     DeliveryService
