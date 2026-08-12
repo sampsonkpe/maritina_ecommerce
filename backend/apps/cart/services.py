@@ -28,6 +28,9 @@ class CartService:
     @staticmethod
     @transaction.atomic
     def add_to_cart(cart, variant_id, quantity=1):
+        
+        if quantity < 1:
+            raise ValueError("Cannot add less than 1.")
 
         variant = ProductVariant.objects.select_for_update().get(id=variant_id)
 

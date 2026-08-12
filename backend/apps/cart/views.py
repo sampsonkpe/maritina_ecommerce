@@ -15,7 +15,7 @@ def get_session_id(request):
 
 class CartView(APIView):
     permission_classes = [AllowAny]
-    
+
     def get(self, request):
 
         cart = CartService.get_or_create_cart(
@@ -37,9 +37,12 @@ class AddToCartView(APIView):
         )
 
         variant_id = request.data.get("variant_id")
-        quantity = int(request.data.get("quantity", 1))
 
         try:
+            quantity = int(
+                request.data.get("quantity", 1)
+            )
+
             item = CartService.add_to_cart(
                 cart,
                 variant_id,
@@ -54,11 +57,12 @@ class AddToCartView(APIView):
                 status=status.HTTP_201_CREATED
             )
 
-        except ValueError as e:
+        except (TypeError, ValueError) as e:
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
 
 class UpdateCartItemView(APIView):
     permission_classes = [AllowAny]

@@ -9,13 +9,20 @@ import type {
 export const orderService = {
   async createOrder(
     deliveryType: string,
-    addressId?: number
+    addressId?: number,
+    guestData?: {
+      full_name?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+    }
   ): Promise<CreateOrderResponse> {
     const response = await api.post(
       "/orders/create/",
       {
         delivery_type: deliveryType,
         address_id: addressId,
+        ...guestData,
       }
     );
 

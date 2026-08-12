@@ -51,7 +51,7 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <LoadingState
-        message="Loading orders..."
+        message="Loading products..."
       />
     );
   }

@@ -25,7 +25,7 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] =
     useState<ProductVariant | null>(null);
 
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState("1");
 
   const [loading, setLoading] = useState(true);
 
@@ -61,10 +61,21 @@ export default function ProductDetailPage() {
     setError("");
     setSuccess("");
 
+    const parsedQuantity = Number(quantity);
+
+    if (
+      !quantity.trim() ||
+      !Number.isInteger(parsedQuantity) ||
+      parsedQuantity < 1
+    ) {
+      setError("Cannot add less than 1.");
+      return;
+    }
+
     try {
       await addToCart(
         selectedVariant.id,
-        quantity
+        parsedQuantity
       );
 
       setSuccess("Added to cart.");
@@ -72,19 +83,12 @@ export default function ProductDetailPage() {
       console.error(error);
       setError("Failed to add to cart.");
     }
-
-    await addToCart(
-      selectedVariant.id,
-      quantity
-    );
-
-    setSuccess("Added to cart.");
   };
 
   if (loading) {
     return (
       <LoadingState
-        message="Loading orders..."
+        message="Loading products..."
       />
     );
   }
@@ -149,14 +153,12 @@ export default function ProductDetailPage() {
             </label>
 
             <input
-              aria-label="Password"
+              aria-label="Quantity"
               type="number"
               min="1"
               value={quantity}
               onChange={(e) =>
-                setQuantity(
-                  Math.max(1, Number(e.target.value))
-                )
+                setQuantity(e.target.value)
               }
               className="mt-2 w-24 rounded-md border p-2"
             />

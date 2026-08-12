@@ -39,7 +39,11 @@ export default function AddressesPage() {
   };
 
   useEffect(() => {
-    loadAddresses();
+    const fetchAddresses = async () => {
+      await loadAddresses();
+    };
+
+    fetchAddresses();
   }, []);
 
   const resetForm = () => {
@@ -117,7 +121,7 @@ export default function AddressesPage() {
   if (loading) {
     return (
       <LoadingState
-        message="Loading orders..."
+        message="Loading addresses..."
       />
     );
   }

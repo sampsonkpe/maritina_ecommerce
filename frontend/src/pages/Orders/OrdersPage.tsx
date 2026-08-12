@@ -43,15 +43,25 @@ export default function OrdersPage() {
       }
 
       window.location.href = response.data.authorization_url;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("FULL ERROR:", error);
 
-      const message =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        "Payment initialisation failed. Please try again.";
+      const isPaymentError = (value: unknown): value is {
+        response?: { data?: { error?: string; message?: string } };
+      } =>
+        typeof value === "object" &&
+        value !== null &&
+        "response" in value;
 
-      setError(message);
+      const message =
+        isPaymentError(error)
+          ? error.response?.data?.error || error.response?.data?.message
+          : undefined;
+
+      setError(
+        message ||
+          "Payment initialisation failed. Please try again."
+      );
     }
   };
 

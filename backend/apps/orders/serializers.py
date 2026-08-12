@@ -34,10 +34,32 @@ class OrderSerializer(serializers.ModelSerializer):
     address_text = serializers.SerializerMethodField()
 
     def get_address_text(self, obj):
-        if not obj.address:
-            return None
-        
-        return str(obj.address)
+        # Prefer explicit delivery_address attribute if present
+        address = getattr(obj, "delivery_address", None)
+
+        if address:
+            # If it's already a string, return directly
+            if isinstance(address, str):
+                return address
+
+            # If it's an object (e.g., related Address model), try common fields
+            parts = []
+            for attr in ("line1", "line2", "city", "state", "postal_code", "country", "street", "address_line"):
+                val = getattr(address, attr, None)
+                if val:
+                    parts.append(str(val))
+
+            if parts:
+                return ", ".join(parts)
+
+        # Fallback to any address or address fields on the order itself
+        parts = []
+        for attr in ("address", "guest_address", "guest_full_name", "guest_phone"):
+            val = getattr(obj, attr, None)
+            if val:
+                parts.append(str(val))
+
+        return ", ".join(parts) if parts else ""
 
     delivery_type_display = (
         serializers.SerializerMethodField()

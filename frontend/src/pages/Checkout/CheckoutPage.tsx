@@ -130,6 +130,7 @@ export default function CheckoutPage() {
     setError("");
 
     if (
+      authenticated &&
       deliveryType === DELIVERY_TYPE.DELIVERY &&
       !selectedAddress
     ) {
@@ -139,14 +140,40 @@ export default function CheckoutPage() {
       return;
     }
 
+    const guestAddress =
+      [
+        streetAddress,
+        area,
+        city,
+        region,
+      ]
+        .filter(Boolean)
+        .join(", ") +
+      (landmark
+        ? ` (Landmark: ${landmark})`
+        : "");
+
     try {
       setPlacingOrder(true);
 
       await orderService.createOrder(
         deliveryType,
-        deliveryType === DELIVERY_TYPE.DELIVERY
+        authenticated &&
+          deliveryType === DELIVERY_TYPE.DELIVERY
           ? selectedAddress!
-          : undefined
+          : undefined,
+        authenticated
+          ? undefined
+          : {
+              full_name: guestFullName,
+              email: guestEmail,
+              phone: guestPhone,
+              address:
+                deliveryType ===
+                DELIVERY_TYPE.DELIVERY
+                  ? guestAddress
+                  : undefined,
+            }
       );
 
       navigate("/orders");
