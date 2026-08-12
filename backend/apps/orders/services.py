@@ -287,3 +287,23 @@ class OrderService:
         order.save()
 
         return order
+
+    @staticmethod
+    @transaction.atomic
+    def claim_guest_orders(user):
+        if not user.email:
+            return 0
+
+        if not user.email_verified:
+            raise ValueError(
+                "Email verification is required to claim guest orders."
+            )
+
+        orders = Order.objects.filter(
+            user__isnull=True,
+            guest_email__iexact=user.email,
+        )
+
+        claimed_count = orders.update(user=user)
+
+        return claimed_count

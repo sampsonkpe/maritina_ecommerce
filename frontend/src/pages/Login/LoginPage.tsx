@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { authService } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
+import { orderService } from "../../services/orderService";
 
 import Alert from "../../components/common/Alert";
 
@@ -49,6 +50,8 @@ const handleSubmit = async (
 
     setUser(data.user);
     setAuthenticated(true);
+
+    await orderService.claimGuestOrders();
 
     navigate("/products");
   } catch {

@@ -81,3 +81,30 @@ class UserOrdersView(APIView):
         )
 
         return Response(serializer.data)
+
+
+class ClaimGuestOrdersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            claimed_count = (
+                OrderService.claim_guest_orders(
+                    request.user
+                )
+            )
+
+            return Response(
+                {
+                    "message": (
+                        "Guest orders claimed successfully."
+                    ),
+                    "claimed_count": claimed_count,
+                }
+            )
+
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

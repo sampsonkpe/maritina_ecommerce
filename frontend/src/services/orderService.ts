@@ -29,6 +29,17 @@ export const orderService = {
     return response.data;
   },
 
+  async claimGuestOrders(): Promise<{
+    message: string;
+    claimed_count: number;
+  }> {
+    const response = await api.post(
+      "/orders/claim-guest/"
+    );
+
+    return response.data;
+  },
+
   async getOrders(): Promise<Order[]> {
     const response = await api.get("/orders/");
 
