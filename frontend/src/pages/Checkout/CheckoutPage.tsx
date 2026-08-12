@@ -13,7 +13,7 @@ import {
   type DeliveryType,
 } from "../../constants/order";
 
-import Alert from "../../components/common/Alert";
+import { useToast } from "../../context/useToast";
 import LoadingState from "../../components/common/LoadingState";
 import PageContainer from "../../components/common/PageContainer";
 import PageHeader from "../../components/common/PageHeader";
@@ -75,8 +75,7 @@ export default function CheckoutPage() {
   const [placingOrder, setPlacingOrder] =
     useState(false);
 
-  const [error, setError] =
-    useState("");
+  const { showToast } = useToast();
 
   const navigate = useNavigate();
 
@@ -115,8 +114,9 @@ export default function CheckoutPage() {
       } catch (error) {
         console.error(error);
 
-        setError(
-          "Failed to load checkout."
+        showToast(
+          "Failed to load checkout.",
+          "error"
         );
       } finally {
         setPageLoading(false);
@@ -124,19 +124,20 @@ export default function CheckoutPage() {
     };
 
     loadData();
-  }, [authenticated]);
+  }, [authenticated, showToast]);
 
   const handleCheckout = async () => {
-    setError("");
 
     if (
       authenticated &&
       deliveryType === DELIVERY_TYPE.DELIVERY &&
       !selectedAddress
     ) {
-      setError(
-        "Please select a delivery address."
+      showToast(
+        "Please select a delivery address.",
+        "error"
       );
+
       return;
     }
 
@@ -179,7 +180,7 @@ export default function CheckoutPage() {
       navigate("/orders");
     } catch (error) {
       console.error(error);
-      setError("Failed to create order.");
+      showToast("Failed to create order.", "error");
     } finally {
       setPlacingOrder(false);
     }
@@ -248,7 +249,6 @@ export default function CheckoutPage() {
   return (
     <PageContainer>
       <PageHeader title="Checkout" />
-      {error && <Alert message={error} />}
 
       <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
 
