@@ -124,22 +124,25 @@ class UserService:
             .select_related("user")
             .filter(
                 token_hash=token_hash,
-                used_at__isnull=True,
             )
             .first()
         )
 
         if not verification_token:
             raise ValueError(
-                "Invalid or already used verification link."
+                "Invalid verification link."
             )
+
+        user = verification_token.user
+
+        # The email has already been verified.
+        if user.email_verified:
+            return user, False
 
         if verification_token.expires_at < timezone.now():
             raise ValueError(
                 "This verification link has expired."
             )
-
-        user = verification_token.user
 
         user.email_verified = True
         user.email_verified_at = timezone.now()
@@ -157,7 +160,7 @@ class UserService:
             update_fields=["used_at"]
         )
 
-        return user
+        return user, True
 
     @staticmethod
     def send_email_verification(user, raw_token):

@@ -141,12 +141,19 @@ class VerifyEmailView(APIView):
     def get(self, request, token):
 
         try:
-            user = UserService.verify_email(token)
+            user, newly_verified = (
+                UserService.verify_email(token)
+            )
 
             return Response(
                 {
-                    "message": "Email verified successfully.",
+                    "message": (
+                        "Email verified successfully."
+                        if newly_verified
+                        else "Your email is already verified."
+                    ),
                     "email": user.email,
+                    "already_verified": not newly_verified,
                 }
             )
 

@@ -17,6 +17,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicRoute from "./components/auth/PublicRoute";
 import AdminRoute from "./components/auth/AdminRoute";
 
+import VerifyEmailPage from "./pages/VerifyEmail/VerifyEmailPage";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -32,6 +34,7 @@ export default function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
           <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
+          <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,8 +1,5 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
-from django.conf import settings
-
-import hashlib
 
 class UserManager(BaseUserManager):
 
