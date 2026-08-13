@@ -28,12 +28,12 @@ export interface VerifyPaymentResponse {
 
 export const paymentService = {
   async initializePayment(
-    orderId: number
+    checkoutId: number
   ): Promise<InitializePaymentResponse> {
     const response = await api.post(
       "/payments/initialize/",
       {
-        order_id: orderId,
+        checkout_id: checkoutId,
       }
     );
 

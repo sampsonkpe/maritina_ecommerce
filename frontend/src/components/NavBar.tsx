@@ -17,7 +17,7 @@ export default function NavBar() {
   } = useCart();
 
   return (
-    <nav className="border-b border-[var(--color-border)]">
+    <nav className="border-b border-(--color-border)">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 p-4">
         <Link
           to="/"

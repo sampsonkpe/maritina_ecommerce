@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { addressService } from "../../services/addressService";
-import { orderService } from "../../services/orderService";
+import { checkoutService } from "../../services/checkoutService";
 import { paymentService } from "../../services/paymentService";
 import { cartService } from "../../services/cartService";
 import { useAuth } from "../../context/AuthContext";
@@ -172,12 +172,8 @@ export default function CheckoutPage() {
     try {
       setPlacingOrder(true);
 
-      /*
-       * Step 1:
-       * Create the pending order and reserve stock.
-       */
-      const response =
-        await orderService.createOrder(
+      const checkout =
+        await checkoutService.createCheckout(
           deliveryType,
           authenticated &&
             deliveryType === DELIVERY_TYPE.DELIVERY
@@ -197,14 +193,9 @@ export default function CheckoutPage() {
               }
         );
 
-      /*
-       * Step 2:
-       * Initialise Paystack using the newly-created
-       * pending order.
-       */
       const paymentResponse =
         await paymentService.initializePayment(
-          response.order.id
+          checkout.id
         );
 
       if (
@@ -217,12 +208,6 @@ export default function CheckoutPage() {
         );
       }
 
-      /*
-       * Step 3:
-       * Leave KAHWƐ and send the customer to Paystack.
-       *
-       * No order-success page yet.
-       */
       window.location.href =
         paymentResponse.data.authorization_url;
 

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.payments',
     'apps.addresses',
     'apps.common',
+    'apps.checkout',
     'corsheaders',
 ]
 
