@@ -6,7 +6,14 @@ export default function EmptyState({
   title,
 }: EmptyStateProps) {
   return (
-    <div className="rounded-md border border-dashed p-10 text-center text-gray-500">
+    <div
+      className="
+        rounded-md
+        border border-dashed border-(--color-border)
+        p-10
+        text-center text-(--color-text-muted)
+      "
+    >
       {title}
     </div>
   );

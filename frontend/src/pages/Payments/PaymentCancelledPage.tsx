@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 import PageContainer from "../../components/common/PageContainer";
+import Button from "../../components/common/Button";
 
 export default function PaymentCancelledPage() {
   const navigate = useNavigate();
@@ -12,33 +13,32 @@ export default function PaymentCancelledPage() {
           Payment cancelled
         </h1>
 
-        <p className="mt-3 text-gray-600">
+       <p className="mt-3 text-(--color-text-muted)">
           Your payment was cancelled. Your order
-          has not been confirmed and your cart is
+          has not been confirmed, however your cart is
           still available.
         </p>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/checkout")
-            }
-            className="rounded-md bg-black px-6 py-3 text-white"
-          >
-            Return to Checkout
-          </button>
+            <Button
+                type="button"
+                onClick={() =>
+                navigate("/checkout")
+                }
+            >
+                Return to Checkout
+            </Button>
 
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/cart")
-            }
-            className="rounded-md border px-6 py-3"
-          >
-            View Cart
-          </button>
-        </div>
+            <Button
+                type="button"
+                variant="secondary"
+                onClick={() =>
+                navigate("/cart")
+                }
+            >
+                View Cart
+            </Button>
+            </div>
       </div>
     </PageContainer>
   );

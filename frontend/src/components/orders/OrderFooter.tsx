@@ -15,7 +15,7 @@ export default function OrderFooter({
 }: OrderFooterProps) {
   return (
     <div className="mt-5 flex items-center justify-between">
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-[var(--color-text-muted)]">
         Order placed on {formatDate(createdAt)}
       </div>
 

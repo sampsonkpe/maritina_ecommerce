@@ -17,7 +17,7 @@ export default function NavBar() {
   } = useCart();
 
   return (
-    <nav className="border-b">
+    <nav className="border-b border-(--color-border)">
       <div className="mx-auto flex max-w-7xl items-center justify-between p-4">
         <Link
           to="/"
@@ -26,7 +26,7 @@ export default function NavBar() {
           KAHWƐ by Maritina Foods
         </Link>
 
-        <div className="flex gap-6">
+        <div className="flex items-center gap-6">
           <Link to="/">Home</Link>
 
           <Link to="/products">

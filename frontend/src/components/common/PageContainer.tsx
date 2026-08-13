@@ -14,7 +14,9 @@ export default function PageContainer({
   return (
     <div
       className={`mx-auto p-8 ${
-        maxWidth === "6xl" ? "max-w-6xl" : "max-w-5xl"
+        maxWidth === "6xl"
+          ? "max-w-6xl"
+          : "max-w-5xl"
       } ${className}`}
     >
       {children}

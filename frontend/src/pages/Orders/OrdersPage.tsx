@@ -86,7 +86,13 @@ export default function OrdersPage() {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="rounded-md border bg-white p-6 shadow-sm"
+              className="
+                rounded-md
+                border border-(--color-border)
+                bg-(--color-surface)
+                p-6
+                shadow-sm
+              "
             >
               <OrderHeader
                 order={order}
@@ -98,24 +104,16 @@ export default function OrdersPage() {
                 }
               />
 
-              {expandedOrders.includes(
-                order.id
-              ) && (
-                <>
-                  <OrderItemsList
-                    items={order.items}
-                  />
+              <OrderSummary
+                subtotal={order.subtotal}
+                deliveryFee={order.delivery_fee}
+                total={order.total_amount}
+              />
 
-                  <OrderSummary
-                    subtotal={order.subtotal}
-                    deliveryFee={
-                      order.delivery_fee
-                    }
-                    total={
-                      order.total_amount
-                    }
-                  />
-                </>
+              {expandedOrders.includes(order.id) && (
+                <OrderItemsList
+                  items={order.items}
+                />
               )}
 
               <OrderFooter

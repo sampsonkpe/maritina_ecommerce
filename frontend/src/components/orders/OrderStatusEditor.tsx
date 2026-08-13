@@ -37,7 +37,7 @@ export default function OrderStatusEditor({
     order.status === ORDER_STATUS.CANCELLED;
 
   return (
-    <div className="mt-8 border-t pt-6">
+    <div className="mt-8 border-t border-(--color-border) pt-6">
       <h3 className="mb-4 font-semibold">
         Order Status
       </h3>
@@ -52,7 +52,16 @@ export default function OrderStatusEditor({
               onChange={(e) =>
                 onStatusChange(e.target.value)
               }
-              className="rounded-md border px-4 py-3"
+              className="
+                rounded-md
+                border border-(--color-border)
+                bg-(--color-surface)
+                px-4
+                py-3
+                text-(--color-text)
+                outline-none
+                focus:border-(--color-text-muted)
+              "
             >
               {availableStatuses.map((status) => (
                 <option

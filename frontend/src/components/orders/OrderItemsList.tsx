@@ -16,13 +16,27 @@ export default function OrderItemsList({
       {items.map((item) => (
         <div
           key={item.id}
-          className="rounded-md border bg-gray-50 p-4"
+          className="
+            rounded-md
+            border border-[var(--color-border)]
+            bg-[var(--color-surface-muted)]
+            p-4
+          "
         >
           <p className="font-medium">
             {item.product_name}
           </p>
 
-          <div className="mt-1 flex items-center justify-between text-sm text-gray-600">
+          <div
+            className="
+              mt-1
+              flex
+              items-center
+              justify-between
+              text-sm
+              text-[var(--color-text-muted)]
+            "
+          >
             <span>
               {item.variant_name || "Standard"}
             </span>

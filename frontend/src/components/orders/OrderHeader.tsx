@@ -31,17 +31,17 @@ export default function OrderHeader({
         </h2>
 
         {showCustomer && (
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
             {order.user_email}
           </p>
         )}
 
-        <p className="mt-3 text-gray-900">
+        <p className="mt-3 text-[var(--color-text)]">
           {order.delivery_type_display}
         </p>
 
         {showCustomer && (
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
             {formatDate(order.created_at)}
           </p>
         )}
@@ -66,7 +66,14 @@ export default function OrderHeader({
             }
             aria-expanded={expanded}
             onClick={onToggle}
-            className="rounded-md p-2 text-gray-600 transition hover:bg-gray-100 hover:text-black"
+            className="
+              rounded-md
+              p-2
+              text-[var(--color-text-muted)]
+              transition
+              hover:bg-[var(--color-surface-muted)]
+              hover:text-[var(--color-text)]
+            "
           >
             {expanded ? (
               <ChevronUp size={22} />
