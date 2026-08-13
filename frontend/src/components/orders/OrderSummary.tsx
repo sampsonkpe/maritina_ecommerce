@@ -16,13 +16,13 @@ export default function OrderSummary({
       className="
         mt-5
         rounded-md
-        border border-[var(--color-border)]
-        bg-[var(--color-surface-muted)]
+        border border-(--color-border)
+        bg-(--color-surface-muted)
         p-4
       "
     >
       <div className="flex justify-between text-sm">
-        <span className="text-[var(--color-text-muted)]">
+        <span className="text-(--color-text-muted)">
           Subtotal
         </span>
 
@@ -32,7 +32,7 @@ export default function OrderSummary({
       </div>
 
       <div className="mt-2 flex justify-between text-sm">
-        <span className="text-[var(--color-text-muted)]">
+        <span className="text-(--color-text-muted)">
           Delivery Fee
         </span>
 
@@ -47,7 +47,7 @@ export default function OrderSummary({
           flex
           justify-between
           border-t
-          border-[var(--color-border)]
+          border-(--color-border)
           pt-3
           font-semibold
         "

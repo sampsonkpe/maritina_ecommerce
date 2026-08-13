@@ -104,17 +104,17 @@ export default function OrdersPage() {
                 }
               />
 
-              <OrderSummary
-                subtotal={order.subtotal}
-                deliveryFee={order.delivery_fee}
-                total={order.total_amount}
-              />
-
               {expandedOrders.includes(order.id) && (
                 <OrderItemsList
                   items={order.items}
                 />
               )}
+
+              <OrderSummary
+                subtotal={order.subtotal}
+                deliveryFee={order.delivery_fee}
+                total={order.total_amount}
+              />
 
               <OrderFooter
                 createdAt={order.created_at}

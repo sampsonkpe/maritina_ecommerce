@@ -23,37 +23,37 @@ export default function OrderHeader({
   showCustomer = false,
 }: OrderHeaderProps) {
   return (
-    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+    <div className="grid grid-cols-[1fr_auto] gap-4">
 
-      <div>
-        <h2 className="text-2xl font-semibold">
+      {/* Left */}
+      <div className="min-w-0">
+        <h2 className="text-xl font-semibold sm:text-2xl">
           Order #{order.id}
         </h2>
 
         {showCustomer && (
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+          <p className="mt-2 text-sm text-(--color-text-muted)">
             {order.user_email}
           </p>
         )}
 
-        <p className="mt-3 text-[var(--color-text)]">
+        <p className="mt-3 text-(--color-text)">
           {order.delivery_type_display}
         </p>
 
         {showCustomer && (
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+          <p className="mt-2 text-sm text-(--color-text-muted)">
             {formatDate(order.created_at)}
           </p>
         )}
       </div>
 
-      <div className="flex flex-col items-start gap-4 md:items-end">
-
+      {/* Right */}
+      <div className="flex min-w-0 flex-col items-end gap-4">
         <StatusBadge status={order.status} />
 
-        <div className="flex items-center gap-4 pr-4">
-
-          <p className="text-3xl font-bold">
+        <div className="flex items-center gap-2">
+          <p className="text-xl font-bold sm:text-3xl">
             {formatCurrency(order.total_amount)}
           </p>
 
@@ -69,10 +69,10 @@ export default function OrderHeader({
             className="
               rounded-md
               p-2
-              text-[var(--color-text-muted)]
+              text-(--color-text-muted)
               transition
-              hover:bg-[var(--color-surface-muted)]
-              hover:text-[var(--color-text)]
+              hover:bg-(--color-surface-muted)
+              hover:text-(--color-text)
             "
           >
             {expanded ? (
@@ -81,9 +81,7 @@ export default function OrderHeader({
               <ChevronDown size={22} />
             )}
           </button>
-
         </div>
-
       </div>
 
     </div>

@@ -12,47 +12,47 @@ export default function OrderItemsList({
   showPrice = true,
 }: OrderItemsListProps) {
   return (
-    <div className="mt-4 space-y-4">
-      {items.map((item) => (
-        <div
-          key={item.id}
-          className="
-            rounded-md
-            border border-[var(--color-border)]
-            bg-[var(--color-surface-muted)]
-            p-4
-          "
-        >
-          <p className="font-medium">
-            {item.product_name}
-          </p>
-
+    <div
+      className="
+        mt-4
+        rounded-md
+        border border-(--color-border)
+        bg-(--color-surface-muted)
+        p-4
+      "
+    >
+      <div className="space-y-5">
+        {items.map((item, index) => (
           <div
-            className="
-              mt-1
-              flex
-              items-center
-              justify-between
-              text-sm
-              text-[var(--color-text-muted)]
-            "
+            key={item.id}
+            className={
+              index > 0
+                ? "border-t border-(--color-border) pt-5"
+                : ""
+            }
           >
-            <span>
-              {item.variant_name || "Standard"}
-            </span>
+            <p className="font-medium">
+              {item.product_name}
+            </p>
 
-            <span>
-              ×{item.quantity}
-            </span>
-          </div>
+            <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center text-sm">
+              <span className="min-w-0 text-(--color-text-muted)">
+                {item.variant_name || "Standard"}
+              </span>
 
-          {showPrice && (
-            <div className="mt-2 text-right text-sm font-medium">
-              {formatCurrency(item.subtotal)}
+              <span className="justify-self-center text-(--color-text-muted)">
+                ×{item.quantity}
+              </span>
+
+              {showPrice && (
+                <span className="justify-self-end text-(--color-text-muted)">
+                  {formatCurrency(item.subtotal)}
+                </span>
+              )}
             </div>
-          )}
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
