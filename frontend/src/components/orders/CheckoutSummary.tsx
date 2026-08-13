@@ -86,7 +86,7 @@ export default function CheckoutSummary({
       >
         {placingOrder
           ? "Creating Order..."
-          : "Place Order"}
+          : "Continue to Payment"}
       </button>
     </div>
   );

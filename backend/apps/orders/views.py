@@ -39,12 +39,16 @@ class CreateOrderView(APIView):
 
                 address_id=data.get("address_id"),
 
-                guest_data={
-                    "full_name": data.get("full_name"),
-                    "email": data.get("email"),
-                    "phone": data.get("phone"),
-                    "address": data.get("address"),
-                },
+                guest_data=(
+                    {
+                        "full_name": data.get("full_name"),
+                        "email": data.get("email"),
+                        "phone": data.get("phone"),
+                        "address": data.get("address"),
+                    }
+                    if not request.user.is_authenticated
+                    else None
+                ),
             )
 
             return Response(

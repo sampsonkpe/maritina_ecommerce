@@ -177,7 +177,7 @@ export default function CartPage() {
               onClick={() => navigate("/checkout")}
               className="rounded-md bg-black px-8 py-3 text-white"
             >
-              Checkout
+              Continue to Checkout
             </button>
           </div>
         </>

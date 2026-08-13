@@ -118,17 +118,17 @@ class OrderService:
             user=user,
 
             guest_full_name=(
-                guest_data.get("full_name", "")
+                guest_data.get("full_name") or ""
                 if guest_data else ""
             ),
 
             guest_email=(
-                guest_data.get("email", "")
+                guest_data.get("email") or ""
                 if guest_data else ""
             ),
 
             guest_phone=(
-                guest_data.get("phone", "")
+                guest_data.get("phone") or ""
                 if guest_data else ""
             ),
 
