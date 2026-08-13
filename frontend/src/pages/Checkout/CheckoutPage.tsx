@@ -27,7 +27,7 @@ import DeliveryMethodSelector from "../../components/orders/DeliveryMethodSelect
 import { useCheckoutSession } from "../../hooks/useCheckoutSession";
 
 export default function CheckoutPage() {
-  const { authenticated } = useAuth();
+  const { authenticated, user } = useAuth();
 
   const [guestStarted, setGuestStarted] =
     useState(false);
@@ -171,27 +171,41 @@ export default function CheckoutPage() {
     try {
       setPlacingOrder(true);
 
-      await orderService.createOrder(
-        deliveryType,
-        authenticated &&
-          deliveryType === DELIVERY_TYPE.DELIVERY
-          ? selectedAddress!
-          : undefined,
-        authenticated
-          ? undefined
-          : {
-              full_name: guestFullName,
-              email: guestEmail,
-              phone: guestPhone,
-              address:
-                deliveryType ===
-                DELIVERY_TYPE.DELIVERY
-                  ? guestAddress
-                  : undefined,
-            }
-      );
+      const response =
+        await orderService.createOrder(
+          deliveryType,
+          authenticated &&
+            deliveryType === DELIVERY_TYPE.DELIVERY
+            ? selectedAddress!
+            : undefined,
+          authenticated
+            ? undefined
+            : {
+                full_name: guestFullName,
+                email: guestEmail,
+                phone: guestPhone,
+                address:
+                  deliveryType ===
+                  DELIVERY_TYPE.DELIVERY
+                    ? guestAddress
+                    : undefined,
+              }
+        );
 
-      navigate("/orders");
+      const firstName = authenticated
+        ? user?.full_name
+            ?.trim()
+            .split(/\s+/)[0] || "Customer"
+        : guestFullName
+            .trim()
+            .split(/\s+/)[0] || "Customer";
+
+      navigate("/order-success", {
+        state: {
+          order: response.order,
+          firstName,
+        },
+      });
     } catch (error) {
       console.error(error);
 
