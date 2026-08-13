@@ -13,22 +13,28 @@ export function getStatusClasses(
 ) {
   switch (status) {
     case ORDER_STATUS.PENDING:
-      return "bg-gray-100 text-gray-700";
+      return "bg-gray-200 text-gray-700";
+
+    case ORDER_STATUS.CONFIRMED:
+      return "bg-cyan-200 text-cyan-700";
 
     case ORDER_STATUS.PREPARING:
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-200 text-blue-700";
 
     case ORDER_STATUS.OUT_FOR_DELIVERY:
-      return "bg-purple-100 text-purple-800";
+      return "bg-purple-200 text-purple-700";
+
+    case ORDER_STATUS.READY_FOR_PICKUP:
+      return "bg-violet-200 text-violet-700";
 
     case ORDER_STATUS.DELIVERED:
-      return "bg-green-100 text-green-800";
+      return "bg-green-200 text-green-700";
 
     case ORDER_STATUS.CANCELLED:
-      return "bg-red-100 text-red-800";
+      return "bg-red-200 text-red-700";
 
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-gray-200 text-gray-700";
   }
 }
 

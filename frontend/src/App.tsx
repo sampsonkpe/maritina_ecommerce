@@ -19,6 +19,8 @@ import AdminRoute from "./components/auth/AdminRoute";
 
 import VerifyEmailPage from "./pages/VerifyEmail/VerifyEmailPage";
 import OrderSuccessPage from "./pages/Orders/OrderSuccessPage";
+import PaymentReturnPage from "./pages/Payments/PaymentReturnPage";
+import PaymentCancelledPage from "./pages/Payments/PaymentCancelledPage";
 
 export default function App() {
   return (
@@ -37,6 +39,8 @@ export default function App() {
           <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
           <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
+          <Route path="/payment-return" element={<PaymentReturnPage />} />
+          <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

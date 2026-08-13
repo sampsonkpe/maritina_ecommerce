@@ -6,9 +6,11 @@ import type {
   OrderStatusResponse,
 } from "../types/api";
 
+import type { DeliveryType } from "../constants/order";
+
 export const orderService = {
   async createOrder(
-    deliveryType: string,
+    deliveryType: DeliveryType,
     addressId?: number,
     guestData?: {
       full_name?: string;

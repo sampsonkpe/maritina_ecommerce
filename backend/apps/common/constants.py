@@ -1,16 +1,22 @@
 # Fulfilment Statuses
 
 STATUS_PENDING = "PENDING"
+STATUS_CONFIRMED = "CONFIRMED"
 STATUS_PREPARING = "PREPARING"
 STATUS_OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
+STATUS_READY_FOR_PICKUP = "READY_FOR_PICKUP"
 STATUS_DELIVERED = "DELIVERED"
+STATUS_PICKED_UP = "PICKED_UP"
 STATUS_CANCELLED = "CANCELLED"
 
 FULFILMENT_STATUS_CHOICES = [
     (STATUS_PENDING, "Pending"),
+    (STATUS_CONFIRMED, "Confirmed"),
     (STATUS_PREPARING, "Preparing"),
     (STATUS_OUT_FOR_DELIVERY, "Out for Delivery"),
+    (STATUS_READY_FOR_PICKUP, "Ready for Pickup"),
     (STATUS_DELIVERED, "Delivered"),
+    (STATUS_PICKED_UP, "Picked Up"),
     (STATUS_CANCELLED, "Cancelled"),
 ]
 
@@ -40,18 +46,30 @@ DELIVERY_TYPE_CHOICES = [
     (PICKUP, "Pickup"),
 ]
 
+# Normal fulfilment transitions
+# Payment must be completed before the order can be fulfilled. Once the order is fulfilled, it cannot be cancelled.
+
 ORDER_STATUS_TRANSITIONS = {
     STATUS_PENDING: [
+        STATUS_CANCELLED,
+    ],
+
+    STATUS_CONFIRMED: [
         STATUS_PREPARING,
         STATUS_CANCELLED,
     ],
     STATUS_PREPARING: [
         STATUS_OUT_FOR_DELIVERY,
+        STATUS_READY_FOR_PICKUP,
         STATUS_CANCELLED,
     ],
     STATUS_OUT_FOR_DELIVERY: [
         STATUS_DELIVERED,
     ],
+    STATUS_READY_FOR_PICKUP: [
+        STATUS_PICKED_UP,
+    ],
     STATUS_DELIVERED: [],
+    STATUS_PICKED_UP: [],
     STATUS_CANCELLED: [],
 }

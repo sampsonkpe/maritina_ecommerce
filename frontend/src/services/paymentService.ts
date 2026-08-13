@@ -1,6 +1,6 @@
 import api from "../api/axios";
 
-interface InitializePaymentResponse {
+export interface InitializePaymentResponse {
   status: boolean;
   message: string;
 
@@ -11,9 +11,19 @@ interface InitializePaymentResponse {
   };
 }
 
-interface VerifyPaymentResponse {
+export interface VerifyPaymentResponse {
   message: string;
-  data: unknown;
+
+  data: {
+    status: boolean;
+    message: string;
+    data?: {
+      reference?: string;
+      status?: string;
+      amount?: number;
+      [key: string]: unknown;
+    };
+  };
 }
 
 export const paymentService = {

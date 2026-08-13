@@ -85,7 +85,7 @@ export default function CheckoutSummary({
         className="mt-6 w-full rounded-md bg-black px-6 py-3 text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {placingOrder
-          ? "Creating Order..."
+          ? "Processing..."
           : "Continue to Payment"}
       </button>
     </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { addressService } from "../../services/addressService";
 import { orderService } from "../../services/orderService";
+import { paymentService } from "../../services/paymentService";
 import { cartService } from "../../services/cartService";
 import { useAuth } from "../../context/AuthContext";
 
@@ -27,7 +28,7 @@ import DeliveryMethodSelector from "../../components/orders/DeliveryMethodSelect
 import { useCheckoutSession } from "../../hooks/useCheckoutSession";
 
 export default function CheckoutPage() {
-  const { authenticated, user } = useAuth();
+  const { authenticated } = useAuth();
 
   const [guestStarted, setGuestStarted] =
     useState(false);
@@ -171,6 +172,10 @@ export default function CheckoutPage() {
     try {
       setPlacingOrder(true);
 
+      /*
+       * Step 1:
+       * Create the pending order and reserve stock.
+       */
       const response =
         await orderService.createOrder(
           deliveryType,
@@ -192,27 +197,47 @@ export default function CheckoutPage() {
               }
         );
 
-      const firstName = authenticated
-        ? user?.full_name
-            ?.trim()
-            .split(/\s+/)[0] || "Customer"
-        : guestFullName
-            .trim()
-            .split(/\s+/)[0] || "Customer";
+      /*
+       * Step 2:
+       * Initialise Paystack using the newly-created
+       * pending order.
+       */
+      const paymentResponse =
+        await paymentService.initializePayment(
+          response.order.id
+        );
 
-      navigate("/order-success", {
-        state: {
-          order: response.order,
-          firstName,
-        },
-      });
-    } catch (error) {
-      console.error(error);
+      if (
+        !paymentResponse.status ||
+        !paymentResponse.data?.authorization_url
+      ) {
+        throw new Error(
+          paymentResponse.message ||
+            "Unable to initialise payment."
+        );
+      }
 
-      showToast(
-        "Failed to create order.",
-        "error"
+      /*
+       * Step 3:
+       * Leave KAHWƐ and send the customer to Paystack.
+       *
+       * No order-success page yet.
+       */
+      window.location.href =
+        paymentResponse.data.authorization_url;
+
+    } catch (error: unknown) {
+      console.error(
+        "Checkout/payment error:",
+        error
       );
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to continue to payment.";
+
+      showToast(message, "error");
     } finally {
       setPlacingOrder(false);
     }
@@ -328,8 +353,6 @@ export default function CheckoutPage() {
 
       <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
 
-        {/* LEFT COLUMN */}
-
         <div className="space-y-6">
 
           {authenticated ? (
@@ -417,8 +440,6 @@ export default function CheckoutPage() {
             </>
           )}
         </div>
-
-        {/* RIGHT COLUMN */}
 
         <CheckoutSummary
           cart={cart}

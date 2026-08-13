@@ -5,6 +5,7 @@ from apps.common.constants import (
     STATUS_PENDING,
     FULFILMENT_STATUS_CHOICES,
     PAYMENT_PENDING,
+    PAYMENT_PAID,
     PAYMENT_STATUS_CHOICES,
     DELIVERY,
     DELIVERY_TYPE_CHOICES,
@@ -18,6 +19,13 @@ class Order(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
+    )
+
+    checkout_session_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True,
     )
 
     guest_full_name = models.CharField(
@@ -35,14 +43,20 @@ class Order(models.Model):
     )
 
     guest_address = models.TextField(
-        blank=True
+        blank=True,
     )
 
-    subtotal = models.IntegerField(default=0)
+    subtotal = models.IntegerField(
+        default=0,
+    )
 
-    delivery_fee = models.IntegerField(default=0)
+    delivery_fee = models.IntegerField(
+        default=0,
+    )
 
-    total_amount = models.IntegerField(default=0)
+    total_amount = models.IntegerField(
+        default=0,
+    )
 
     status = models.CharField(
         max_length=30,
@@ -60,12 +74,12 @@ class Order(models.Model):
         max_length=100,
         blank=True,
         null=True,
-        unique=True
+        unique=True,
     )
 
     paid_at = models.DateTimeField(
         null=True,
-        blank=True
+        blank=True,
     )
 
     delivery_type = models.CharField(
@@ -78,18 +92,28 @@ class Order(models.Model):
         "addresses.Address",
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
 
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
 
     class Meta:
         indexes = [
-            models.Index(fields=["user", "status"]),
-            models.Index(fields=["payment_status"]),
-            models.Index(fields=["created_at"]),
+            models.Index(
+                fields=["user", "status"]
+            ),
+            models.Index(
+                fields=["payment_status"]
+            ),
+            models.Index(
+                fields=["created_at"]
+            ),
         ]
 
     def __str__(self):
@@ -102,25 +126,43 @@ class Order(models.Model):
 
         return self.guest_address or ""
 
+    @property
+    def is_paid(self):
+        return self.payment_status == PAYMENT_PAID
+
 
 class OrderItem(models.Model):
 
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
-        related_name="items"
+        related_name="items",
     )
 
-    product_name = models.CharField(max_length=255)
+    product_name = models.CharField(
+        max_length=255,
+    )
 
-    variant_name = models.CharField(max_length=255, null=True, blank=True)
+    variant_name = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+    )
 
     unit_price = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True)
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
 
     quantity = models.PositiveIntegerField()
 
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
 
     class Meta:
         verbose_name_plural = "Order Items"
@@ -138,26 +180,26 @@ class OrderStatusHistory(models.Model):
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
-        related_name="status_history"
+        related_name="status_history",
     )
 
     old_status = models.CharField(
-        max_length=30
+        max_length=30,
     )
 
     new_status = models.CharField(
-        max_length=30
+        max_length=30,
     )
 
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
     )
 
     created_at = models.DateTimeField(
-        auto_now_add=True
+        auto_now_add=True,
     )
 
     class Meta:
