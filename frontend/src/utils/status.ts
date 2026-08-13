@@ -30,6 +30,9 @@ export function getStatusClasses(
     case ORDER_STATUS.DELIVERED:
       return "bg-green-200 text-green-700";
 
+    case ORDER_STATUS.PICKED_UP:
+      return "bg-emerald-200 text-emerald-700";
+
     case ORDER_STATUS.CANCELLED:
       return "bg-red-200 text-red-700";
 
@@ -46,7 +49,7 @@ export function getPaymentStatusClasses(
       return "bg-amber-100 text-amber-800";
 
     case PAYMENT_STATUS.PAID:
-      return "bg-emerald-100 text-emerald-800";
+      return "bg-teal-100 text-teal-800";
 
     case PAYMENT_STATUS.FAILED:
       return "bg-red-100 text-red-800";

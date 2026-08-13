@@ -5,6 +5,7 @@ export const ORDER_STATUS = {
   OUT_FOR_DELIVERY: "OUT_FOR_DELIVERY",
   READY_FOR_PICKUP: "READY_FOR_PICKUP",
   DELIVERED: "DELIVERED",
+  PICKED_UP: "PICKED_UP",
   CANCELLED: "CANCELLED",
 } as const;
 
@@ -25,6 +26,10 @@ export const ORDER_STATUS_OPTIONS = [
     label: "Pending",
   },
   {
+    value: ORDER_STATUS.CONFIRMED,
+    label: "Confirmed",
+  },
+  {
     value: ORDER_STATUS.PREPARING,
     label: "Preparing",
   },
@@ -33,8 +38,16 @@ export const ORDER_STATUS_OPTIONS = [
     label: "Out for Delivery",
   },
   {
+    value: ORDER_STATUS.READY_FOR_PICKUP,
+    label: "Ready for Pickup",
+  },
+  {
     value: ORDER_STATUS.DELIVERED,
     label: "Delivered",
+  },
+  {
+    value: ORDER_STATUS.PICKED_UP,
+    label: "Picked Up",
   },
   {
     value: ORDER_STATUS.CANCELLED,
@@ -44,7 +57,12 @@ export const ORDER_STATUS_OPTIONS = [
 
 export const ORDER_STATUS_TRANSITIONS = {
   PENDING: [
+    ORDER_STATUS.CANCELLED,
+  ],
+
+  CONFIRMED: [
     ORDER_STATUS.PREPARING,
+    ORDER_STATUS.READY_FOR_PICKUP,
     ORDER_STATUS.CANCELLED,
   ],
 
@@ -57,7 +75,13 @@ export const ORDER_STATUS_TRANSITIONS = {
     ORDER_STATUS.DELIVERED,
   ],
 
+  READY_FOR_PICKUP: [
+    ORDER_STATUS.PICKED_UP,
+  ],
+
   DELIVERED: [],
+  
+  PICKED_UP: [],
 
   CANCELLED: [],
 } as const;
