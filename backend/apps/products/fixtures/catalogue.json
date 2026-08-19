@@ -1,0 +1,173 @@
+[
+  {
+    "model": "products.category",
+    "pk": 1,
+    "fields": {
+      "name": "Finger Foods",
+      "description": null
+    }
+  },
+  {
+    "model": "products.category",
+    "pk": 2,
+    "fields": {
+      "name": "Local Beverages",
+      "description": null
+    }
+  },
+  {
+    "model": "products.category",
+    "pk": 3,
+    "fields": {
+      "name": "Grills",
+      "description": null
+    }
+  },
+
+  {
+    "model": "products.product",
+    "pk": 1,
+    "fields": {
+      "category": 1,
+      "name": "Original Plantain Chips",
+      "description": "Crispy salted plantain chips",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 2,
+    "fields": {
+      "category": 1,
+      "name": "Ripe Plantain Chips",
+      "description": "Sweet ripe plantain chips",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 3,
+    "fields": {
+      "category": 1,
+      "name": "Poloo",
+      "description": "Crunchy coconut snack",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 4,
+    "fields": {
+      "category": 1,
+      "name": "Coconut Cake",
+      "description": "Traditional coconut cake",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "products.product",
+    "pk": 5,
+    "fields": {
+      "category": 2,
+      "name": "Sobolo",
+      "description": "Refreshing hibiscus drink",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 6,
+    "fields": {
+      "category": 2,
+      "name": "Asaana",
+      "description": "Traditional caramelised corn drink",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 7,
+    "fields": {
+      "category": 2,
+      "name": "Lamugin",
+      "description": "Spiced rice & ginger drink",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "products.product",
+    "pk": 8,
+    "fields": {
+      "category": 3,
+      "name": "Suya",
+      "description": "Spicy grilled beef",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 9,
+    "fields": {
+      "category": 3,
+      "name": "Sausages",
+      "description": "Fresh grilled sausages",
+      "image": null,
+      "created_at": "2026-08-19T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "products.productvariant",
+    "pk": 1,
+    "fields": {
+      "product": 1,
+      "name": "Small Paper Bag",
+      "price": "15.00",
+      "stock": 1,
+      "is_available": true
+    }
+  },
+  {
+    "model": "products.productvariant",
+    "pk": 2,
+    "fields": {
+      "product": 1,
+      "name": "Large Plastic Container",
+      "price": "100.00",
+      "stock": 1,
+      "is_available": true
+    }
+  },
+  {
+    "model": "products.productvariant",
+    "pk": 3,
+    "fields": {
+      "product": 2,
+      "name": "Small Paper Bag",
+      "price": "15.00",
+      "stock": 1,
+      "is_available": true
+    }
+  },
+  {
+    "model": "products.productvariant",
+    "pk": 4,
+    "fields": {
+      "product": 2,
+      "name": "Large Plastic Container",
+      "price": "100.00",
+      "stock": 1,
+      "is_available": true
+    }
+  }
+]

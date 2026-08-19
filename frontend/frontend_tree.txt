@@ -4,20 +4,59 @@
 ├── index.html
 ├── package-lock.json
 ├── package.json
-├── public
 ├── README.md
 ├── src
 │   ├── api
 │   │   └── axios.ts
 │   ├── App.tsx
-│   ├── assets
 │   ├── components
+│   │   ├── auth
+│   │   │   ├── AdminRoute.tsx
+│   │   │   ├── LogoutButton.tsx
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   └── PublicRoute.tsx
+│   │   ├── checkout
+│   │   │   ├── CustomerCheckout.tsx
+│   │   │   └── GuestCheckout.tsx
+│   │   ├── common
+│   │   │   ├── Alert.tsx
+│   │   │   ├── Button.tsx
+│   │   │   ├── EmptyState.tsx
+│   │   │   ├── LoadingState.tsx
+│   │   │   ├── PageContainer.tsx
+│   │   │   ├── PageHeader.tsx
+│   │   │   ├── SectionTitle.tsx
+│   │   │   ├── StatusBadge.tsx
+│   │   │   └── Toast.tsx
 │   │   ├── Footer.tsx
 │   │   ├── NavBar.tsx
+│   │   ├── orders
+│   │   │   ├── AddressForm.tsx
+│   │   │   ├── AdminOrderDetails.tsx
+│   │   │   ├── AdminOrderFilters.tsx
+│   │   │   ├── CheckoutAddressSelector.tsx
+│   │   │   ├── CheckoutSummary.tsx
+│   │   │   ├── DeliveryMethodSelector.tsx
+│   │   │   ├── GuestContactForm.tsx
+│   │   │   ├── OrderFooter.tsx
+│   │   │   ├── OrderHeader.tsx
+│   │   │   ├── OrderItemsList.tsx
+│   │   │   ├── OrderStatusEditor.tsx
+│   │   │   └── OrderSummary.tsx
 │   │   └── products
 │   │       └── ProductCard.tsx
+│   ├── constants
+│   │   ├── checkout.ts
+│   │   ├── order.ts
+│   │   └── payment.ts
 │   ├── context
+│   │   ├── AuthContext.tsx
+│   │   ├── CartContext.tsx
+│   │   ├── ToastContext.ts
+│   │   ├── ToastProvider.tsx
+│   │   └── useToast.ts
 │   ├── hooks
+│   │   └── useCheckoutSession.ts
 │   ├── index.css
 │   ├── layouts
 │   │   └── MainLayout.tsx
@@ -40,31 +79,42 @@
 │   │   ├── Login
 │   │   │   └── LoginPage.tsx
 │   │   ├── Orders
-│   │   │   └── OrdersPage.tsx
+│   │   │   ├── OrdersPage.tsx
+│   │   │   └── OrderSuccessPage.tsx
+│   │   ├── Payments
+│   │   │   ├── PaymentCancelledPage.tsx
+│   │   │   └── PaymentReturnPage.tsx
 │   │   ├── Products
 │   │   │   ├── ProductDetailPage.tsx
 │   │   │   └── ProductsPage.tsx
-│   │   └── Register
-│   │       └── RegisterPage.tsx
-│   ├── routes
+│   │   ├── Register
+│   │   │   └── RegisterPage.tsx
+│   │   └── VerifyEmail
+│   │       └── VerifyEmailPage.tsx
 │   ├── services
 │   │   ├── addressService.ts
 │   │   ├── authService.ts
 │   │   ├── cartService.ts
+│   │   ├── checkoutService.ts
 │   │   ├── orderService.ts
 │   │   ├── paymentService.ts
 │   │   └── productService.ts
 │   ├── types
 │   │   ├── address.ts
+│   │   ├── api.ts
 │   │   ├── cart.ts
 │   │   ├── category.ts
 │   │   ├── order.ts
-│   │   └── product.ts
+│   │   ├── product.ts
+│   │   └── user.ts
 │   └── utils
-│       └── auth.ts
+│       ├── auth.ts
+│       ├── currency.ts
+│       ├── date.ts
+│       └── status.ts
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
 └── vite.config.ts
 
-24 directories, 44 files
+28 directories, 90 files

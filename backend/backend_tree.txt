@@ -6,6 +6,7 @@
 │   │   ├── apps.py
 │   │   ├── models.py
 │   │   ├── serializers.py
+│   │   ├── services.py
 │   │   ├── tests.py
 │   │   ├── urls.py
 │   │   └── views.py
@@ -19,6 +20,20 @@
 │   │   ├── tests.py
 │   │   ├── urls.py
 │   │   └── views.py
+│   ├── checkout
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── services.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── common
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── constants.py
+│   │   └── pagination.py
 │   ├── orders
 │   │   ├── __init__.py
 │   │   ├── admin_views.py
@@ -69,7 +84,9 @@
 │       ├── urls.py
 │       └── views.py
 ├── backend_tree.txt
+├── backend_trees.txt
 ├── db.sqlite3
+├── db.sqlite3.backup-2026-08-19
 ├── manage.py
 ├── maritina_ecommerce
 │   ├── __init__.py
@@ -81,4 +98,4 @@
 ├── package.json
 └── requirements.txt
 
-10 directories, 72 files
+12 directories, 87 files
