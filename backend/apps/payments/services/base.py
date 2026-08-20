@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 class BasePaymentService(ABC):
 
     @abstractmethod
-    def initialize_payment(self, order, email):
+    def initialize_payment(self, checkout, email):
         pass
 
     @abstractmethod

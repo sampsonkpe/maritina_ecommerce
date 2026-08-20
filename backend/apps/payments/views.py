@@ -10,6 +10,7 @@ from apps.payments.services.payment_service import (
 )
 
 from apps.common.constants import PAYMENT_PENDING
+from apps.orders.serializers import OrderSerializer
 
 
 class InitializePaymentView(APIView):
@@ -142,19 +143,21 @@ class VerifyPaymentView(APIView):
 
     def get(self, request, reference):
 
-        response = (
-            PaymentService.verify_payment(
-                reference
-            )
+        response = PaymentService.verify_payment(
+            reference
         )
 
         if response.get("status") is True:
 
+            order = response.get("order")
+
             return Response(
                 {
+                    "status": True,
                     "message": (
                         "Payment verified successfully."
                     ),
+                    "order": order,
                     "data": response,
                 },
                 status=status.HTTP_200_OK,
@@ -162,6 +165,7 @@ class VerifyPaymentView(APIView):
 
         return Response(
             {
+                "status": False,
                 "message": (
                     "Payment verification failed."
                 ),

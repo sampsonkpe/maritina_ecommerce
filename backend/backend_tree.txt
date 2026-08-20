@@ -67,6 +67,8 @@
 │   │   ├── __init__.py
 │   │   ├── admin.py
 │   │   ├── apps.py
+│   │   ├── fixtures
+│   │   │   └── catalogue.json
 │   │   ├── models.py
 │   │   ├── serializers.py
 │   │   ├── services.py
@@ -84,7 +86,6 @@
 │       ├── urls.py
 │       └── views.py
 ├── backend_tree.txt
-├── backend_trees.txt
 ├── db.sqlite3
 ├── db.sqlite3.backup-2026-08-19
 ├── manage.py
@@ -98,4 +99,4 @@
 ├── package.json
 └── requirements.txt
 
-12 directories, 87 files
+13 directories, 87 files

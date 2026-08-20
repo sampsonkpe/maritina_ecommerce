@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { paymentService } from "../../services/paymentService";
-import { orderService } from "../../services/orderService";
 
 import LoadingState from "../../components/common/LoadingState";
 import PageContainer from "../../components/common/PageContainer";
@@ -35,34 +34,20 @@ export default function PaymentReturnPage() {
             reference
           );
 
-        if (
-          response.data?.status !== true
-        ) {
+        if (response.data.status !== true) {
           setError(
+            response.data.message ||
             "We couldn't confirm your payment."
           );
 
           return;
         }
 
-        /*
-         * Payment has been confirmed by the backend.
-         *
-         * Fetch the user's orders and find the order
-         * associated with this Paystack reference.
-         */
-        const orders =
-          await orderService.getOrders();
-
-        const order = orders.find(
-          (item) =>
-            item.payment_reference === reference
-        );
+        const order = response.order;
 
         if (!order) {
           setError(
-            "Payment was confirmed, but we couldn't "
-            + "find the associated order."
+            "Payment was confirmed, but the order could not be created."
           );
 
           return;
@@ -70,8 +55,12 @@ export default function PaymentReturnPage() {
 
         const firstName =
           user?.full_name
-            ?.trim()
-            .split(/\s+/)[0] || "Customer";
+              ?.trim()
+              .split(/\s+/)[0]
+          || order.guest_full_name
+              ?.trim()
+              .split(/\s+/)[0]
+          || "Customer";
 
         navigate("/order-success", {
           replace: true,

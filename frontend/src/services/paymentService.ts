@@ -1,4 +1,5 @@
 import api from "../api/axios";
+import type { Order } from "../types/order";
 
 export interface InitializePaymentResponse {
   status: boolean;
@@ -13,6 +14,8 @@ export interface InitializePaymentResponse {
 
 export interface VerifyPaymentResponse {
   message: string;
+
+  order: Order | null;
 
   data: {
     status: boolean;
