@@ -3,7 +3,9 @@ import type { Order } from "../../types/order";
 import SectionTitle from "../common/SectionTitle";
 
 import OrderItemsList from "./OrderItemsList";
+import OrderSummary from "./OrderSummary";
 import OrderStatusEditor from "./OrderStatusEditor";
+import OrderFooter from "./OrderFooter";
 
 interface AdminOrderDetailsProps {
   order: Order;
@@ -41,9 +43,14 @@ export default function AdminOrderDetails({
 
         <OrderItemsList
           items={order.items}
-          showPrice={false}
         />
       </div>
+
+      <OrderSummary
+        subtotal={order.subtotal}
+        deliveryFee={order.delivery_fee}
+        total={order.total_amount}
+      />
 
       <OrderStatusEditor
         order={order}
@@ -53,6 +60,11 @@ export default function AdminOrderDetails({
         onUpdate={onUpdate}
       />
 
+      <OrderFooter
+        createdAt={order.created_at}
+        updatedAt={order.updated_at}
+        showPayButton={false}
+      />
     </div>
   );
 }

@@ -2,7 +2,6 @@ import type { Order } from "../../types/order";
 
 import StatusBadge from "../common/StatusBadge";
 import { formatCurrency } from "../../utils/currency";
-import { formatDate } from "../../utils/date";
 
 import {
   ChevronDown,
@@ -40,18 +39,15 @@ export default function OrderHeader({
         <p className="mt-3 text-(--color-text)">
           {order.delivery_type_display}
         </p>
-
-        {showCustomer && (
-          <p className="mt-2 text-sm text-(--color-text-muted)">
-            {formatDate(order.created_at)}
-          </p>
-        )}
       </div>
 
       {/* Right */}
       <div className="flex min-w-0 flex-col items-end gap-4">
+
+        {/* Order Status */}
         <StatusBadge status={order.status} />
 
+        {/* Total + Expand */}
         <div className="flex items-center gap-2">
           <p className="text-xl font-bold sm:text-3xl">
             {formatCurrency(order.total_amount)}
@@ -82,6 +78,7 @@ export default function OrderHeader({
             )}
           </button>
         </div>
+
       </div>
 
     </div>

@@ -38,11 +38,11 @@ export default function OrderStatusEditor({
 
   return (
     <div className="mt-8 border-t border-(--color-border) pt-6">
-      <h3 className="mb-4 font-semibold">
+      <h3 className="mb-4 text-center font-semibold">
         Order Status
       </h3>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
         {isFinalStatus ? (
           <StatusBadge status={order.status} />
         ) : (

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 import { orderService } from "../../services/orderService";
 
@@ -22,9 +22,6 @@ export default function AdminOrdersPage() {
     useState(true);
 
   const [error, setError] = useState("");
-
-  const [initialLoad, setInitialLoad] =
-    useState(true);
 
   const [expandedOrders, setExpandedOrders] =
     useState<number[]>([]);
@@ -57,51 +54,61 @@ export default function AdminOrdersPage() {
       return () => clearTimeout(timeout);
     }, [search]);
 
-  const loadOrders = useCallback(async () => {
-    try {
-      if (initialLoad) {
-        setLoading(true);
-      }
+  useEffect(() => {
+    let cancelled = false;
 
-      const data =
-        await orderService.getAdminOrders({
-          status: statusFilter,
-          deliveryType:
-            deliveryTypeFilter,
-          search: debouncedSearch,
+    const loadOrders = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data =
+          await orderService.getAdminOrders({
+            status: statusFilter,
+            deliveryType: deliveryTypeFilter,
+            search: debouncedSearch,
+          });
+
+        if (cancelled) {
+          return;
+        }
+
+        setOrders(data);
+
+        const initialStatuses: Record<number, string> = {};
+
+        data.forEach((order) => {
+          initialStatuses[order.id] = order.status;
         });
 
-      setOrders(data);
+        setSelectedStatuses(initialStatuses);
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
 
-      const initialStatuses:
-        Record<number, string> = {};
+        console.error(error);
 
-      data.forEach((order: Order) => {
-        initialStatuses[order.id] =
-          order.status;
-      });
+        setError(
+          "Failed to load orders. Please try again."
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-      setSelectedStatuses(
-        initialStatuses
-      );
-    } catch (error) {
-      console.error(error);
-      setError(
-        "Failed to load orders. Please try again."
-      );
-    } finally {
-      setLoading(false);
-      setInitialLoad(false);
-    }
+    loadOrders();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     statusFilter,
     deliveryTypeFilter,
     debouncedSearch,
   ]);
-
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
 
   const toggleOrder = (id: number) => {
     setExpandedOrders((current) =>
@@ -118,26 +125,27 @@ export default function AdminOrdersPage() {
     orderId: number
   ) => {
     setError("");
+
     try {
+      const newStatus =
+        selectedStatuses[orderId];
 
-  const newStatus =
-    selectedStatuses[orderId];
+      const currentOrder = orders.find(
+        (order) => order.id === orderId
+      );
 
-  const currentOrder = orders.find(
-    (order) => order.id === orderId
-  );
+      if (!currentOrder || !newStatus) {
+        return;
+      }
 
-  if (
-    !currentOrder ||
-    currentOrder.status === newStatus
-  ) {
-    return;
-  }
+      if (currentOrder.status === newStatus) {
+        return;
+      }
 
-  setUpdatingOrders((current) => [
-    ...current,
-    orderId,
-  ]);
+      setUpdatingOrders((current) => [
+        ...current,
+        orderId,
+      ]);
 
       await orderService.updateOrderStatus(
         orderId,
@@ -167,7 +175,6 @@ export default function AdminOrdersPage() {
   };
 
 
-  
   if (loading) {
     return (
       <LoadingState
@@ -202,18 +209,22 @@ export default function AdminOrdersPage() {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="rounded-md border bg-white p-6 shadow-sm"
+              className="
+                rounded-md
+                border border-(--color-border)
+                bg-(--color-surface)
+                p-6
+                shadow-sm
+              "
             >
-              {/* HEADER */}
-
               <OrderHeader
                 order={order}
                 showCustomer
                 expanded={expandedOrders.includes(order.id)}
-                onToggle={() => toggleOrder(order.id)}
+                onToggle={() =>
+                  toggleOrder(order.id)
+                }
               />
-
-              {/* EXPANDED CONTENT */}
 
               {expandedOrders.includes(order.id) && (
                 <AdminOrderDetails
@@ -222,7 +233,9 @@ export default function AdminOrdersPage() {
                     selectedStatuses[order.id] ??
                     order.status
                   }
-                  updating={updatingOrders.includes(order.id)}
+                  updating={updatingOrders.includes(
+                    order.id
+                  )}
                   onStatusChange={(status) =>
                     setSelectedStatuses((current) => ({
                       ...current,

@@ -118,6 +118,7 @@ export default function OrdersPage() {
 
               <OrderFooter
                 createdAt={order.created_at}
+                updatedAt={order.updated_at}
                 showPayButton={false}
               />
             </div>
