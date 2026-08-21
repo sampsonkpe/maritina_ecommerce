@@ -14,3 +14,7 @@ class BasePaymentService(ABC):
     @abstractmethod
     def webhook(self, payload):
         pass
+
+    @abstractmethod
+    def mark_as_paid(self, reference):
+        pass

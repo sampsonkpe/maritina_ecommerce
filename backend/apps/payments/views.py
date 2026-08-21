@@ -5,12 +5,7 @@ from rest_framework.permissions import AllowAny
 
 from django.utils import timezone
 from apps.checkout.models import CheckoutTransaction
-from apps.payments.services.payment_service import (
-    PaymentService,
-)
-
-from apps.common.constants import PAYMENT_PENDING
-from apps.orders.serializers import OrderSerializer
+from apps.payments.services.payment_service import PaymentService
 
 
 class InitializePaymentView(APIView):

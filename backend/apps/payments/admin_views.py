@@ -20,7 +20,11 @@ class AdminPaymentsView(APIView):
                 "amount": payment.amount,
                 "status": payment.status,
                 "provider": payment.provider,
-                "order_id": payment.order.id,
+                "order_id": (
+                    payment.order.id
+                    if payment.order
+                    else None
+                ),
                 "created_at": payment.created_at,
             }
             for payment in payments

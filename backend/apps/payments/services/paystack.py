@@ -9,6 +9,7 @@ from django.db import transaction
 
 from requests.exceptions import RequestException
 
+from .base import BasePaymentService
 from ..models import Payment
 
 from apps.checkout.models import CheckoutTransaction
@@ -19,7 +20,7 @@ from apps.orders.serializers import OrderSerializer
 logger = logging.getLogger(__name__)
 
 
-class PaystackPaymentService:
+class PaystackPaymentService(BasePaymentService):
 
     BASE_URL = "https://api.paystack.co"
 
