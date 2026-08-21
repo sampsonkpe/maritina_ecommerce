@@ -1,3 +1,5 @@
+import type { DeliveryType, OrderStatus, PaymentStatus } from "../constants/order";
+
 export interface OrderItem {
   id: number;
   product_name: string;
@@ -22,11 +24,11 @@ export interface Order {
   delivery_fee: number;
   total_amount: number;
 
-  delivery_type: string;
+  delivery_type: DeliveryType;
   delivery_type_display: string;
 
-  status: string;
-  payment_status: string;
+  status: OrderStatus;
+  payment_status: PaymentStatus;
 
   payment_reference: string | null;
   paid_at: string | null;

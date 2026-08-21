@@ -182,4 +182,4 @@ EMAIL_BACKEND = (
     "django.core.mail.backends.console.EmailBackend"
 )
 
-DEFAULT_FROM_EMAIL = "KAHWƐ by Maritina Foods <no-reply@kahwe.local>"
+DEFAULT_FROM_EMAIL ="KAHWƐ by Maritina Foods <no-reply@kahwe.local>"

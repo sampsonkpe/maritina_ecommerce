@@ -34,6 +34,7 @@ export default function OrderStatusEditor({
 
   const isFinalStatus =
     order.status === ORDER_STATUS.DELIVERED ||
+    order.status === ORDER_STATUS.PICKED_UP ||
     order.status === ORDER_STATUS.CANCELLED;
 
   return (

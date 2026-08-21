@@ -15,7 +15,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
             "unit_price",
             "quantity",
             "subtotal",
-            "order",
         ]
 
 
