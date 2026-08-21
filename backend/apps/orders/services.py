@@ -3,26 +3,22 @@ from django.db.models import Q
 
 from .models import (
     Order,
-    OrderItem,
     OrderStatusHistory,
 )
 
 from .delivery import DeliveryService
 
-from apps.cart.models import Cart
 from apps.addresses.models import Address
 
 from apps.common.constants import (
     DELIVERY,
     PICKUP,
-    STATUS_PENDING,
     STATUS_CONFIRMED,
     STATUS_PREPARING,
     STATUS_OUT_FOR_DELIVERY,
     STATUS_READY_FOR_PICKUP,
     STATUS_DELIVERED,
     STATUS_PICKED_UP,
-    PAYMENT_PENDING,
     PAYMENT_PAID,
     ORDER_STATUS_TRANSITIONS,
 )
@@ -80,223 +76,6 @@ class OrderService:
         return DeliveryService.calculate_fee(
             distance
         )
-
-    @staticmethod
-    @transaction.atomic
-    def create_order_from_cart(
-        *,
-        user=None,
-        session_id=None,
-        delivery_type,
-        address_id=None,
-        guest_data=None,
-    ):
-        """
-        Create an unpaid order from the current cart.
-
-        The order is created with PAYMENT_PENDING.
-        Payment must be confirmed separately before
-        the order can enter fulfilment.
-        """
-
-        # -------------------------------------------------
-        # Get and lock the cart
-        # -------------------------------------------------
-
-        if user:
-
-            cart = (
-                Cart.objects
-                .select_for_update()
-                .get(user=user)
-            )
-
-        else:
-
-            if not session_id:
-                raise ValueError(
-                    "Checkout session is required."
-                )
-
-            cart = (
-                Cart.objects
-                .select_for_update()
-                .get(session_id=session_id)
-            )
-
-        # -------------------------------------------------
-        # Get and lock cart items
-        # -------------------------------------------------
-
-        items = (
-            cart.items
-            .select_related(
-                "variant",
-                "variant__product",
-            )
-            .select_for_update()
-        )
-
-        if not items.exists():
-            raise ValueError(
-                "Cart is empty."
-            )
-
-        # -------------------------------------------------
-        # Delivery information
-        # -------------------------------------------------
-
-        address = None
-        guest_address = ""
-        delivery_fee = 0
-
-        if delivery_type == DELIVERY:
-
-            if user:
-
-                if not address_id:
-                    raise ValueError(
-                        "Address is required."
-                    )
-
-                try:
-                    address = Address.objects.get(
-                        id=address_id,
-                        user=user,
-                    )
-                except Address.DoesNotExist:
-                    raise ValueError(
-                        "Invalid address."
-                    )
-
-                delivery_fee = (
-                    OrderService.calculate_delivery_fee(
-                        user=user,
-                        delivery_type=delivery_type,
-                        address_id=address_id,
-                    )
-                )
-
-            else:
-
-                guest_address = (
-                    guest_data.get("address", "")
-                    if guest_data
-                    else ""
-                )
-
-                delivery_fee = (
-                    OrderService.calculate_delivery_fee(
-                        delivery_type=delivery_type,
-                        guest_address=guest_address,
-                    )
-                )
-
-        # -------------------------------------------------
-        # Create order
-        # -------------------------------------------------
-
-        order = Order.objects.create(
-            user=user,
-
-            checkout_session_id=session_id,
-
-            guest_full_name=(
-                guest_data.get("full_name") or ""
-                if guest_data
-                else ""
-            ),
-
-            guest_email=(
-                guest_data.get("email") or ""
-                if guest_data
-                else ""
-            ),
-
-            guest_phone=(
-                guest_data.get("phone") or ""
-                if guest_data
-                else ""
-            ),
-
-            guest_address=guest_address,
-
-            subtotal=0,
-            delivery_fee=delivery_fee,
-            total_amount=0,
-
-            status=STATUS_PENDING,
-            payment_status=PAYMENT_PENDING,
-
-            delivery_type=delivery_type,
-            address=address,
-        )
-
-        # -------------------------------------------------
-        # Create order items
-        # -------------------------------------------------
-
-        subtotal = 0
-
-        for item in items:
-
-            variant = item.variant
-
-            if variant.stock < item.quantity:
-                raise ValueError(
-                    f"Insufficient stock for "
-                    f"{variant.product.name} "
-                    f"({variant.name})."
-                )
-
-            line_total = (
-                variant.price * item.quantity
-            )
-
-            subtotal += line_total
-
-            OrderItem.objects.create(
-                order=order,
-                product_name=variant.product.name,
-                variant_name=variant.name,
-                unit_price=variant.price,
-                quantity=item.quantity,
-                subtotal=line_total,
-            )
-
-            # Temporary current behaviour:
-            # stock is reserved/deducted when the order
-            # is created. We will address failed/
-            # abandoned payment stock handling next.
-            variant.stock -= item.quantity
-            variant.save(
-                update_fields=["stock"]
-            )
-
-        # -------------------------------------------------
-        # Finalise totals
-        # -------------------------------------------------
-
-        order.subtotal = subtotal
-        order.total_amount = (
-            subtotal + delivery_fee
-        )
-
-        order.save(
-            update_fields=[
-                "subtotal",
-                "total_amount",
-                "updated_at",
-            ]
-        )
-
-        # -------------------------------------------------
-        # Clear cart
-        # -------------------------------------------------
-
-        cart.items.all().delete()
-
-        return order
 
     @staticmethod
     def list_user_orders(user):
