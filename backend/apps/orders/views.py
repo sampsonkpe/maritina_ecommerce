@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from .services import OrderService
-from .serializers import CheckoutSerializer, OrderSerializer
+from .serializers import OrderSerializer
 
 from apps.common.constants import DELIVERY
 
@@ -16,7 +16,7 @@ class CreateOrderView(APIView):
         if not request.session.session_key:
             request.session.create()
             
-        serializer = CheckoutSerializer(
+        serializer = OrderSerializer(
             data=request.data,
             context={"request": request},
         )

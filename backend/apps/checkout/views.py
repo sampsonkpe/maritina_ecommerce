@@ -4,8 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 
 from .services import CheckoutService
-
-from apps.orders.serializers import CheckoutSerializer
+from .serializers import CheckoutSerializer
 
 
 class CreateCheckoutView(APIView):
