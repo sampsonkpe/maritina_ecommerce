@@ -122,6 +122,19 @@ class PaystackPaymentService(BasePaymentService):
             ) from error
 
     def verify_payment(self, reference):
+        try:
+            payment = (
+                Payment.objects
+                .select_related("checkout")
+                .get(reference=reference)
+            )
+
+        except Payment.DoesNotExist:
+            return {
+                "status": False,
+                "message": "Invalid payment reference.",
+            }
+
         url = (
             f"{self.BASE_URL}/transaction/verify/"
             f"{reference}"
@@ -154,28 +167,69 @@ class PaystackPaymentService(BasePaymentService):
                 "message": "Payment verification failed.",
             }
 
-        if (
-            result.get("status") is True
-            and result.get("data", {}).get("status")
-            == "success"
-        ):
-            order = self.mark_as_paid(reference)
+        data = result.get("data", {})
 
+        if (
+            result.get("status") is not True
+            or data.get("status") != "success"
+        ):
             return {
                 **result,
-                "order": (
-                    OrderSerializer(order).data
-                    if order
-                    else None
+                "status": False,
+                "message": (
+                    result.get("message")
+                    or "Payment has not been completed."
                 ),
             }
 
+        # ---------------------------------------------
+        # Verify transaction reference
+        # ---------------------------------------------
+
+        if data.get("reference") != payment.reference:
+            logger.warning(
+                "Paystack reference mismatch for payment %s.",
+                payment.reference,
+            )
+
+            return {
+                "status": False,
+                "message": "Payment reference mismatch.",
+            }
+
+        # ---------------------------------------------
+        # Verify payment amount
+        # ---------------------------------------------
+
+        expected_amount = payment.amount * 100
+        paid_amount = data.get("amount")
+
+        if paid_amount != expected_amount:
+            logger.warning(
+                "Payment amount mismatch for %s. "
+                "Expected %s, received %s.",
+                payment.reference,
+                expected_amount,
+                paid_amount,
+            )
+
+            return {
+                "status": False,
+                "message": "Payment amount mismatch.",
+            }
+
+        # ---------------------------------------------
+        # Finalise payment
+        # ---------------------------------------------
+
+        order = self.mark_as_paid(reference)
+
         return {
             **result,
-            "status": False,
-            "message": (
-                result.get("message")
-                or "Payment has not been completed."
+            "order": (
+                OrderSerializer(order).data
+                if order
+                else None
             ),
         }
 

@@ -1,29 +1,26 @@
 from datetime import timedelta
 
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
-from apps.cart.models import Cart
-from apps.products.models import ProductVariant
 from apps.addresses.models import Address
-
+from apps.cart.models import Cart
 from apps.common.constants import (
     DELIVERY,
-    STATUS_PENDING,
-    STATUS_CONFIRMED,
+    PICKUP,
     PAYMENT_PAID,
+    STATUS_CONFIRMED,
+    STATUS_PENDING,
 )
-
 from apps.orders.delivery import DeliveryService
-
 from apps.orders.models import (
     Order,
     OrderItem,
     OrderStatusHistory,
 )
-
 from apps.payments.models import Payment
+from apps.products.models import ProductVariant
 
 from .models import (
     CheckoutTransaction,
@@ -36,40 +33,58 @@ class CheckoutService:
 
     CHECKOUT_DURATION_MINUTES = 30
 
-    @staticmethod
-    def get_reserved_quantity(variant_id):
-        """
-        Return the quantity currently reserved for a product
-        variant by active checkout transactions.
+    # -----------------------------------------------------
+    # Stock reservation helpers
+    # -----------------------------------------------------
 
-        Only reservations belonging to pending checkouts
-        whose reservation has not expired are counted.
+    @staticmethod
+    def get_reserved_quantity(
+        variant_id,
+        *,
+        exclude_checkout_id=None,
+    ):
+        """
+        Return the quantity currently reserved for a variant
+        by active pending checkouts.
+
+        Expired reservations and reservations belonging to an
+        excluded checkout are ignored.
         """
 
         now = timezone.now()
 
-        return (
-            StockReservation.objects
-            .filter(
-                variant_id=variant_id,
-                expires_at__gt=now,
-                checkout__status=(
-                    CheckoutTransaction.STATUS_PENDING
-                ),
+        reservations = StockReservation.objects.filter(
+            variant_id=variant_id,
+            expires_at__gt=now,
+            checkout__status=(
+                CheckoutTransaction.STATUS_PENDING
+            ),
+        )
+
+        if exclude_checkout_id is not None:
+            reservations = reservations.exclude(
+                checkout_id=exclude_checkout_id,
             )
-            .aggregate(
-                total=models.Sum("quantity")
+
+        return (
+            reservations.aggregate(
+                total=Sum("quantity"),
             )["total"]
             or 0
         )
 
     @staticmethod
-    def create_stock_reservations(checkout, items):
+    def create_stock_reservations(
+        checkout,
+        items,
+    ):
         """
         Create stock reservations for a checkout.
 
         ProductVariant rows must already be locked by the
-        caller's transaction before this method is called.
+        caller's transaction.
+
+        `items` must contain at most one entry per variant.
         """
 
         reservations = [
@@ -83,7 +98,7 @@ class CheckoutService:
         ]
 
         StockReservation.objects.bulk_create(
-            reservations
+            reservations,
         )
 
         return reservations
@@ -112,12 +127,35 @@ class CheckoutService:
         - clear the cart
         - permanently deduct stock
 
-        It snapshots the cart and creates stock reservations
-        which remain valid until the checkout expires.
+        It snapshots the cart and creates temporary stock
+        reservations which remain valid until the checkout
+        expires.
+
+        The cart is locked first, followed by ProductVariant
+        rows, establishing a consistent lock order with
+        checkout finalisation.
         """
 
         # -------------------------------------------------
-        # Get the current cart
+        # Validate checkout type
+        # -------------------------------------------------
+
+        if delivery_type not in {
+            DELIVERY,
+            PICKUP,
+        }:
+            raise ValueError(
+                "Invalid delivery type."
+            )
+
+        # -------------------------------------------------
+        # Normalise guest data
+        # -------------------------------------------------
+
+        guest_data = guest_data or {}
+
+        # -------------------------------------------------
+        # Get and lock current cart
         # -------------------------------------------------
 
         if user:
@@ -125,10 +163,9 @@ class CheckoutService:
             cart = (
                 Cart.objects
                 .select_for_update()
-                .prefetch_related(
-                    "items__variant__product",
+                .filter(
+                    user=user,
                 )
-                .filter(user=user)
                 .first()
             )
 
@@ -142,9 +179,6 @@ class CheckoutService:
             cart = (
                 Cart.objects
                 .select_for_update()
-                .prefetch_related(
-                    "items__variant__product",
-                )
                 .filter(
                     session_id=session_id,
                     user__isnull=True,
@@ -157,14 +191,83 @@ class CheckoutService:
                 "Cart not found."
             )
 
-        items = list(
-            cart.items.all()
+        # -------------------------------------------------
+        # Read cart items while cart is locked
+        # -------------------------------------------------
+
+        cart_items = list(
+            cart.items.select_related(
+                "variant",
+            )
         )
 
-        if not items:
+        if not cart_items:
             raise ValueError(
                 "Cart is empty."
             )
+
+        # -------------------------------------------------
+        # Aggregate duplicate variants
+        # -------------------------------------------------
+
+        quantities = {}
+
+        for cart_item in cart_items:
+
+            if cart_item.variant_id is None:
+                raise ValueError(
+                    "One or more cart items "
+                    "are no longer available."
+                )
+
+            quantities[cart_item.variant_id] = (
+                quantities.get(
+                    cart_item.variant_id,
+                    0,
+                )
+                + cart_item.quantity
+            )
+
+        unique_variant_ids = set(
+            quantities.keys()
+        )
+
+        # -------------------------------------------------
+        # Lock product variants
+        # -------------------------------------------------
+
+        locked_variants = {
+            variant.id: variant
+            for variant in (
+                ProductVariant.objects
+                .select_for_update()
+                .select_related("product")
+                .filter(
+                    id__in=unique_variant_ids,
+                )
+            )
+        }
+
+        if (
+            len(locked_variants)
+            != len(unique_variant_ids)
+        ):
+            raise ValueError(
+                "One or more products in the cart "
+                "are no longer available."
+            )
+
+        # -------------------------------------------------
+        # Validate product availability
+        # -------------------------------------------------
+
+        for variant in locked_variants.values():
+
+            if not variant.is_available:
+                raise ValueError(
+                    f"{variant.product.name} "
+                    f"({variant.name}) is no longer available."
+                )
 
         # -------------------------------------------------
         # Delivery information
@@ -184,9 +287,12 @@ class CheckoutService:
                     )
 
                 try:
-                    address = Address.objects.get(
-                        id=address_id,
-                        user=user,
+                    address = (
+                        Address.objects
+                        .get(
+                            id=address_id,
+                            user=user,
+                        )
                     )
                 except Address.DoesNotExist:
                     raise ValueError(
@@ -197,24 +303,14 @@ class CheckoutService:
                     address.address_text
                 )
 
-                distance = (
-                    DeliveryService.estimate_distance(
-                        delivery_address
-                    )
-                )
-
-                delivery_fee = (
-                    DeliveryService.calculate_fee(
-                        distance
-                    )
-                )
-
             else:
 
                 delivery_address = (
-                    guest_data.get("address", "")
-                    if guest_data
-                    else ""
+                    guest_data.get(
+                        "address",
+                        "",
+                    )
+                    or ""
                 )
 
                 if not delivery_address:
@@ -222,50 +318,16 @@ class CheckoutService:
                         "Address is required."
                     )
 
-                distance = (
-                    DeliveryService.estimate_distance(
-                        delivery_address
-                    )
-                )
-
-                delivery_fee = (
-                    DeliveryService.calculate_fee(
-                        distance
-                    )
-                )
-
-        # -------------------------------------------------
-        # Lock product variants
-        # -------------------------------------------------
-
-        variant_ids = [
-            item.variant_id
-            for item in items
-        ]
-
-        unique_variant_ids = set(
-            variant_ids
-        )
-
-        locked_variants = {
-            variant.id: variant
-            for variant in (
-                ProductVariant.objects
-                .select_for_update()
-                .select_related("product")
-                .filter(
-                    id__in=unique_variant_ids
+            distance = (
+                DeliveryService.estimate_distance(
+                    delivery_address,
                 )
             )
-        }
 
-        if (
-            len(locked_variants)
-            != len(unique_variant_ids)
-        ):
-            raise ValueError(
-                "One or more products in the cart "
-                "are no longer available."
+            delivery_fee = (
+                DeliveryService.calculate_fee(
+                    distance,
+                )
             )
 
         # -------------------------------------------------
@@ -279,12 +341,17 @@ class CheckoutService:
             .filter(
                 variant_id__in=unique_variant_ids,
                 expires_at__gt=now,
+                checkout__status=(
+                    CheckoutTransaction.STATUS_PENDING
+                ),
             )
             .values(
                 "variant_id",
             )
             .annotate(
-                total_reserved=Sum("quantity")
+                total_reserved=Sum(
+                    "quantity",
+                ),
             )
         )
 
@@ -294,38 +361,61 @@ class CheckoutService:
         }
 
         # -------------------------------------------------
-        # Calculate authoritative subtotal
+        # Calculate authoritative checkout totals
         # -------------------------------------------------
 
         subtotal = 0
 
-        for item in items:
+        checkout_item_data = []
 
-            variant = locked_variants[item.variant_id]
+        for variant_id, quantity in quantities.items():
+
+            variant = locked_variants[
+                variant_id
+            ]
 
             reserved_quantity = (
-                CheckoutService.get_reserved_quantity(
-                    variant.id
+                active_reservations.get(
+                    variant.id,
+                    0,
                 )
             )
 
             available_quantity = (
-                variant.stock - reserved_quantity
+                variant.stock
+                - reserved_quantity
             )
 
-            if available_quantity < item.quantity:
+            if available_quantity < quantity:
                 raise ValueError(
                     f"Insufficient stock for "
                     f"{variant.product.name} "
                     f"({variant.name})."
                 )
 
-            subtotal += (
-                variant.price * item.quantity
+            line_total = (
+                variant.price
+                * quantity
+            )
+
+            subtotal += line_total
+
+            checkout_item_data.append(
+                {
+                    "variant_id": variant.id,
+                    "product_name": (
+                        variant.product.name
+                    ),
+                    "variant_name": variant.name,
+                    "unit_price": variant.price,
+                    "quantity": quantity,
+                    "subtotal": line_total,
+                }
             )
 
         total_amount = (
-            subtotal + delivery_fee
+            subtotal
+            + delivery_fee
         )
 
         # -------------------------------------------------
@@ -356,21 +446,27 @@ class CheckoutService:
                 total_amount=total_amount,
 
                 guest_full_name=(
-                    guest_data.get("full_name") or ""
-                    if guest_data
-                    else ""
+                    guest_data.get(
+                        "full_name",
+                        "",
+                    )
+                    or ""
                 ),
 
                 guest_email=(
-                    guest_data.get("email") or ""
-                    if guest_data
-                    else ""
+                    guest_data.get(
+                        "email",
+                        "",
+                    )
+                    or ""
                 ),
 
                 guest_phone=(
-                    guest_data.get("phone") or ""
-                    if guest_data
-                    else ""
+                    guest_data.get(
+                        "phone",
+                        "",
+                    )
+                    or ""
                 ),
 
                 expires_at=(
@@ -379,7 +475,7 @@ class CheckoutService:
                         minutes=(
                             CheckoutService
                             .CHECKOUT_DURATION_MINUTES
-                        )
+                        ),
                     )
                 ),
             )
@@ -389,35 +485,16 @@ class CheckoutService:
         # Snapshot checkout items
         # -------------------------------------------------
 
-        checkout_items = []
-
-        for item in items:
-
-            variant = locked_variants[
-                item.variant_id
-            ]
-
-            line_total = (
-                variant.price
-                * item.quantity
+        checkout_items = [
+            CheckoutTransactionItem(
+                checkout=checkout,
+                **item_data,
             )
-
-            checkout_items.append(
-                CheckoutTransactionItem(
-                    checkout=checkout,
-                    variant_id=variant.id,
-                    product_name=(
-                        variant.product.name
-                    ),
-                    variant_name=variant.name,
-                    unit_price=variant.price,
-                    quantity=item.quantity,
-                    subtotal=line_total,
-                )
-            )
+            for item_data in checkout_item_data
+        ]
 
         CheckoutTransactionItem.objects.bulk_create(
-            checkout_items
+            checkout_items,
         )
 
         # -------------------------------------------------
@@ -426,7 +503,7 @@ class CheckoutService:
 
         CheckoutService.create_stock_reservations(
             checkout,
-            items,
+            checkout_items,
         )
 
         return checkout
@@ -437,8 +514,9 @@ class CheckoutService:
 
     @staticmethod
     @transaction.atomic
-    def finalise_checkout(checkout_id):
-
+    def finalise_checkout(
+        checkout_id,
+    ):
         """
         Convert a paid CheckoutTransaction into an Order.
 
@@ -448,19 +526,30 @@ class CheckoutService:
         The operation is atomic and idempotent:
 
         - checkout is locked
+        - cart is locked where applicable
         - payment is locked
         - product variants are locked
+        - reservations are locked
         - reserved stock is converted into sold stock
         - order items are created from checkout snapshots
         - payment is linked to the order
         - cart is cleared
         - checkout is marked FINALISED
+
+        Reservations are released by deletion only after
+        successful stock conversion and order creation.
         """
+
+        # -------------------------------------------------
+        # Lock checkout
+        # -------------------------------------------------
 
         checkout = (
             CheckoutTransaction.objects
             .select_for_update()
-            .get(id=checkout_id)
+            .get(
+                id=checkout_id,
+            )
         )
 
         # -------------------------------------------------
@@ -476,16 +565,22 @@ class CheckoutService:
                 checkout.payments
                 .select_related("order")
                 .filter(
-                    status=Payment.STATUS_SUCCESS
+                    status=Payment.STATUS_SUCCESS,
+                    order__isnull=False,
+                )
+                .order_by(
+                    "-created_at",
                 )
                 .first()
             )
 
-            return (
-                payment.order
-                if payment
-                else None
-            )
+            if not payment:
+                raise ValueError(
+                    "Finalised checkout has no "
+                    "successful linked payment."
+                )
+
+            return payment.order
 
         # -------------------------------------------------
         # Payment protection
@@ -501,6 +596,15 @@ class CheckoutService:
             )
 
         # -------------------------------------------------
+        # Expiry protection
+        # -------------------------------------------------
+
+        if checkout.expires_at <= timezone.now():
+            raise ValueError(
+                "Checkout has expired."
+            )
+
+        # -------------------------------------------------
         # Get successful payment
         # -------------------------------------------------
 
@@ -508,9 +612,11 @@ class CheckoutService:
             checkout.payments
             .select_for_update()
             .filter(
-                status=Payment.STATUS_SUCCESS
+                status=Payment.STATUS_SUCCESS,
             )
-            .order_by("-created_at")
+            .order_by(
+                "-created_at",
+            )
             .first()
         )
 
@@ -521,18 +627,61 @@ class CheckoutService:
             )
 
         # -------------------------------------------------
+        # Validate payment amount
+        # -------------------------------------------------
+
+        if payment.amount != checkout.total_amount:
+            raise ValueError(
+                "Payment amount does not match "
+                "checkout total."
+            )
+
+        # -------------------------------------------------
+        # Payment must not already belong to another order
+        # -------------------------------------------------
+
+        if payment.order_id is not None:
+            raise ValueError(
+                "Payment is already linked "
+                "to an order."
+            )
+
+        # -------------------------------------------------
+        # Lock cart before variants
+        # -------------------------------------------------
+
+        if checkout.user_id:
+
+            cart = (
+                Cart.objects
+                .select_for_update()
+                .filter(
+                    user_id=checkout.user_id,
+                )
+                .first()
+            )
+
+        else:
+
+            cart = (
+                Cart.objects
+                .select_for_update()
+                .filter(
+                    session_id=checkout.session_id,
+                    user__isnull=True,
+                )
+                .first()
+            )
+
+        # -------------------------------------------------
         # Lock product variants
         # -------------------------------------------------
 
-        variant_ids = list(
+        variant_ids = set(
             checkout.items.values_list(
                 "variant_id",
                 flat=True,
             )
-        )
-
-        unique_variant_ids = set(
-            variant_ids
         )
 
         variants = {
@@ -542,31 +691,96 @@ class CheckoutService:
                 .select_for_update()
                 .select_related("product")
                 .filter(
-                    id__in=unique_variant_ids
+                    id__in=variant_ids,
                 )
             )
         }
 
         if (
-            len(variants)
-            != len(unique_variant_ids)
+            set(variants.keys())
+            != variant_ids
         ):
             raise ValueError(
-                "One or more products in this checkout "
-                "are no longer available."
+                "One or more products in this "
+                "checkout are no longer available."
             )
 
         # -------------------------------------------------
-        # Verify stock before consuming reservation
+        # Validate product availability
         # -------------------------------------------------
 
+        for variant in variants.values():
+
+            if not variant.is_available:
+                raise ValueError(
+                    f"{variant.product.name} "
+                    f"({variant.name}) is no longer available."
+                )
+
+        # -------------------------------------------------
+        # Lock and validate reservations
+        # -------------------------------------------------
+
+        reservations = {
+            reservation.variant_id: reservation
+            for reservation in (
+                StockReservation.objects
+                .select_for_update()
+                .filter(
+                    checkout=checkout,
+                )
+            )
+        }
+
+        if (
+            set(reservations.keys())
+            != variant_ids
+        ):
+            raise ValueError(
+                "Stock reservation is missing "
+                "for one or more checkout items."
+            )
+
+        now = timezone.now()
+
         for item in checkout.items.all():
+
+            reservation = reservations.get(
+                item.variant_id,
+            )
+
+            if not reservation:
+                raise ValueError(
+                    f"Stock reservation is missing "
+                    f"for {item.product_name} "
+                    f"({item.variant_name})."
+                )
+
+            if (
+                reservation.quantity
+                != item.quantity
+            ):
+                raise ValueError(
+                    f"Stock reservation mismatch "
+                    f"for {item.product_name} "
+                    f"({item.variant_name})."
+                )
+
+            if reservation.expires_at <= now:
+                raise ValueError(
+                    f"Stock reservation has expired "
+                    f"for {item.product_name} "
+                    f"({item.variant_name})."
+                )
 
             variant = variants[
                 item.variant_id
             ]
 
-            if variant.stock < item.quantity:
+            if (
+                variant.stock
+                < reservation.quantity
+            ):
                 raise ValueError(
                     f"Insufficient stock for "
                     f"{item.product_name} "
@@ -574,16 +788,18 @@ class CheckoutService:
                 )
 
         # -------------------------------------------------
-        # Convert reserved stock to sold stock
+        # Convert reserved stock into sold stock
         # -------------------------------------------------
 
-        for item in checkout.items.all():
+        for reservation in reservations.values():
 
             variant = variants[
-                item.variant_id
+                reservation.variant_id
             ]
 
-            variant.stock -= item.quantity
+            variant.stock -= (
+                reservation.quantity
+            )
 
             variant.save(
                 update_fields=[
@@ -644,29 +860,20 @@ class CheckoutService:
         # Create immutable order item snapshots
         # -------------------------------------------------
 
-        order_items = []
-
-        for item in checkout.items.all():
-
-            order_items.append(
-                OrderItem(
-                    order=order,
-                    product_name=(
-                        item.product_name
-                    ),
-                    variant_name=(
-                        item.variant_name
-                    ),
-                    unit_price=(
-                        item.unit_price
-                    ),
-                    quantity=item.quantity,
-                    subtotal=item.subtotal,
-                )
+        order_items = [
+            OrderItem(
+                order=order,
+                product_name=item.product_name,
+                variant_name=item.variant_name,
+                unit_price=item.unit_price,
+                quantity=item.quantity,
+                subtotal=item.subtotal,
             )
+            for item in checkout.items.all()
+        ]
 
         OrderItem.objects.bulk_create(
-            order_items
+            order_items,
         )
 
         # -------------------------------------------------
@@ -689,11 +896,12 @@ class CheckoutService:
         payment.save(
             update_fields=[
                 "order",
+                "updated_at",
             ]
         )
 
         # -------------------------------------------------
-        # Mark reservations as consumed
+        # Consume stock reservations
         # -------------------------------------------------
 
         StockReservation.objects.filter(
@@ -703,27 +911,6 @@ class CheckoutService:
         # -------------------------------------------------
         # Clear cart
         # -------------------------------------------------
-
-        if checkout.user_id:
-
-            cart = (
-                Cart.objects
-                .filter(
-                    user_id=checkout.user_id
-                )
-                .first()
-            )
-
-        else:
-
-            cart = (
-                Cart.objects
-                .filter(
-                    session_id=checkout.session_id,
-                    user__isnull=True,
-                )
-                .first()
-            )
 
         if cart:
             cart.items.all().delete()
@@ -745,3 +932,169 @@ class CheckoutService:
         )
 
         return order
+
+    # -----------------------------------------------------
+    # Fail checkout
+    # -----------------------------------------------------
+
+    @staticmethod
+    @transaction.atomic
+    def fail_checkout(
+        checkout_id,
+    ):
+        """
+        Mark a pending checkout as failed and immediately
+        release its stock reservations.
+
+        No stock is deducted because reservations never reduce
+        ProductVariant.stock.
+        """
+
+        checkout = (
+            CheckoutTransaction.objects
+            .select_for_update()
+            .get(
+                id=checkout_id,
+            )
+        )
+
+        # Idempotency
+        if (
+            checkout.status
+            == CheckoutTransaction.STATUS_FAILED
+        ):
+            return checkout
+
+        # A checkout that has already progressed cannot
+        # subsequently be marked as failed.
+        if (
+            checkout.status
+            != CheckoutTransaction.STATUS_PENDING
+        ):
+            raise ValueError(
+                "Only a pending checkout can be failed."
+            )
+
+        checkout.status = (
+            CheckoutTransaction.STATUS_FAILED
+        )
+
+        checkout.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        # Immediately release reserved stock.
+        StockReservation.objects.filter(
+            checkout=checkout,
+        ).delete()
+
+        return checkout
+
+    # -----------------------------------------------------
+    # Expire checkout
+    # -----------------------------------------------------
+
+    @staticmethod
+    @transaction.atomic
+    def expire_checkout(
+        checkout_id,
+    ):
+        """
+        Expire a pending checkout and release its stock
+        reservations.
+
+        No physical stock deduction is required because
+        reservations do not reduce ProductVariant.stock.
+        """
+
+        checkout = (
+            CheckoutTransaction.objects
+            .select_for_update()
+            .get(
+                id=checkout_id,
+            )
+        )
+
+        if (
+            checkout.status
+            != CheckoutTransaction.STATUS_PENDING
+        ):
+            return checkout
+
+        if checkout.expires_at > timezone.now():
+            return checkout
+
+        checkout.status = (
+            CheckoutTransaction
+            .STATUS_EXPIRED
+        )
+
+        checkout.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        StockReservation.objects.filter(
+            checkout=checkout,
+        ).delete()
+
+        return checkout
+
+    # -----------------------------------------------------
+    # Expire pending checkouts
+    # -----------------------------------------------------
+
+    @staticmethod
+    def expire_pending_checkouts():
+        """
+        Expire all pending checkouts whose expiry time
+        has passed.
+
+        Each checkout is processed independently so that
+        one failure does not roll back successfully expired
+        checkouts.
+
+        Returns the number of expired checkouts.
+        """
+
+        now = timezone.now()
+
+        checkout_ids = list(
+            CheckoutTransaction.objects
+            .filter(
+                status=(
+                    CheckoutTransaction
+                    .STATUS_PENDING
+                ),
+                expires_at__lte=now,
+            )
+            .values_list(
+                "id",
+                flat=True,
+            )
+        )
+
+        expired_count = 0
+
+        for checkout_id in checkout_ids:
+
+            checkout = (
+                CheckoutService
+                .expire_checkout(
+                    checkout_id,
+                )
+            )
+
+            if (
+                checkout.status
+                == CheckoutTransaction
+                .STATUS_EXPIRED
+            ):
+                expired_count += 1
+
+        return expired_count
