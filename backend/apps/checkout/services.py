@@ -991,6 +991,14 @@ class CheckoutService:
             checkout=checkout,
         ).delete()
 
+        # Mark any outstanding payment attempts as failed.
+        Payment.objects.filter(
+            checkout=checkout,
+            status=Payment.STATUS_INITIATED,
+        ).update(
+            status=Payment.STATUS_FAILED,
+        )
+
         return checkout
 
     # -----------------------------------------------------
@@ -1042,6 +1050,13 @@ class CheckoutService:
         StockReservation.objects.filter(
             checkout=checkout,
         ).delete()
+
+        Payment.objects.filter(
+            checkout=checkout,
+            status=Payment.STATUS_INITIATED,
+        ).update(
+            status=Payment.STATUS_FAILED,
+        )
 
         return checkout
 

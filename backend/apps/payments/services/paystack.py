@@ -1,6 +1,7 @@
 import uuid
 import logging
 
+from django.utils import timezone
 import requests
 
 from django.conf import settings
@@ -261,6 +262,68 @@ class PaystackPaymentService(BasePaymentService):
             ),
         }
 
+    def reconcile_payment(self, payment):
+        """
+        Reconcile an initiated local payment against Paystack.
+
+        Returns the resulting local payment state.
+        """
+
+        if payment.status != Payment.STATUS_INITIATED:
+            return payment
+
+        result = self.verify_payment(payment.reference)
+
+        if result.get("status") is True:
+            payment.refresh_from_db()
+            return payment
+
+        data = result.get("data", {})
+
+        if data.get("status") in {
+            "failed",
+            "abandoned",
+            "cancelled",
+        }:
+            self.mark_as_failed(payment.reference)
+
+            payment.refresh_from_db()
+            return payment
+
+        return payment
+
+    def reconcile_pending_payments(self):
+        """
+        Reconcile all locally initiated Paystack payments.
+
+        Returns the number of payments reconciled.
+        """
+
+        payments = (
+            Payment.objects
+            .select_related("checkout")
+            .filter(
+                provider="paystack",
+                status=Payment.STATUS_INITIATED,
+            )
+            .order_by("created_at")
+        )
+
+        reconciled = 0
+
+        for payment in payments:
+
+            before_status = payment.status
+
+            self.reconcile_payment(payment)
+
+            payment.refresh_from_db()
+
+            if payment.status != before_status:
+                reconciled += 1
+
+        return reconciled
+
     def webhook(self, payload):
         event = payload.get("event")
 
@@ -382,6 +445,19 @@ class PaystackPaymentService(BasePaymentService):
             return None
 
         checkout = payment.checkout
+
+        if (
+            checkout.status != CheckoutTransaction.STATUS_FINALISED
+            and checkout.expires_at <= timezone.now()
+        ):
+            logger.error(
+                "Successful Paystack payment %s received for "
+                "expired checkout #%s.",
+                reference,
+                checkout.id,
+            )
+
+            return None
 
         # -------------------------------------------------
         # Already finalised
