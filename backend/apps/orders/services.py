@@ -13,12 +13,14 @@ from apps.addresses.models import Address
 from apps.common.constants import (
     DELIVERY,
     PICKUP,
+    STATUS_PENDING,
     STATUS_CONFIRMED,
     STATUS_PREPARING,
     STATUS_OUT_FOR_DELIVERY,
     STATUS_READY_FOR_PICKUP,
     STATUS_DELIVERED,
     STATUS_PICKED_UP,
+    STATUS_CANCELLED,
     PAYMENT_PAID,
     ORDER_STATUS_TRANSITIONS,
 )
@@ -278,3 +280,65 @@ class OrderService:
         )
 
         return claimed_count
+
+    @staticmethod
+    @transaction.atomic
+    def cancel_order(
+        order_id,
+        *,
+        user,
+    ):
+        """
+        Cancel an order belonging to the authenticated customer.
+
+        Customer cancellation is only permitted while the order
+        has not entered fulfilment.
+
+        Paid orders cannot be cancelled through this method
+        until the refund workflow is available.
+        """
+
+        order = (
+            Order.objects
+            .select_for_update()
+            .get(id=order_id)
+        )
+
+        if order.user_id != user.id:
+            raise ValueError(
+                "You do not have permission to cancel this order."
+            )
+
+        if order.status not in {
+            STATUS_PENDING,
+            STATUS_CONFIRMED,
+        }:
+            raise ValueError(
+                "This order can no longer be cancelled."
+            )
+
+        if order.payment_status == PAYMENT_PAID:
+            raise ValueError(
+                "Paid orders require a refund before they "
+                "can be cancelled."
+            )
+
+        old_status = order.status
+
+        order.status = STATUS_CANCELLED
+
+        order.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            old_status=old_status,
+            new_status=STATUS_CANCELLED,
+            updated_by=user,
+        )
+
+        return order
