@@ -7,7 +7,6 @@ class AddressService:
 
     @staticmethod
     def list_addresses(user):
-
         return (
             Address.objects
             .filter(user=user)
@@ -19,7 +18,6 @@ class AddressService:
 
     @staticmethod
     def create_address(user, data):
-
         has_addresses = Address.objects.filter(
             user=user
         ).exists()
@@ -36,7 +34,6 @@ class AddressService:
         address_id,
         data,
     ):
-
         address = get_object_or_404(
             Address,
             pk=address_id,
@@ -55,7 +52,6 @@ class AddressService:
         user,
         address_id,
     ):
-
         address = get_object_or_404(
             Address,
             pk=address_id,
@@ -69,7 +65,6 @@ class AddressService:
         user,
         address_id,
     ):
-
         address = get_object_or_404(
             Address,
             pk=address_id,
@@ -82,6 +77,8 @@ class AddressService:
         ).update(is_default=False)
 
         address.is_default = True
-        address.save()
+        address.save(
+            update_fields=["is_default"]
+        )
 
         return address

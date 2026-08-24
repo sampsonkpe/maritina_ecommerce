@@ -50,6 +50,11 @@ class CheckoutTransaction(models.Model):
         blank=True,
     )
 
+    address_id = models.PositiveBigIntegerField(
+        null=True,
+        blank=True,
+    )
+
     subtotal = models.IntegerField(
         default=0,
     )

@@ -212,6 +212,11 @@ class CheckoutService:
                 status=CheckoutTransaction.STATUS_PENDING,
                 delivery_type=delivery_type,
                 delivery_address=delivery_address,
+                address_id=(
+                    address.id
+                    if user and delivery_type == DELIVERY
+                    else None
+                ),
                 subtotal=subtotal,
                 delivery_fee=delivery_fee,
                 total_amount=total_amount,
@@ -423,6 +428,8 @@ class CheckoutService:
             paid_at=timezone.now(),
 
             delivery_type=checkout.delivery_type,
+
+            address_id=checkout.address_id,
         )
 
         # -------------------------------------------------
