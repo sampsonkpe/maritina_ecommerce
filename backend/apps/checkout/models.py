@@ -175,3 +175,55 @@ class CheckoutTransactionItem(models.Model):
             f"{self.product_name} "
             f"({self.variant_name})"
         )
+
+class StockReservation(models.Model):
+
+    checkout = models.ForeignKey(
+        CheckoutTransaction,
+        on_delete=models.CASCADE,
+        related_name="stock_reservations",
+    )
+
+    variant_id = models.PositiveBigIntegerField()
+
+    quantity = models.PositiveIntegerField()
+
+    expires_at = models.DateTimeField(
+        db_index=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "checkout",
+                    "variant_id",
+                ],
+                name="unique_stock_reservation",
+            ),
+        ]
+
+        indexes = [
+            models.Index(
+                fields=[
+                    "variant_id",
+                    "expires_at",
+                ]
+            ),
+            models.Index(
+                fields=[
+                    "checkout",
+                    "expires_at",
+                ]
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"Reservation #{self.id} - "
+            f"Checkout #{self.checkout_id}"
+        )

@@ -1,17 +1,22 @@
 from datetime import timedelta
 
-from django.db import transaction
+from django.db import models, transaction
+from django.db.models import Sum
 from django.utils import timezone
 
 from apps.cart.models import Cart
+from apps.products.models import ProductVariant
 from apps.addresses.models import Address
+
 from apps.common.constants import (
     DELIVERY,
     STATUS_PENDING,
     STATUS_CONFIRMED,
     PAYMENT_PAID,
 )
+
 from apps.orders.delivery import DeliveryService
+
 from apps.orders.models import (
     Order,
     OrderItem,
@@ -23,12 +28,69 @@ from apps.payments.models import Payment
 from .models import (
     CheckoutTransaction,
     CheckoutTransactionItem,
+    StockReservation,
 )
 
 
 class CheckoutService:
 
     CHECKOUT_DURATION_MINUTES = 30
+
+    @staticmethod
+    def get_reserved_quantity(variant_id):
+        """
+        Return the quantity currently reserved for a product
+        variant by active checkout transactions.
+
+        Only reservations belonging to pending checkouts
+        whose reservation has not expired are counted.
+        """
+
+        now = timezone.now()
+
+        return (
+            StockReservation.objects
+            .filter(
+                variant_id=variant_id,
+                expires_at__gt=now,
+                checkout__status=(
+                    CheckoutTransaction.STATUS_PENDING
+                ),
+            )
+            .aggregate(
+                total=models.Sum("quantity")
+            )["total"]
+            or 0
+        )
+
+    @staticmethod
+    def create_stock_reservations(checkout, items):
+        """
+        Create stock reservations for a checkout.
+
+        ProductVariant rows must already be locked by the
+        caller's transaction before this method is called.
+        """
+
+        reservations = [
+            StockReservation(
+                checkout=checkout,
+                variant_id=item.variant_id,
+                quantity=item.quantity,
+                expires_at=checkout.expires_at,
+            )
+            for item in items
+        ]
+
+        StockReservation.objects.bulk_create(
+            reservations
+        )
+
+        return reservations
+
+    # -----------------------------------------------------
+    # Create checkout
+    # -----------------------------------------------------
 
     @staticmethod
     @transaction.atomic
@@ -50,8 +112,8 @@ class CheckoutService:
         - clear the cart
         - permanently deduct stock
 
-        It only snapshots the cart and checkout information
-        required to begin payment.
+        It snapshots the cart and creates stock reservations
+        which remain valid until the checkout expires.
         """
 
         # -------------------------------------------------
@@ -110,6 +172,7 @@ class CheckoutService:
 
         delivery_address = ""
         delivery_fee = 0
+        address = None
 
         if delivery_type == DELIVERY:
 
@@ -172,21 +235,85 @@ class CheckoutService:
                 )
 
         # -------------------------------------------------
-        # Snapshot cart totals
+        # Lock product variants
+        # -------------------------------------------------
+
+        variant_ids = [
+            item.variant_id
+            for item in items
+        ]
+
+        unique_variant_ids = set(
+            variant_ids
+        )
+
+        locked_variants = {
+            variant.id: variant
+            for variant in (
+                ProductVariant.objects
+                .select_for_update()
+                .select_related("product")
+                .filter(
+                    id__in=unique_variant_ids
+                )
+            )
+        }
+
+        if (
+            len(locked_variants)
+            != len(unique_variant_ids)
+        ):
+            raise ValueError(
+                "One or more products in the cart "
+                "are no longer available."
+            )
+
+        # -------------------------------------------------
+        # Calculate active reservations
+        # -------------------------------------------------
+
+        now = timezone.now()
+
+        reservation_totals = (
+            StockReservation.objects
+            .filter(
+                variant_id__in=unique_variant_ids,
+                expires_at__gt=now,
+            )
+            .values(
+                "variant_id",
+            )
+            .annotate(
+                total_reserved=Sum("quantity")
+            )
+        )
+
+        active_reservations = {
+            row["variant_id"]: row["total_reserved"]
+            for row in reservation_totals
+        }
+
+        # -------------------------------------------------
+        # Calculate authoritative subtotal
         # -------------------------------------------------
 
         subtotal = 0
 
         for item in items:
 
-            variant = item.variant
+            variant = locked_variants[item.variant_id]
 
-            if not variant:
-                raise ValueError(
-                    "A cart item has no product variant."
+            reserved_quantity = (
+                CheckoutService.get_reserved_quantity(
+                    variant.id
                 )
+            )
 
-            if variant.stock < item.quantity:
+            available_quantity = (
+                variant.stock - reserved_quantity
+            )
+
+            if available_quantity < item.quantity:
                 raise ValueError(
                     f"Insufficient stock for "
                     f"{variant.product.name} "
@@ -209,34 +336,45 @@ class CheckoutService:
             CheckoutTransaction.objects.create(
                 user=user,
                 session_id=session_id,
-                status=CheckoutTransaction.STATUS_PENDING,
+
+                status=(
+                    CheckoutTransaction
+                    .STATUS_PENDING
+                ),
+
                 delivery_type=delivery_type,
                 delivery_address=delivery_address,
+
                 address_id=(
                     address.id
-                    if user and delivery_type == DELIVERY
+                    if address
                     else None
                 ),
+
                 subtotal=subtotal,
                 delivery_fee=delivery_fee,
                 total_amount=total_amount,
+
                 guest_full_name=(
                     guest_data.get("full_name") or ""
                     if guest_data
                     else ""
                 ),
+
                 guest_email=(
                     guest_data.get("email") or ""
                     if guest_data
                     else ""
                 ),
+
                 guest_phone=(
                     guest_data.get("phone") or ""
                     if guest_data
                     else ""
                 ),
+
                 expires_at=(
-                    timezone.now()
+                    now
                     + timedelta(
                         minutes=(
                             CheckoutService
@@ -255,17 +393,22 @@ class CheckoutService:
 
         for item in items:
 
-            variant = item.variant
+            variant = locked_variants[
+                item.variant_id
+            ]
 
             line_total = (
-                variant.price * item.quantity
+                variant.price
+                * item.quantity
             )
 
             checkout_items.append(
                 CheckoutTransactionItem(
                     checkout=checkout,
                     variant_id=variant.id,
-                    product_name=variant.product.name,
+                    product_name=(
+                        variant.product.name
+                    ),
                     variant_name=variant.name,
                     unit_price=variant.price,
                     quantity=item.quantity,
@@ -277,7 +420,20 @@ class CheckoutService:
             checkout_items
         )
 
+        # -------------------------------------------------
+        # Create stock reservations
+        # -------------------------------------------------
+
+        CheckoutService.create_stock_reservations(
+            checkout,
+            items,
+        )
+
         return checkout
+
+    # -----------------------------------------------------
+    # Finalise checkout
+    # -----------------------------------------------------
 
     @staticmethod
     @transaction.atomic
@@ -286,13 +442,18 @@ class CheckoutService:
         """
         Convert a paid CheckoutTransaction into an Order.
 
-        This is the only place where a checkout becomes an order.
+        This is the only place where a checkout becomes
+        an order.
 
         The operation is atomic and idempotent:
-        - stock is locked before deduction
+
+        - checkout is locked
+        - payment is locked
+        - product variants are locked
+        - reserved stock is converted into sold stock
         - order items are created from checkout snapshots
         - payment is linked to the order
-        - the cart is cleared
+        - cart is cleared
         - checkout is marked FINALISED
         """
 
@@ -310,6 +471,7 @@ class CheckoutService:
             checkout.status
             == CheckoutTransaction.STATUS_FINALISED
         ):
+
             payment = (
                 checkout.payments
                 .select_related("order")
@@ -319,15 +481,23 @@ class CheckoutService:
                 .first()
             )
 
-            return payment.order if payment else None
+            return (
+                payment.order
+                if payment
+                else None
+            )
 
         # -------------------------------------------------
         # Payment protection
         # -------------------------------------------------
 
-        if checkout.status != CheckoutTransaction.STATUS_PAID:
+        if (
+            checkout.status
+            != CheckoutTransaction.STATUS_PAID
+        ):
             raise ValueError(
-                "Checkout must be paid before it can be finalised."
+                "Checkout must be paid before "
+                "it can be finalised."
             )
 
         # -------------------------------------------------
@@ -346,7 +516,8 @@ class CheckoutService:
 
         if not payment:
             raise ValueError(
-                "No successful payment exists for this checkout."
+                "No successful payment exists "
+                "for this checkout."
             )
 
         # -------------------------------------------------
@@ -360,7 +531,9 @@ class CheckoutService:
             )
         )
 
-        from apps.products.models import ProductVariant
+        unique_variant_ids = set(
+            variant_ids
+        )
 
         variants = {
             variant.id: variant
@@ -368,23 +541,30 @@ class CheckoutService:
                 ProductVariant.objects
                 .select_for_update()
                 .select_related("product")
-                .filter(id__in=variant_ids)
+                .filter(
+                    id__in=unique_variant_ids
+                )
             )
         }
 
-        if len(variants) != len(variant_ids):
+        if (
+            len(variants)
+            != len(unique_variant_ids)
+        ):
             raise ValueError(
                 "One or more products in this checkout "
                 "are no longer available."
             )
 
         # -------------------------------------------------
-        # Verify and reserve stock
+        # Verify stock before consuming reservation
         # -------------------------------------------------
 
         for item in checkout.items.all():
 
-            variant = variants[item.variant_id]
+            variant = variants[
+                item.variant_id
+            ]
 
             if variant.stock < item.quantity:
                 raise ValueError(
@@ -393,14 +573,22 @@ class CheckoutService:
                     f"({item.variant_name})."
                 )
 
+        # -------------------------------------------------
+        # Convert reserved stock to sold stock
+        # -------------------------------------------------
+
         for item in checkout.items.all():
 
-            variant = variants[item.variant_id]
+            variant = variants[
+                item.variant_id
+            ]
 
             variant.stock -= item.quantity
 
             variant.save(
-                update_fields=["stock"]
+                update_fields=[
+                    "stock",
+                ]
             )
 
         # -------------------------------------------------
@@ -410,13 +598,25 @@ class CheckoutService:
         order = Order.objects.create(
             user=checkout.user,
 
-            checkout_session_id=checkout.session_id,
+            checkout_session_id=(
+                checkout.session_id
+            ),
 
-            guest_full_name=checkout.guest_full_name,
-            guest_email=checkout.guest_email,
-            guest_phone=checkout.guest_phone,
+            guest_full_name=(
+                checkout.guest_full_name
+            ),
 
-            guest_address=checkout.delivery_address,
+            guest_email=(
+                checkout.guest_email
+            ),
+
+            guest_phone=(
+                checkout.guest_phone
+            ),
+
+            guest_address=(
+                checkout.delivery_address
+            ),
 
             subtotal=checkout.subtotal,
             delivery_fee=checkout.delivery_fee,
@@ -424,16 +624,24 @@ class CheckoutService:
 
             status=STATUS_CONFIRMED,
             payment_status=PAYMENT_PAID,
-            payment_reference=payment.reference,
+
+            payment_reference=(
+                payment.reference
+            ),
+
             paid_at=timezone.now(),
 
-            delivery_type=checkout.delivery_type,
+            delivery_type=(
+                checkout.delivery_type
+            ),
 
-            address_id=checkout.address_id,
+            address_id=(
+                checkout.address_id
+            ),
         )
 
         # -------------------------------------------------
-        # Create order item snapshots
+        # Create immutable order item snapshots
         # -------------------------------------------------
 
         order_items = []
@@ -443,9 +651,15 @@ class CheckoutService:
             order_items.append(
                 OrderItem(
                     order=order,
-                    product_name=item.product_name,
-                    variant_name=item.variant_name,
-                    unit_price=item.unit_price,
+                    product_name=(
+                        item.product_name
+                    ),
+                    variant_name=(
+                        item.variant_name
+                    ),
+                    unit_price=(
+                        item.unit_price
+                    ),
                     quantity=item.quantity,
                     subtotal=item.subtotal,
                 )
@@ -473,8 +687,18 @@ class CheckoutService:
         payment.order = order
 
         payment.save(
-            update_fields=["order"]
+            update_fields=[
+                "order",
+            ]
         )
+
+        # -------------------------------------------------
+        # Mark reservations as consumed
+        # -------------------------------------------------
+
+        StockReservation.objects.filter(
+            checkout=checkout,
+        ).delete()
 
         # -------------------------------------------------
         # Clear cart
@@ -484,7 +708,9 @@ class CheckoutService:
 
             cart = (
                 Cart.objects
-                .filter(user_id=checkout.user_id)
+                .filter(
+                    user_id=checkout.user_id
+                )
                 .first()
             )
 
@@ -507,7 +733,8 @@ class CheckoutService:
         # -------------------------------------------------
 
         checkout.status = (
-            CheckoutTransaction.STATUS_FINALISED
+            CheckoutTransaction
+            .STATUS_FINALISED
         )
 
         checkout.save(
