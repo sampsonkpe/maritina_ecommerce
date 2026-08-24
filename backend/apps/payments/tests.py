@@ -3,6 +3,8 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from requests.exceptions import RequestException
 
 from apps.common.constants import PICKUP
 
@@ -316,6 +318,142 @@ class CheckoutFailureTests(TestCase):
         self.variant.refresh_from_db()
 
         # Stock was reserved, not deducted.
+        self.assertEqual(
+            self.variant.stock,
+            10,
+        )
+
+class PaystackInitialisationFailureTests(TestCase):
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="paystackfailure",
+            email="paystackfailure@example.com",
+            password="testpassword123",
+        )
+
+        self.category = Category.objects.create(
+            name="Coffee",
+        )
+
+        self.product = Product.objects.create(
+            name="Test Coffee",
+            category=self.category,
+        )
+
+        self.variant = ProductVariant.objects.create(
+            product=self.product,
+            name="250g",
+            price=10000,
+            stock=10,
+            is_available=True,
+        )
+
+        self.cart = Cart.objects.create(
+            user=self.user,
+        )
+
+        CartItem.objects.create(
+            cart=self.cart,
+            variant=self.variant,
+            quantity=2,
+        )
+
+        self.checkout = CheckoutService.create_checkout(
+            user=self.user,
+            session_id="paystack-failure-session",
+            delivery_type=PICKUP,
+        )
+
+        self.service = PaystackPaymentService()
+
+    @patch("apps.payments.services.paystack.requests.post")
+    def test_paystack_rejected_initialisation_fails_checkout(
+        self,
+        mock_post,
+    ):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "status": False,
+            "message": "Unable to initialise transaction.",
+        }
+
+        with self.assertRaises(ValidationError):
+            self.service.initialize_payment(
+                self.checkout,
+                self.user.email,
+            )
+
+        self.checkout.refresh_from_db()
+
+        self.assertEqual(
+            self.checkout.status,
+            CheckoutTransaction.STATUS_FAILED,
+        )
+
+        self.assertEqual(
+            StockReservation.objects.filter(
+                checkout=self.checkout,
+            ).count(),
+            0,
+        )
+
+        payment = Payment.objects.get(
+            checkout=self.checkout,
+        )
+
+        self.assertEqual(
+            payment.status,
+            Payment.STATUS_FAILED,
+        )
+
+        self.variant.refresh_from_db()
+
+        self.assertEqual(
+            self.variant.stock,
+            10,
+        )
+
+    @patch("apps.payments.services.paystack.requests.post")
+    def test_paystack_connection_failure_fails_checkout(
+        self,
+        mock_post,
+    ):
+        mock_post.side_effect = RequestException(
+            "Paystack unavailable"
+        )
+
+        with self.assertRaises(ValidationError):
+            self.service.initialize_payment(
+                self.checkout,
+                self.user.email,
+            )
+
+        self.checkout.refresh_from_db()
+
+        self.assertEqual(
+            self.checkout.status,
+            CheckoutTransaction.STATUS_FAILED,
+        )
+
+        self.assertEqual(
+            StockReservation.objects.filter(
+                checkout=self.checkout,
+            ).count(),
+            0,
+        )
+
+        payment = Payment.objects.get(
+            checkout=self.checkout,
+        )
+
+        self.assertEqual(
+            payment.status,
+            Payment.STATUS_FAILED,
+        )
+
+        self.variant.refresh_from_db()
+
         self.assertEqual(
             self.variant.stock,
             10,

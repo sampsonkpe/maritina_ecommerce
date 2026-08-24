@@ -93,8 +93,22 @@ class PaystackPaymentService(BasePaymentService):
                 payment.status = Payment.STATUS_FAILED
 
                 payment.save(
-                    update_fields=["status"]
+                    update_fields=[
+                        "status",
+                        "updated_at",
+                    ]
                 )
+
+                try:
+                    CheckoutService.fail_checkout(
+                        checkout.id
+                    )
+                except ValueError:
+                    logger.exception(
+                        "Unable to fail checkout %s after "
+                        "Paystack initialisation failure.",
+                        checkout.id,
+                    )
 
                 raise ValidationError(
                     result.get(
@@ -113,8 +127,22 @@ class PaystackPaymentService(BasePaymentService):
             payment.status = Payment.STATUS_FAILED
 
             payment.save(
-                update_fields=["status"]
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
             )
+
+            try:
+                CheckoutService.fail_checkout(
+                    checkout.id
+                )
+            except ValueError:
+                logger.exception(
+                    "Unable to fail checkout %s after "
+                    "Paystack initialisation failure.",
+                    checkout.id,
+                )
 
             raise ValidationError(
                 "Unable to contact Paystack. "
@@ -234,17 +262,98 @@ class PaystackPaymentService(BasePaymentService):
         }
 
     def webhook(self, payload):
-        if payload.get("event") != "charge.success":
+        event = payload.get("event")
+
+        data = payload.get("data", {})
+        reference = data.get("reference")
+
+        if not reference:
             return
 
-        reference = (
-            payload
-            .get("data", {})
-            .get("reference")
-        )
+        # -------------------------------------------------
+        # Successful payment
+        # -------------------------------------------------
 
-        if reference:
+        if event == "charge.success":
             self.mark_as_paid(reference)
+            return
+
+        # -------------------------------------------------
+        # Failed payment
+        # -------------------------------------------------
+
+        if event == "charge.failed":
+            self.mark_as_failed(reference)
+
+    @transaction.atomic
+    def mark_as_failed(self, reference):
+        """
+        Mark a payment as failed and release the associated
+        checkout's stock reservations.
+
+        This is idempotent and will never affect a payment
+        that has already succeeded.
+        """
+
+        try:
+            payment = (
+                Payment.objects
+                .select_for_update()
+                .select_related("checkout", "order")
+                .get(reference=reference)
+            )
+
+        except Payment.DoesNotExist:
+            logger.warning(
+                "Payment reference %s not found.",
+                reference,
+            )
+            return None
+
+        # -------------------------------------------------
+        # Already successful
+        # -------------------------------------------------
+
+        if payment.status == Payment.STATUS_SUCCESS:
+            return payment
+
+        checkout = payment.checkout
+
+        # -------------------------------------------------
+        # Mark payment failed
+        # -------------------------------------------------
+
+        if payment.status != Payment.STATUS_FAILED:
+
+            payment.status = Payment.STATUS_FAILED
+
+            payment.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+        # -------------------------------------------------
+        # Release failed checkout
+        # -------------------------------------------------
+
+        if checkout:
+            try:
+                CheckoutService.fail_checkout(
+                    checkout.id
+                )
+            except ValueError:
+                # Checkout may already have progressed to
+                # another valid terminal state.
+                logger.info(
+                    "Checkout #%s could not be marked failed "
+                    "for payment %s.",
+                    checkout.id,
+                    reference,
+                )
+
+        return payment
 
     @transaction.atomic
     def mark_as_paid(self, reference):
@@ -315,6 +424,13 @@ class PaystackPaymentService(BasePaymentService):
                     "status",
                     "updated_at",
                 ]
+            )
+
+            Payment.objects.filter(
+                checkout=checkout,
+                status=Payment.STATUS_INITIATED,
+            ).update(
+                status=Payment.STATUS_FAILED,
             )
 
         # -------------------------------------------------
