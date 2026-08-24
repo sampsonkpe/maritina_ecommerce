@@ -168,6 +168,11 @@ class OrderService:
             )
         )
 
+        if new_status == STATUS_CANCELLED:
+            raise ValueError(
+                "Order cancellation must use the cancellation workflow."
+            )
+
         if new_status not in allowed_transitions:
             raise ValueError(
                 f"Cannot move Order#{order.id} "
@@ -339,6 +344,63 @@ class OrderService:
             old_status=old_status,
             new_status=STATUS_CANCELLED,
             updated_by=user,
+        )
+
+        return order
+
+    @staticmethod
+    @transaction.atomic
+    def admin_cancel_order(
+        order_id,
+        *,
+        updated_by,
+    ):
+        """
+        Cancel an order from the admin interface.
+
+        Paid orders cannot be cancelled until the refund
+        workflow is available.
+        """
+
+        order = (
+            Order.objects
+            .select_for_update()
+            .get(id=order_id)
+        )
+
+        if order.status == STATUS_CANCELLED:
+            return order
+
+        if order.status not in {
+            STATUS_PENDING,
+            STATUS_CONFIRMED,
+        }:
+            raise ValueError(
+                "This order can no longer be cancelled."
+            )
+
+        if order.payment_status == PAYMENT_PAID:
+            raise ValueError(
+                "Paid orders require a refund before they "
+                "can be cancelled."
+            )
+
+        old_status = order.status
+
+        order.status = STATUS_CANCELLED
+
+        order.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            old_status=old_status,
+            new_status=STATUS_CANCELLED,
+            updated_by=updated_by,
         )
 
         return order

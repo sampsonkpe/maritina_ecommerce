@@ -9,6 +9,7 @@ from .models import (
 from .services import OrderService
 
 from apps.common.constants import (
+    STATUS_CANCELLED,
     STATUS_PREPARING,
     STATUS_OUT_FOR_DELIVERY,
     STATUS_READY_FOR_PICKUP,
@@ -61,6 +62,7 @@ class OrderAdmin(admin.ModelAdmin):
         "mark_as_ready_for_pickup",
         "mark_as_delivered",
         "mark_as_picked_up",
+        "cancel_orders",
     ]
 
     def get_readonly_fields(self, request, obj=None):
@@ -153,6 +155,39 @@ class OrderAdmin(admin.ModelAdmin):
             queryset,
             STATUS_PICKED_UP,
         )
+
+    @admin.action(
+        description="Cancel selected orders"
+    )
+    def cancel_orders(self, request, queryset):
+
+        success_count = 0
+
+        for order in queryset:
+
+            try:
+
+                OrderService.admin_cancel_order(
+                    order_id=order.id,
+                    updated_by=request.user,
+                )
+
+                success_count += 1
+
+            except ValueError as error:
+
+                self.message_user(
+                    request,
+                    f"Order #{order.id}: {error}",
+                    level="ERROR",
+                )
+
+        if success_count:
+
+            self.message_user(
+                request,
+                f"{success_count} order(s) cancelled successfully.",
+            )
 
 
 @admin.register(OrderItem)

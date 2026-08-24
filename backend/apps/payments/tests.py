@@ -241,6 +241,56 @@ class PaymentFinalisationTests(TestCase):
             1,
         )
 
+        def test_finalising_same_checkout_twice_returns_same_order(self):
+
+            first_order = CheckoutService.finalise_checkout(
+                self.checkout.id
+            )
+
+            second_order = CheckoutService.finalise_checkout(
+                self.checkout.id
+            )
+
+            self.assertEqual(
+                first_order.id,
+                second_order.id,
+            )
+
+            self.assertEqual(
+                Order.objects.count(),
+                1,
+            )
+
+            self.variant.refresh_from_db()
+
+            self.assertEqual(
+                self.variant.stock,
+                8,
+            )
+
+        def test_payment_cannot_be_reused_after_order_linked(self):
+
+            order = CheckoutService.finalise_checkout(
+                self.checkout.id
+            )
+
+            self.payment.refresh_from_db()
+
+            self.assertEqual(
+                self.payment.order_id,
+                order.id,
+            )
+
+            with self.assertRaises(ValueError):
+                CheckoutService.finalise_checkout(
+                    self.checkout.id
+                )
+
+            self.assertEqual(
+                Order.objects.count(),
+                1,
+            )
+
 class CheckoutFailureTests(TestCase):
 
     def setUp(self):
@@ -457,4 +507,142 @@ class PaystackInitialisationFailureTests(TestCase):
         self.assertEqual(
             self.variant.stock,
             10,
+        )
+
+class PaymentIdempotencyTests(TestCase):
+
+    def setUp(self):
+        self.category = Category.objects.create(
+            name="Coffee",
+        )
+
+        self.product = Product.objects.create(
+            name="Test Coffee",
+            category=self.category,
+        )
+
+        self.variant = ProductVariant.objects.create(
+            product=self.product,
+            name="250g",
+            price=100,
+            stock=10,
+            is_available=True,
+        )
+
+        self.checkout = CheckoutTransaction.objects.create(
+            session_id="idempotency-session",
+            status=CheckoutTransaction.STATUS_PAID,
+            delivery_type=PICKUP,
+            subtotal=100,
+            delivery_fee=0,
+            total_amount=100,
+            expires_at="2030-01-01T00:00:00Z",
+        )
+
+        CheckoutTransactionItem.objects.create(
+            checkout=self.checkout,
+            variant_id=self.variant.id,
+            product_name=self.product.name,
+            variant_name=self.variant.name,
+            unit_price=100,
+            quantity=1,
+            subtotal=100,
+        )
+
+        StockReservation.objects.create(
+            checkout=self.checkout,
+            variant_id=self.variant.id,
+            quantity=1,
+            expires_at=self.checkout.expires_at,
+        )
+
+        self.payment = Payment.objects.create(
+            checkout=self.checkout,
+            reference="IDEMPOTENCY-001",
+            amount=100,
+            status=Payment.STATUS_INITIATED,
+            provider="paystack",
+        )
+
+        self.service = PaystackPaymentService()
+
+    def test_mark_as_paid_is_idempotent(self):
+
+        first_order = self.service.mark_as_paid(
+            self.payment.reference
+        )
+
+        self.assertIsNotNone(first_order)
+
+        self.payment.refresh_from_db()
+        self.checkout.refresh_from_db()
+
+        self.assertEqual(
+            self.payment.status,
+            Payment.STATUS_SUCCESS,
+        )
+
+        self.assertEqual(
+            self.checkout.status,
+            CheckoutTransaction.STATUS_FINALISED,
+        )
+
+        second_order = self.service.mark_as_paid(
+            self.payment.reference
+        )
+
+        self.assertEqual(
+            first_order.id,
+            second_order.id,
+        )
+
+        self.assertEqual(
+            Order.objects.count(),
+            1,
+        )
+
+        self.variant.refresh_from_db()
+
+        self.assertEqual(
+            self.variant.stock,
+            9,
+        )
+
+    def test_failed_payment_cannot_overwrite_successful_payment(self):
+
+        order = self.service.mark_as_paid(
+            self.payment.reference
+        )
+
+        self.payment.refresh_from_db()
+
+        self.assertEqual(
+            self.payment.status,
+            Payment.STATUS_SUCCESS,
+        )
+
+        result = self.service.mark_as_failed(
+            self.payment.reference
+        )
+
+        self.payment.refresh_from_db()
+
+        self.assertEqual(
+            self.payment.status,
+            Payment.STATUS_SUCCESS,
+        )
+
+        self.assertEqual(
+            result.id,
+            self.payment.id,
+        )
+
+        self.assertEqual(
+            self.payment.order_id,
+            order.id,
+        )
+
+        self.assertEqual(
+            Order.objects.count(),
+            1,
         )

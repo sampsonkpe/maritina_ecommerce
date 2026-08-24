@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from rest_framework import status
 
+from .models import Order
+
 from .serializers import OrderSerializer
 from .services import OrderService
 
@@ -52,5 +54,40 @@ class UpdateOrderStatusView(APIView):
 
             return Response(
                 {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+class AdminCancelOrderView(APIView):
+
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, order_id):
+
+        try:
+
+            order = OrderService.admin_cancel_order(
+                order_id=order_id,
+                updated_by=request.user,
+            )
+
+            return Response(
+                {
+                    "message": "Order cancelled successfully.",
+                    "status": order.status,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Order.DoesNotExist:
+
+            return Response(
+                {"error": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except ValueError as error:
+
+            return Response(
+                {"error": str(error)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
