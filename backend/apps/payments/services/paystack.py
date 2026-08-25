@@ -324,6 +324,122 @@ class PaystackPaymentService(BasePaymentService):
 
         return reconciled
 
+    def reconcile_refund(self, payment):
+        """
+        Reconcile a pending Paystack refund.
+
+        Returns the resulting local payment state.
+        """
+
+        if payment.status != Payment.STATUS_REFUND_PENDING:
+            return payment
+
+        url = (
+            f"{self.BASE_URL}/refund/"
+            f"{payment.reference}"
+        )
+
+        headers = {
+            "Authorization": (
+                f"Bearer {settings.PAYSTACK_SECRET_KEY}"
+            ),
+        }
+
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                timeout=15,
+            )
+
+            response.raise_for_status()
+
+            result = response.json()
+
+        except RequestException:
+            logger.exception(
+                "Failed to reconcile Paystack refund for %s.",
+                payment.reference,
+            )
+
+            return payment
+
+        if result.get("status") is not True:
+            return payment
+
+        data = result.get("data", {})
+
+        refund_status = data.get("status")
+
+        if refund_status == "processed":
+
+            payment.status = Payment.STATUS_REFUNDED
+
+            payment.refund_reference = (
+                data.get("reference")
+                or payment.refund_reference
+            )
+
+            payment.refunded_at = timezone.now()
+
+            payment.save(
+                update_fields=[
+                    "status",
+                    "refund_reference",
+                    "refunded_at",
+                    "updated_at",
+                ]
+            )
+
+        elif refund_status in {
+            "failed",
+            "rejected",
+        }:
+
+            payment.status = (
+                Payment.STATUS_REFUND_FAILED
+            )
+
+            payment.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+        return payment
+
+    def reconcile_pending_refunds(self):
+        """
+        Reconcile all locally pending Paystack refunds.
+
+        Returns the number of refunds whose local status changed.
+        """
+
+        payments = (
+            Payment.objects
+            .filter(
+                provider="paystack",
+                status=Payment.STATUS_REFUND_PENDING,
+            )
+            .order_by("created_at")
+        )
+
+        reconciled = 0
+
+        for payment in payments:
+
+            before_status = payment.status
+
+            self.reconcile_refund(payment)
+
+            payment.refresh_from_db()
+
+            if payment.status != before_status:
+                reconciled += 1
+
+        return reconciled
+
     def webhook(self, payload):
         event = payload.get("event")
 
