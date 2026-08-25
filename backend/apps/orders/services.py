@@ -96,6 +96,28 @@ class OrderService:
         )
 
     @staticmethod
+    def get_user_order(
+        order_id,
+        *,
+        user,
+    ):
+        return (
+            Order.objects
+            .filter(
+                id=order_id,
+                user=user,
+            )
+            .select_related(
+                "user",
+                "address",
+            )
+            .prefetch_related(
+                "items",
+            )
+            .first()
+        )
+
+    @staticmethod
     def list_admin_orders(
         status_filter=None,
         delivery_filter=None,

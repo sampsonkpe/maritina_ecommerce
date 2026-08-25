@@ -7,12 +7,14 @@ import LoadingState from "../../components/common/LoadingState";
 import PageContainer from "../../components/common/PageContainer";
 
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 
 export default function PaymentReturnPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const { user } = useAuth();
+  const { refreshCart } = useCart();
 
   const [error, setError] = useState("");
 
@@ -53,6 +55,10 @@ export default function PaymentReturnPage() {
           return;
         }
 
+        // Synchronise the frontend cart with
+        // the cart that the backend has just cleared.
+        await refreshCart();
+
         const firstName =
           user?.full_name
               ?.trim()
@@ -62,13 +68,16 @@ export default function PaymentReturnPage() {
               .split(/\s+/)[0]
           || "Customer";
 
-        navigate("/order-success", {
-          replace: true,
-          state: {
-            order,
-            firstName,
-          },
-        });
+        navigate(
+          `/order-success/${order.id}`,
+          {
+            replace: true,
+            state: {
+              order,
+              firstName,
+            },
+          }
+        );
 
       } catch (error) {
         console.error(
@@ -86,6 +95,7 @@ export default function PaymentReturnPage() {
     verify();
   }, [
     navigate,
+    refreshCart,
     searchParams,
     user,
   ]);

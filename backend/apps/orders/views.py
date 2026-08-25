@@ -25,6 +25,27 @@ class UserOrdersView(APIView):
         return Response(serializer.data)
 
 
+class UserOrderDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, order_id):
+
+        order = OrderService.get_user_order(
+            order_id=order_id,
+            user=request.user,
+        )
+
+        if not order:
+            return Response(
+                {"error": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = OrderSerializer(order)
+
+        return Response(serializer.data)
+
+
 class ClaimGuestOrdersView(APIView):
     permission_classes = [IsAuthenticated]
 

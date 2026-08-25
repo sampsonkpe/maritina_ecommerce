@@ -38,7 +38,7 @@ export default function App() {
           <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
           <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
           <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-          <Route path="/order-success" element={<OrderSuccessPage />} />
+          <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
           <Route path="/payment-return" element={<PaymentReturnPage />} />
           <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
         </Route>

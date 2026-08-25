@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import UserOrdersView, ClaimGuestOrdersView, CancelOrderView
+from .views import UserOrdersView, UserOrderDetailView, ClaimGuestOrdersView, CancelOrderView
 from .admin_views import AdminOrdersView, UpdateOrderStatusView, AdminCancelOrderView
 
 urlpatterns = [
     path("", UserOrdersView.as_view()),
+    path("<int:order_id>/", UserOrderDetailView.as_view()),
     path("claim-guest/", ClaimGuestOrdersView.as_view()),
     path("admin/all/", AdminOrdersView.as_view()),
     path("admin/update-status/<int:order_id>/", UpdateOrderStatusView.as_view()),

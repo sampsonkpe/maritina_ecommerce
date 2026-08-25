@@ -48,6 +48,16 @@ export const orderService = {
     return response.data;
   },
 
+  async getOrder(
+    orderId: number
+  ): Promise<Order> {
+    const response = await api.get(
+      `/orders/${orderId}/`
+    );
+
+    return response.data;
+  },
+
   async getAdminOrders(filters?: {
     status?: string;
     deliveryType?: string;
