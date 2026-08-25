@@ -9,11 +9,17 @@ class Payment(models.Model):
     STATUS_INITIATED = "INITIATED"
     STATUS_SUCCESS = "SUCCESS"
     STATUS_FAILED = "FAILED"
+    STATUS_REFUND_PENDING = "REFUND_PENDING"
+    STATUS_REFUNDED = "REFUNDED"
+    STATUS_REFUND_FAILED = "REFUND_FAILED"
 
     STATUS_CHOICES = [
         (STATUS_INITIATED, "Initiated"),
         (STATUS_SUCCESS, "Success"),
         (STATUS_FAILED, "Failed"),
+        (STATUS_REFUND_PENDING, "Refund Pending"),
+        (STATUS_REFUNDED, "Refunded"),
+        (STATUS_REFUND_FAILED, "Refund Failed"),
     ]
 
     checkout = models.ForeignKey(
@@ -35,6 +41,22 @@ class Payment(models.Model):
     reference = models.CharField(
         max_length=100,
         unique=True,
+    )
+
+    refund_reference = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        unique=True,
+    )
+
+    refunded_amount = models.IntegerField(
+        default=0,
+    )
+
+    refunded_at = models.DateTimeField(
+        null=True,
+        blank=True,
     )
 
     amount = models.IntegerField()

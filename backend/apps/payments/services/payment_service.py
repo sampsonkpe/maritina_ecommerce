@@ -21,3 +21,10 @@ class PaymentService:
         return PaymentServiceFactory.get_service().webhook(
             payload
         )
+
+    @staticmethod
+    def refund(payment, amount=None):
+        return PaymentServiceFactory.get_service().refund(
+            payment,
+            amount
+        )

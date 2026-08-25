@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from requests.exceptions import RequestException
+from rest_framework.test import APITestCase
 
 from apps.common.constants import PICKUP
 
@@ -645,4 +646,102 @@ class PaymentIdempotencyTests(TestCase):
         self.assertEqual(
             Order.objects.count(),
             1,
+        )
+
+class PaymentRefundTests(APITestCase):
+
+    def setUp(self):
+        User = get_user_model()
+
+        self.admin = User.objects.create_user(
+            username="admin",
+            email="admin@example.com",
+            password="testpassword",
+            is_staff=True,
+            is_superuser=True,
+        )
+
+        self.payment = Payment.objects.create(
+            reference="TEST-REFUND-123",
+            amount=10000,
+            status=Payment.STATUS_SUCCESS,
+            provider="paystack",
+        )
+
+        self.client.force_authenticate(
+            user=self.admin,
+        )
+
+    @patch(
+        "apps.payments.services.paystack.requests.post"
+    )
+    def test_admin_can_initiate_refund(
+        self,
+        mock_post,
+    ):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.raise_for_status.return_value = None
+        mock_post.return_value.json.return_value = {
+            "status": True,
+            "message": "Refund initiated",
+            "data": {
+                "refund_reference": "REFUND-123",
+            },
+        }
+
+        response = self.client.post(
+            f"/api/payments/admin/"
+            f"{self.payment.id}/refund/",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.payment.refresh_from_db()
+
+        self.assertEqual(
+            self.payment.status,
+            Payment.STATUS_REFUNDED,
+        )
+
+        self.assertEqual(
+            self.payment.refunded_amount,
+            10000,
+        )
+
+        self.assertEqual(
+            self.payment.refund_reference,
+            "REFUND-123",
+        )
+
+    def test_cannot_refund_failed_payment(self):
+
+        self.payment.status = Payment.STATUS_FAILED
+        self.payment.save()
+
+        response = self.client.post(
+            f"/api/payments/admin/"
+            f"{self.payment.id}/refund/",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+
+    def test_cannot_refund_more_than_payment(self):
+
+        response = self.client.post(
+            f"/api/payments/admin/"
+            f"{self.payment.id}/refund/",
+            {
+                "amount": 10001,
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            400,
         )

@@ -526,3 +526,160 @@ class PaystackPaymentService(BasePaymentService):
         )
 
         return order
+
+    @transaction.atomic
+    def refund(self, payment, amount=None):
+        """
+        Initiate a Paystack refund for a successful payment.
+
+        `amount` is in the application's currency unit.
+        Paystack receives the amount in kobo/pesewas.
+        """
+
+        payment = (
+            Payment.objects
+            .select_for_update()
+            .get(pk=payment.pk)
+        )
+
+        if payment.status == Payment.STATUS_REFUNDED:
+            raise ValidationError(
+                "This payment has already been refunded."
+            )
+
+        if payment.status == Payment.STATUS_REFUND_PENDING:
+            raise ValidationError(
+                "A refund is already pending for this payment."
+            )
+
+        if payment.status != Payment.STATUS_SUCCESS:
+            raise ValidationError(
+                "Only successful payments can be refunded."
+            )
+
+        if amount is None:
+            amount = payment.amount
+
+        if amount <= 0:
+            raise ValidationError(
+                "Refund amount must be greater than zero."
+            )
+
+        if amount > payment.amount:
+            raise ValidationError(
+                "Refund amount cannot exceed the payment amount."
+            )
+
+        if payment.refunded_amount + amount > payment.amount:
+            raise ValidationError(
+                "Total refunded amount cannot exceed "
+                "the payment amount."
+            )
+
+        payment.status = Payment.STATUS_REFUND_PENDING
+
+        payment.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        url = f"{self.BASE_URL}/refund"
+
+        headers = {
+            "Authorization": (
+                f"Bearer {settings.PAYSTACK_SECRET_KEY}"
+            ),
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "transaction": payment.reference,
+            "amount": int(amount) * 100,
+        }
+
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                headers=headers,
+                timeout=15,
+            )
+
+            response.raise_for_status()
+
+            result = response.json()
+
+        except RequestException as error:
+
+            logger.exception(
+                "Failed to initiate Paystack refund for %s.",
+                payment.reference,
+            )
+
+            payment.status = (
+                Payment.STATUS_REFUND_FAILED
+            )
+
+            payment.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+            raise ValidationError(
+                "Unable to contact Paystack. "
+                "Please try again."
+            ) from error
+
+        if result.get("status") is not True:
+
+            payment.status = (
+                Payment.STATUS_REFUND_FAILED
+            )
+
+            payment.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+            raise ValidationError(
+                result.get(
+                    "message",
+                    "Unable to initiate refund.",
+                )
+            )
+
+        data = result.get("data", {})
+
+        refund_reference = (
+            data.get("refund_reference")
+            or data.get("reference")
+        )
+
+        payment.refund_reference = refund_reference
+        payment.refunded_amount += amount
+
+        if payment.refunded_amount >= payment.amount:
+            payment.status = Payment.STATUS_REFUNDED
+
+        else:
+            payment.status = Payment.STATUS_REFUND_PENDING
+
+        payment.refunded_at = timezone.now()
+
+        payment.save(
+            update_fields=[
+                "refund_reference",
+                "refunded_amount",
+                "refunded_at",
+                "status",
+                "updated_at",
+            ]
+        )
+
+        return result
