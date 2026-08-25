@@ -46,15 +46,21 @@ class Order(models.Model):
         blank=True,
     )
 
-    subtotal = models.IntegerField(
+    subtotal = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
         default=0,
     )
 
-    delivery_fee = models.IntegerField(
+    delivery_fee = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
         default=0,
     )
 
-    total_amount = models.IntegerField(
+    total_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
         default=0,
     )
 
