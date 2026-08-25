@@ -9,6 +9,9 @@ from django.core.exceptions import ValidationError
 from .models import Payment
 from .services.payment_service import PaymentService
 
+from apps.common.models import AuditLog
+from apps.common.services import record_admin_action
+
 
 class AdminPaymentsView(APIView):
 
@@ -73,6 +76,18 @@ class AdminPaymentRefundView(APIView):
             )
 
         payment.refresh_from_db()
+
+        record_admin_action(
+            admin=request.user,
+            action=AuditLog.ACTION_REFUND_INITIATED,
+            object_type="Payment",
+            object_id=payment.id,
+            details={
+                "payment_reference": payment.reference,
+                "refund_amount": amount,
+                "order_id": payment.order_id,
+            },
+        )
 
         return Response(
             {
