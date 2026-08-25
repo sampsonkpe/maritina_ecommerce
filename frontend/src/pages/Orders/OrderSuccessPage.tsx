@@ -12,9 +12,15 @@ import type { Order } from "../../types/order";
 import LoadingState from "../../components/common/LoadingState";
 import PageContainer from "../../components/common/PageContainer";
 
+import { useAuth } from "../../context/AuthContext";
+
+import { formatDate } from "../../utils/date";
+
 export default function OrderSuccessPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
+
+  const { user } = useAuth();
 
   const [order, setOrder] =
     useState<Order | null>(null);
@@ -107,15 +113,22 @@ export default function OrderSuccessPage() {
   }
 
   const firstName =
-    order.user_email
-      ? "Customer"
-      : order.guest_full_name
-          ?.trim()
-          .split(/\s+/)[0] || "Customer";
+    user?.full_name
+      ?.trim()
+      .split(/\s+/)[0]
+    || order.guest_full_name
+      ?.trim()
+      .split(/\s+/)[0]
+    || "Customer";
+
+  const isDelivery =
+    order.delivery_type === "DELIVERY";
 
   return (
     <PageContainer>
       <div className="mx-auto max-w-xl py-16">
+
+        {/* Header */}
 
         <div className="text-center">
 
@@ -131,9 +144,13 @@ export default function OrderSuccessPage() {
 
         </div>
 
+        {/* Order Summary */}
+
         <div className="mt-8 rounded-lg border p-6">
 
-          <div className="flex items-center justify-between">
+          {/* Order Number */}
+
+          <div className="flex items-center justify-between gap-6">
             <span className="text-gray-500">
               Order Number :
             </span>
@@ -143,30 +160,41 @@ export default function OrderSuccessPage() {
             </span>
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
+          {/* Order Type */}
+
+          <div className="mt-5 flex items-center justify-between gap-6">
+
             <span className="text-gray-500">
-              Payment Status :
+              Order Type :
             </span>
 
-            <span className="font-medium capitalize">
-              {order.payment_status}
+            <span className="font-medium">
+              {isDelivery
+                ? "Delivery"
+                : "Pickup"}
             </span>
+
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
+          {/* Payment Method */}
+
+          <div className="mt-5 flex items-center justify-between gap-6">
+
             <span className="text-gray-500">
-              Fulfilment Status
+              Payment Method :
             </span>
 
-            <span className="font-medium capitalize">
-              {order.status.replace(
-                /_/g,
-                " "
-              )}
+            <span className="font-medium">
+              {order.payment_method ||
+                "Paystack"}
             </span>
+
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
+          {/* Total */}
+
+          <div className="mt-5 flex items-center justify-between gap-6">
+
             <span className="text-gray-500">
               Total Amount :
             </span>
@@ -177,19 +205,43 @@ export default function OrderSuccessPage() {
                 order.total_amount
               ).toFixed(2)}
             </span>
+
+          </div>
+
+          {/* Date / Time */}
+
+          <div className="mt-5 flex items-center justify-between gap-6">
+
+            <span className="text-gray-500">
+              Order Placed on :
+            </span>
+
+            <time
+              dateTime={order.created_at}
+              className="font-medium text-right"
+            >
+              {formatDate(
+                order.created_at
+              )}
+            </time>
+
           </div>
 
         </div>
+
+        {/* Message */}
 
         <p className="mt-6 text-center text-sm text-gray-500">
           We'll keep you updated as your
           order progresses.
         </p>
 
+        {/* Actions */}
+
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
 
           <Link
-            to="/orders"
+            to="/products"
             className="
               rounded-md
               bg-black
@@ -199,11 +251,11 @@ export default function OrderSuccessPage() {
               text-white
             "
           >
-            View Orders
+            Continue Shopping
           </Link>
 
           <Link
-            to="/products"
+            to="/orders"
             className="
               rounded-md
               border
@@ -212,7 +264,7 @@ export default function OrderSuccessPage() {
               text-center
             "
           >
-            Continue Shopping
+            View Orders
           </Link>
 
         </div>

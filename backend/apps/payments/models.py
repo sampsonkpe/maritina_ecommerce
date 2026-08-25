@@ -50,7 +50,9 @@ class Payment(models.Model):
         unique=True,
     )
 
-    refunded_amount = models.IntegerField(
+    refunded_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
         default=0,
     )
 
@@ -59,7 +61,16 @@ class Payment(models.Model):
         blank=True,
     )
 
-    amount = models.IntegerField()
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    payment_method = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+    )
 
     status = models.CharField(
         max_length=20,

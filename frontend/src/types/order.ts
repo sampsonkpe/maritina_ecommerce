@@ -31,6 +31,7 @@ export interface Order {
   payment_status: PaymentStatus;
 
   payment_reference: string | null;
+  payment_method: string | null;
   paid_at: string | null;
 
   address: number | null;

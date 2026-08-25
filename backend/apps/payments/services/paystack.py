@@ -1,5 +1,6 @@
 import uuid
 import logging
+from decimal import Decimal
 
 from django.utils import timezone
 import requests
@@ -19,6 +20,58 @@ from apps.orders.serializers import OrderSerializer
 
 
 logger = logging.getLogger(__name__)
+
+def _get_payment_method(data):
+    channel = data.get("channel")
+
+    if channel == "card":
+        return "Card"
+
+    if channel == "bank":
+        return "Bank"
+
+    if channel == "bank_transfer":
+        return "Bank Transfer"
+
+    if channel == "mobile_money":
+        authorization = data.get("authorization") or {}
+
+        provider = (
+            authorization.get("bank")
+            or authorization.get("brand")
+            or ""
+        )
+
+        provider_lower = provider.lower()
+
+        if "mtn" in provider_lower:
+            return "MTN MoMo"
+
+        if (
+            "airtel" in provider_lower
+            or "tigo" in provider_lower
+        ):
+            return "Airtel Money"
+
+        if (
+            "telecel" in provider_lower
+            or "vodafone" in provider_lower
+        ):
+            return "Telecel Cash"
+
+        return "Mobile Money"
+
+    if channel == "ussd":
+        return "USSD"
+
+    if channel == "qr":
+        return "QR"
+
+    return (
+        channel.replace("_", " ").title()
+        if channel
+        else "Paystack"
+    )
 
 
 class PaystackPaymentService(BasePaymentService):
@@ -63,7 +116,9 @@ class PaystackPaymentService(BasePaymentService):
 
         payload = {
             "email": email,
-            "amount": int(checkout.total_amount) * 100,
+            "amount": int(
+                Decimal(str(checkout.total_amount)) * 100
+            ),
             "reference": reference,
             "callback_url": (
                 f"{settings.FRONTEND_URL}"
@@ -86,43 +141,83 @@ class PaystackPaymentService(BasePaymentService):
                 timeout=15,
             )
 
-            response.raise_for_status()
-
-            result = response.json()
-
-            if not result.get("status"):
-                payment.status = Payment.STATUS_FAILED
-
-                payment.save(
-                    update_fields=[
-                        "status",
-                        "updated_at",
-                    ]
-                )
-
-                try:
-                    CheckoutService.fail_checkout(
-                        checkout.id
-                    )
-                except ValueError:
-                    logger.exception(
-                        "Unable to fail checkout %s after "
-                        "Paystack initialisation failure.",
-                        checkout.id,
-                    )
-
-                raise ValidationError(
-                    result.get(
-                        "message",
-                        "Unable to initialise payment.",
-                    )
-                )
-
-            return result
-
         except RequestException as error:
             logger.exception(
-                "Failed to initialise Paystack payment."
+                "Failed to connect to Paystack while "
+                "initialising payment %s.",
+                reference,
+            )
+
+            payment.status = Payment.STATUS_FAILED
+
+            payment.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+            try:
+                CheckoutService.fail_checkout(
+                    checkout.id
+                )
+            except ValueError:
+                logger.exception(
+                    "Unable to fail checkout %s after "
+                    "Paystack connection failure.",
+                    checkout.id,
+                )
+
+            raise ValidationError(
+                "Unable to contact Paystack. "
+                "Please try again."
+            ) from error
+
+        try:
+            result = response.json()
+
+        except ValueError:
+            logger.error(
+                "Paystack returned an invalid JSON response "
+                "for payment %s. HTTP %s. Response: %s",
+                reference,
+                response.status_code,
+                response.text[:500],
+            )
+
+            payment.status = Payment.STATUS_FAILED
+
+            payment.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+            try:
+                CheckoutService.fail_checkout(
+                    checkout.id
+                )
+            except ValueError:
+                logger.exception(
+                    "Unable to fail checkout %s after "
+                    "invalid Paystack response.",
+                    checkout.id,
+                )
+
+            raise ValidationError(
+                "Paystack returned an invalid response. "
+                "Please try again."
+            )
+
+        if response.status_code >= 400 or not result.get("status"):
+
+            logger.error(
+                "Paystack initialisation failed for %s. "
+                "HTTP %s. Response: %s",
+                reference,
+                response.status_code,
+                result,
             )
 
             payment.status = Payment.STATUS_FAILED
@@ -146,9 +241,13 @@ class PaystackPaymentService(BasePaymentService):
                 )
 
             raise ValidationError(
-                "Unable to contact Paystack. "
-                "Please try again."
-            ) from error
+                result.get(
+                    "message",
+                    "Unable to initialise payment.",
+                )
+            )
+
+        return result
 
     def verify_payment(self, reference):
         try:
@@ -230,7 +329,10 @@ class PaystackPaymentService(BasePaymentService):
         # Verify payment amount
         # ---------------------------------------------
 
-        expected_amount = payment.amount * 100
+        expected_amount = int(
+            payment.amount * 100
+        )
+
         paid_amount = data.get("amount")
 
         if paid_amount != expected_amount:
@@ -251,7 +353,19 @@ class PaystackPaymentService(BasePaymentService):
         # Finalise payment
         # ---------------------------------------------
 
-        order = self.mark_as_paid(reference)
+        payment_method = _get_payment_method(data)
+
+        if payment.payment_method != payment_method:
+            payment.payment_method = payment_method
+
+            payment.save(
+                update_fields=[
+                    "payment_method",
+                    "updated_at",
+                ]
+            )
+
+        order = self.mark_as_paid(reference, transaction_data=data)
 
         return {
             **result,
@@ -454,7 +568,7 @@ class PaystackPaymentService(BasePaymentService):
         # -------------------------------------------------
 
         if event == "charge.success":
-            self.mark_as_paid(reference)
+            self.mark_as_paid(reference, transaction_data=data)
             return
 
         # -------------------------------------------------
@@ -535,7 +649,11 @@ class PaystackPaymentService(BasePaymentService):
         return payment
 
     @transaction.atomic
-    def mark_as_paid(self, reference):
+    def mark_as_paid(
+        self,
+        reference,
+        transaction_data=None,
+    ):
         """
         Confirm payment and finalise the checkout.
 
@@ -590,15 +708,26 @@ class PaystackPaymentService(BasePaymentService):
         # Mark payment successful
         # -------------------------------------------------
 
-        if payment.status != Payment.STATUS_SUCCESS:
+        update_fields = []
 
+        if payment.status != Payment.STATUS_SUCCESS:
             payment.status = Payment.STATUS_SUCCESS
+            update_fields.append("status")
+
+        if transaction_data:
+            payment_method = _get_payment_method(
+                transaction_data
+            )
+
+            if payment.payment_method != payment_method:
+                payment.payment_method = payment_method
+                update_fields.append("payment_method")
+
+        if update_fields:
+            update_fields.append("updated_at")
 
             payment.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
-                ]
+                update_fields=update_fields
             )
 
         # -------------------------------------------------
@@ -675,6 +804,8 @@ class PaystackPaymentService(BasePaymentService):
 
         if amount is None:
             amount = payment.amount
+        else:
+            amount = Decimal(str(amount))
 
         if amount <= 0:
             raise ValidationError(
@@ -712,7 +843,9 @@ class PaystackPaymentService(BasePaymentService):
 
         payload = {
             "transaction": payment.reference,
-            "amount": int(amount) * 100,
+            "amount": int(
+                Decimal(str(amount)) * 100
+            ),
         }
 
         try:

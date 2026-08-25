@@ -63,7 +63,9 @@ class CheckoutTransaction(models.Model):
         default=0,
     )
 
-    total_amount = models.IntegerField(
+    total_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
         default=0,
     )
 

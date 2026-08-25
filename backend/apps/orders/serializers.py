@@ -89,6 +89,23 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_delivery_type_display(self, obj):
         return obj.get_delivery_type_display()
 
+    payment_method = serializers.SerializerMethodField()
+
+    def get_payment_method(self, obj):
+        payment = (
+            obj.payments
+            .filter(
+                status="SUCCESS"
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not payment:
+            return None
+
+        return payment.payment_method
+
     class Meta:
         model = Order
 
@@ -108,6 +125,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "status",
             "payment_status",
             "payment_reference",
+            "payment_method",
             "paid_at",
             "address",
             "address_text",
