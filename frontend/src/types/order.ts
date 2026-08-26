@@ -40,5 +40,13 @@ export interface Order {
   created_at: string;
   updated_at: string;
 
+  status_history: OrderStatusHistory[];
+
   items: OrderItem[];
+}
+
+export interface OrderStatusHistory {
+  old_status: string;
+  new_status: string;
+  created_at: string;
 }

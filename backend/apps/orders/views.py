@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Order
 
 from .services import OrderService
-from .serializers import OrderSerializer
+from .serializers import OrderSerializer, OrderDetailSerializer
 
 
 class UserOrdersView(APIView):
@@ -41,7 +41,7 @@ class UserOrderDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = OrderSerializer(order)
+        serializer = OrderDetailSerializer(order)
 
         return Response(serializer.data)
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { orderService } from "../../services/orderService";
 
@@ -115,6 +116,25 @@ export default function OrdersPage() {
                 deliveryFee={order.delivery_fee}
                 total={order.total_amount}
               />
+
+              <div className="mt-5">
+                <Link
+                  to={`/orders/${order.id}`}
+                  className="
+                    inline-flex
+                    items-center
+                    text-sm
+                    font-medium
+                    text-(--color-text)
+                    underline
+                    underline-offset-4
+                    transition-opacity
+                    hover:opacity-60
+                  "
+                >
+                  Track Order
+                </Link>
+              </div>
 
               <OrderFooter
                 createdAt={order.created_at}

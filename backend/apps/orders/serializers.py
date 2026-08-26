@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Order, OrderItem
+from .models import Order, OrderItem, OrderStatusHistory
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -132,4 +132,30 @@ class OrderSerializer(serializers.ModelSerializer):
             "items",
             "created_at",
             "updated_at",
+        ]
+
+
+class OrderStatusHistorySerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+        model = OrderStatusHistory
+        fields = [
+            "old_status",
+            "new_status",
+            "created_at",
+        ]
+
+
+class OrderDetailSerializer(OrderSerializer):
+
+    status_history = OrderStatusHistorySerializer(
+        many=True,
+        read_only=True,
+    )
+
+    class Meta(OrderSerializer.Meta):
+        fields = OrderSerializer.Meta.fields + [
+            "status_history",
         ]
