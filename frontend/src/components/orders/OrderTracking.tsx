@@ -72,20 +72,15 @@ const DELIVERY_STAGES: TrackingStage[] = [
   },
 ];
 
-function formatStatusDate(
-  value: string
-): string {
-  return new Intl.DateTimeFormat(
-    "en-GB",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }
-  ).format(new Date(value));
+function formatStatusDate(value: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(value));
 }
 
 function getHistoryTimestamp(
@@ -108,15 +103,13 @@ export default function OrderTracking({
       : DELIVERY_STAGES;
 
   const currentIndex = stages.findIndex(
-    (stage) =>
-      stage.status === order.status
+    (stage) => stage.status === order.status
   );
 
   const isCancelled =
     order.status === ORDER_STATUS.CANCELLED;
 
-  const statusUpdatedAt =
-    order.updated_at;
+  const statusUpdatedAt = order.updated_at;
 
   if (isCancelled) {
     return (
@@ -126,7 +119,8 @@ export default function OrderTracking({
           border
           border-(--color-border)
           bg-(--color-surface)
-          p-6
+          p-5
+          sm:p-6
         "
       >
         <div className="flex items-start gap-4">
@@ -141,6 +135,7 @@ export default function OrderTracking({
               rounded-full
               border
               border-(--color-border)
+              bg-(--color-background)
               text-(--color-text-muted)
             "
           >
@@ -155,15 +150,25 @@ export default function OrderTracking({
               Order Tracking
             </h2>
 
-            <p className="mt-1 text-sm text-(--color-text-muted)">
+            <p
+              className="
+                mt-1
+                text-sm
+                text-(--color-text-muted)
+              "
+            >
               This order was cancelled.
             </p>
 
-            <p className="mt-3 text-sm text-(--color-text-muted)">
+            <p
+              className="
+                mt-3
+                text-sm
+                text-(--color-text-muted)
+              "
+            >
               Status updated on{" "}
-              {formatStatusDate(
-                statusUpdatedAt
-              )}
+              {formatStatusDate(statusUpdatedAt)}
             </p>
           </div>
         </div>
@@ -178,9 +183,11 @@ export default function OrderTracking({
         border
         border-(--color-border)
         bg-(--color-surface)
-        p-6
+        p-5
+        sm:p-6
       "
     >
+      {/* Header */}
       <div
         className="
           flex
@@ -196,151 +203,313 @@ export default function OrderTracking({
             Order Tracking
           </h2>
 
-          <p className="mt-1 text-sm text-(--color-text-muted)">
+          <p
+            className="
+              mt-1
+              text-sm
+              text-(--color-text-muted)
+            "
+          >
             Here's the latest update on your order.
           </p>
         </div>
 
-        <p className="text-sm text-(--color-text-muted)">
+        <p
+          className="
+            text-sm
+            text-(--color-text-muted)
+          "
+        >
           Status updated on{" "}
-          {formatStatusDate(
-            statusUpdatedAt
-          )}
+          {formatStatusDate(statusUpdatedAt)}
         </p>
       </div>
 
-      <div className="mt-8 overflow-x-auto pb-2">
-        <div className="min-w-[680px]">
-          <div className="flex items-start">
-            {stages.map((stage, index) => {
-              const Icon = stage.icon;
+      {/* Desktop tracking */}
+      <div className="mt-8 hidden sm:block">
+        <div className="grid grid-cols-4">
+          {stages.map((stage, index) => {
+            const Icon = stage.icon;
 
-              const isCurrent =
-                index === currentIndex;
+            const isCurrent =
+              index === currentIndex;
 
-              const isPast =
-                index < currentIndex;
+            const isPast =
+              index < currentIndex;
 
-              const timestamp =
-                getHistoryTimestamp(
-                  order.status_history,
-                  stage.status
-                );
+            const timestamp =
+              getHistoryTimestamp(
+                order.status_history,
+                stage.status
+              );
 
-              const isLast =
-                index === stages.length - 1;
+            const isLast =
+              index === stages.length - 1;
 
-              return (
+            return (
+              <div
+                key={stage.status}
+                className="relative"
+              >
+                {/* Horizontal connector */}
+                {!isLast && (
+                  <div
+                    className={`
+                      pointer-events-none
+                      absolute
+                      top-6
+                      left-[calc(50%+24px)]
+                      right-[calc(-50%+24px)]
+                      z-0
+                      h-px
+                      ${
+                        isPast
+                          ? "bg-(--color-text)"
+                          : "bg-(--color-border)"
+                      }
+                    `}
+                  />
+                )}
+
+                {/* Stage */}
                 <div
-                  key={stage.status}
-                  className="flex flex-1 items-start"
+                  className="
+                    relative
+                    z-10
+                    flex
+                    flex-col
+                    items-center
+                    text-center
+                  "
                 >
-                  {/* Stage */}
-                  <div className="flex min-w-0 flex-1 flex-col items-center text-center">
-                    <div
-                      className={`
-                        flex
-                        h-12
-                        w-12
-                        shrink-0
-                        items-center
-                        justify-center
-                        rounded-full
-                        border
-                        transition-all
-                        duration-300
+                  {/* Icon */}
+                  <div
+                    className={`
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      border
+                      bg-(--color-background)
+                      transition-all
+                      duration-300
 
-                        ${
-                          isCurrent
-                            ? `
-                              border-(--color-text)
-                              bg-(--color-text)
-                              text-white
-                              shadow-sm
-                            `
-                            : isPast
-                            ? `
-                              border-(--color-border)
-                              bg-(--color-background)
-                              text-(--color-text-muted)
-                              opacity-55
-                            `
-                            : `
-                              border-(--color-border)
-                              bg-(--color-background)
-                              text-(--color-text-muted)
-                              opacity-35
-                            `
-                        }
-                      `}
-                    >
-                      <Icon
-                        size={20}
-                        strokeWidth={
-                          isCurrent ? 2 : 1.6
-                        }
-                      />
-                    </div>
-
-                    <p
-                      className={`
-                        mt-3
-                        text-sm
-                        ${
-                          isCurrent
-                            ? "font-semibold text-(--color-text)"
-                            : "font-medium text-(--color-text-muted)"
-                        }
-                        ${
-                          !isCurrent
-                            ? "opacity-65"
-                            : ""
-                        }
-                      `}
-                    >
-                      {stage.label}
-                    </p>
-
-                    <p
-                      className={`
-                        mt-1
-                        text-xs
-                        text-(--color-text-muted)
-                        ${
-                          isCurrent
-                            ? "opacity-100"
-                            : "opacity-45"
-                        }
-                      `}
-                    >
-                      {timestamp
-                        ? formatStatusDate(timestamp)
-                        : "—"}
-                    </p>
+                      ${
+                        isCurrent
+                          ? `
+                            border-(--color-text)
+                            bg-(--color-text)
+                            text-white
+                            shadow-sm
+                          `
+                          : isPast
+                          ? `
+                            border-(--color-border)
+                            text-(--color-text-muted)
+                            opacity-55
+                          `
+                          : `
+                            border-(--color-border)
+                            text-(--color-text-muted)
+                            opacity-35
+                          `
+                      }
+                    `}
+                  >
+                    <Icon
+                      size={20}
+                      strokeWidth={isCurrent ? 2 : 1.6}
+                    />
                   </div>
 
-                  {/* Connector */}
-                  {!isLast && (
-                    <div className="flex flex-1 items-center pt-6">
-                      <div
-                        className={`
-                          h-px
-                          w-full
-                          transition-all
-                          duration-500
-                          ${
-                            isPast
-                              ? "bg-(--color-text)"
-                              : "bg-(--color-border)"
-                          }
-                        `}
-                      />
-                    </div>
-                  )}
+                  {/* Details */}
+                  <p
+                    className={`
+                      mt-3
+                      text-sm
+                      ${
+                        isCurrent
+                          ? "font-semibold text-(--color-text)"
+                          : "font-medium text-(--color-text-muted)"
+                      }
+                      ${
+                        !isCurrent
+                          ? "opacity-65"
+                          : ""
+                      }
+                    `}
+                  >
+                    {stage.label}
+                  </p>
+
+                  <p
+                    className={`
+                      mt-1
+                      text-xs
+                      text-(--color-text-muted)
+                      ${
+                        isCurrent
+                          ? "opacity-100"
+                          : "opacity-45"
+                      }
+                    `}
+                  >
+                    {timestamp
+                      ? formatStatusDate(timestamp)
+                      : "—"}
+                  </p>
                 </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile tracking */}
+      <div className="mt-8 sm:hidden">
+        <div className="relative">
+          {stages.map((stage, index) => {
+            const Icon = stage.icon;
+
+            const isCurrent =
+              index === currentIndex;
+
+            const isPast =
+              index < currentIndex;
+
+            const timestamp =
+              getHistoryTimestamp(
+                order.status_history,
+                stage.status
               );
-            })}
-          </div>
+
+            const isLast =
+              index === stages.length - 1;
+
+            return (
+              <div
+                key={stage.status}
+                className="
+                  relative
+                  flex
+                  min-h-20
+                "
+              >
+                {/* Vertical connector */}
+                {!isLast && (
+                  <div
+                    className="
+                      absolute
+                      left-6
+                      top-12
+                      bottom-0
+                      w-px
+                    "
+                  >
+                    <div
+                      className={`
+                        h-full
+                        w-px
+                        ${
+                          isPast
+                            ? "bg-(--color-text)"
+                            : "bg-(--color-border)"
+                        }
+                      `}
+                    />
+                  </div>
+                )}
+
+                {/* Icon */}
+                <div
+                  className={`
+                    relative
+                    z-10
+                    flex
+                    h-12
+                    w-12
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    bg-(--color-background)
+                    transition-all
+                    duration-300
+
+                    ${
+                      isCurrent
+                        ? `
+                          border-(--color-text)
+                          bg-(--color-text)
+                          text-white
+                          shadow-sm
+                        `
+                        : isPast
+                        ? `
+                          border-(--color-border)
+                          text-(--color-text-muted)
+                          opacity-55
+                        `
+                        : `
+                          border-(--color-border)
+                          text-(--color-text-muted)
+                          opacity-35
+                        `
+                    }
+                  `}
+                >
+                  <Icon
+                    size={20}
+                    strokeWidth={
+                      isCurrent ? 2 : 1.6
+                    }
+                  />
+                </div>
+
+                {/* Details */}
+                <div className="ml-4 pt-1">
+                  <p
+                    className={`
+                      text-sm
+                      ${
+                        isCurrent
+                          ? "font-semibold text-(--color-text)"
+                          : "font-medium text-(--color-text-muted)"
+                      }
+                      ${
+                        !isCurrent
+                          ? "opacity-65"
+                          : ""
+                      }
+                    `}
+                  >
+                    {stage.label}
+                  </p>
+
+                  <p
+                    className={`
+                      mt-1
+                      text-xs
+                      text-(--color-text-muted)
+                      ${
+                        isCurrent
+                          ? "opacity-100"
+                          : "opacity-45"
+                      }
+                    `}
+                  >
+                    {timestamp
+                      ? formatStatusDate(timestamp)
+                      : "—"}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
