@@ -3,19 +3,19 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import WishlistItemSerializer
-from .services import WishlistService
+from .serializers import FavouriteItemSerializer
+from .services import FavouriteService
 
 
-class WishlistView(APIView):
+class FavouritesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        items = WishlistService.list_items(
+        items = FavouriteService.list_items(
             request.user,
         )
 
-        serializer = WishlistItemSerializer(
+        serializer = FavouriteItemSerializer(
             items,
             many=True,
         )
@@ -26,7 +26,7 @@ class WishlistView(APIView):
         )
 
 
-class WishlistAddView(APIView):
+class FavouritesAddView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -46,7 +46,7 @@ class WishlistAddView(APIView):
 
         try:
             item, created = (
-                WishlistService.add_item(
+                FavouriteService.add_item(
                     user=request.user,
                     product_id=product_id,
                 )
@@ -58,7 +58,7 @@ class WishlistAddView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = WishlistItemSerializer(
+        serializer = FavouriteItemSerializer(
             item,
         )
 
@@ -75,12 +75,12 @@ class WishlistAddView(APIView):
         )
 
 
-class WishlistRemoveView(APIView):
+class FavouritesRemoveView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, product_id):
         try:
-            WishlistService.remove_item(
+            FavouriteService.remove_item(
                 user=request.user,
                 product_id=product_id,
             )
@@ -94,7 +94,7 @@ class WishlistRemoveView(APIView):
         return Response(
             {
                 "message": (
-                    "Product removed from wishlist."
+                    "Product removed from favourite."
                 )
             },
             status=status.HTTP_200_OK,

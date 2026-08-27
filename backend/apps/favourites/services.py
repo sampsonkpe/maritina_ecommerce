@@ -1,15 +1,15 @@
 from django.db import IntegrityError
 
-from .models import WishlistItem
+from .models import FavouriteItem
 from apps.products.models import Product
 
 
-class WishlistService:
+class FavouriteService:
 
     @staticmethod
     def list_items(user):
         return (
-            WishlistItem.objects
+            FavouriteItem.objects
             .filter(user=user)
             .select_related(
                 "product",
@@ -37,13 +37,13 @@ class WishlistService:
 
         try:
             item, created = (
-                WishlistItem.objects.get_or_create(
+                FavouriteItem.objects.get_or_create(
                     user=user,
                     product=product,
                 )
             )
         except IntegrityError:
-            item = WishlistItem.objects.get(
+            item = FavouriteItem.objects.get(
                 user=user,
                 product=product,
             )
@@ -58,7 +58,7 @@ class WishlistService:
         product_id,
     ):
         deleted, _ = (
-            WishlistItem.objects.filter(
+            FavouriteItem.objects.filter(
                 user=user,
                 product_id=product_id,
             ).delete()
@@ -66,7 +66,7 @@ class WishlistService:
 
         if not deleted:
             raise ValueError(
-                "Product is not in your wishlist."
+                "Product is not in your Favourites."
             )
 
         return True

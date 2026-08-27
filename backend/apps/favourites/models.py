@@ -4,18 +4,18 @@ from django.conf import settings
 from apps.products.models import Product
 
 
-class WishlistItem(models.Model):
+class FavouriteItem(models.Model):
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="wishlist_items",
+        related_name="favourite_items",
     )
 
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
-        related_name="wishlist_items",
+        related_name="favourite_items",
     )
 
     created_at = models.DateTimeField(
@@ -26,7 +26,7 @@ class WishlistItem(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "product"],
-                name="unique_wishlist_item",
+                name="unique_favourite_item",
             ),
         ]
 

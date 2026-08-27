@@ -1,10 +1,10 @@
 from rest_framework import serializers
 
-from .models import WishlistItem
+from .models import FavouriteItem
 from apps.products.serializers import ProductSerializer
 
 
-class WishlistItemSerializer(
+class FavouriteItemSerializer(
     serializers.ModelSerializer
 ):
 
@@ -13,7 +13,7 @@ class WishlistItemSerializer(
     )
 
     class Meta:
-        model = WishlistItem
+        model = FavouriteItem
         fields = [
             "id",
             "product",

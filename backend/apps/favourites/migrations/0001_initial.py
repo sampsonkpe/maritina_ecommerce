@@ -16,16 +16,19 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='WishlistItem',
+            name='FavouriteItem',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='wishlist_items', to='products.product')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='wishlist_items', to=settings.AUTH_USER_MODEL)),
+                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='favourite_items', to='products.product')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='favourite_items', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['-created_at'],
-                'constraints': [models.UniqueConstraint(fields=('user', 'product'), name='unique_wishlist_item')],
+                'constraints': [models.UniqueConstraint(fields=('user', 'product'), name='unique_favourite_item')],
             },
         ),
     ]

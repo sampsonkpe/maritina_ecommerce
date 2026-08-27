@@ -13,6 +13,7 @@ import Alert from "../../components/common/Alert";
 
 import { useCart } from "../../context/CartContext";
 import { productService } from "../../services/productService";
+import FavouriteButton from "../../components/products/FavouriteButton";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -115,9 +116,15 @@ export default function ProductDetailPage() {
         </div>
 
         <div>
-          <h1 className="text-3xl font-bold">
-            {product.name}
-          </h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-3xl font-bold">
+              {product.name}
+            </h1>
+
+            <FavouriteButton
+              productId={product.id}
+            />
+          </div>
 
           <p className="mt-4 text-gray-600">
             {product.description}

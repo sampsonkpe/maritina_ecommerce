@@ -27,7 +27,7 @@ urlpatterns = [
     path("api/payments/", include("apps.payments.urls")),
     path("api/addresses/", include("apps.addresses.urls")),
     path("api/checkout/", include("apps.checkout.urls")),
-    path("api/wishlist/", include("apps.wishlist.urls")),
+    path("api/favourites/", include("apps.favourites.urls")),
     
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
