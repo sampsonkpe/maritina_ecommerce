@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'apps.common',
     'apps.checkout',
     'corsheaders',
+    'apps.wishlist',
 ]
 
 AUTH_USER_MODEL = "users.User"
