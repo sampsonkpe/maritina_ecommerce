@@ -27,7 +27,7 @@ export default function AdminOrdersPage() {
     useState<number[]>([]);
 
   const [selectedStatuses, setSelectedStatuses] =
-  useState<Record<number, string>>({});
+  useState<Record<number, Order["status"]>>({});
 
   const [updatingOrders, setUpdatingOrders] =
     useState<number[]>([]);
@@ -75,7 +75,7 @@ export default function AdminOrdersPage() {
 
         setOrders(data);
 
-        const initialStatuses: Record<number, string> = {};
+        const initialStatuses: Record<number, Order["status"]> = {};
 
         data.forEach((order) => {
           initialStatuses[order.id] = order.status;
@@ -239,7 +239,7 @@ export default function AdminOrdersPage() {
                   onStatusChange={(status) =>
                     setSelectedStatuses((current) => ({
                       ...current,
-                      [order.id]: status,
+                      [order.id]: status as Order["status"],
                     }))
                   }
                   onUpdate={() =>

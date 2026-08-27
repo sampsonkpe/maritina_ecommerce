@@ -77,7 +77,7 @@ export default function OrderTrackingPage() {
           to="/orders"
           className="
             mt-6
-            inline-blocka
+            inline-block
             text-sm
             font-medium
             underline
