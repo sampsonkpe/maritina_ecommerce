@@ -22,6 +22,7 @@ import OrderSuccessPage from "./pages/Orders/OrderSuccessPage";
 import PaymentReturnPage from "./pages/Payments/PaymentReturnPage";
 import PaymentCancelledPage from "./pages/Payments/PaymentCancelledPage";
 import OrderTrackingPage from "./pages/Orders/OrderTrackingPage";
+import FavouritesPage from "./pages/Favourites/FavouritesPage";
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/payment-return" element={<PaymentReturnPage />} />
           <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
           <Route path="/orders/:orderId" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
+          <Route path="/favourites" element={<ProtectedRoute><FavouritesPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>

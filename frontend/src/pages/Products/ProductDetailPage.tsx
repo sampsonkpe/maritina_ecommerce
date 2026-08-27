@@ -13,7 +13,7 @@ import Alert from "../../components/common/Alert";
 
 import { useCart } from "../../context/CartContext";
 import { productService } from "../../services/productService";
-import FavouriteButton from "../../components/products/FavouriteButton";
+import FavouriteButton from "../../components/favourites/FavouriteButton";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
