@@ -84,7 +84,7 @@ export default function OrderTrackingPage() {
             underline-offset-4
           "
         >
-          Back to orders
+          Back to Orders
         </Link>
       </PageContainer>
     );
@@ -106,7 +106,7 @@ export default function OrderTrackingPage() {
             hover:text-(--color-text)
           "
         >
-            Back to orders
+            Back to Orders
         </Link>
 
         {/* Header */}
@@ -190,68 +190,87 @@ export default function OrderTrackingPage() {
         </section>
 
         {/* Delivery / pickup information */}
-        <section
-          className="
-            mt-8
-            rounded-md
-            border
-            border-(--color-border)
-            bg-(--color-surface)
-            p-5
-          "
-        >
-          <h2
+          <section
             className="
-              text-lg
-              font-medium
-              text-(--color-text)
+              mt-8
+              rounded-md
+              border
+              border-(--color-border)
+              bg-(--color-surface)
+              p-5
             "
           >
-            {order.delivery_type === "DELIVERY"
-              ? "Delivery"
-              : "Pickup"}
-          </h2>
-
-          {order.delivery_type ===
-            "DELIVERY" &&
-            order.address_text && (
-              <div className="mt-3">
-                <p
-                  className="
-                    text-sm
-                    text-(--color-muted)
-                  "
-                >
-                  Delivery address
-                </p>
-
-                <p
-                  className="
-                    mt-1
-                    text-sm
-                    text-(--color-text)
-                  "
-                >
-                  {order.address_text}
-                </p>
-              </div>
-            )}
-
-          {order.delivery_type ===
-            "PICKUP" && (
-            <p
+            <h2
               className="
-                mt-3
-                text-sm
-                text-(--color-muted)
+                text-lg
+                font-medium
+                text-(--color-text)
               "
             >
-              Your order will be ready
-              for collection once it
-              reaches "Ready for Pickup".
-            </p>
-          )}
-        </section>
+              {order.delivery_type === "DELIVERY"
+                ? "Delivery"
+                : "Pickup"}
+            </h2>
+
+            {order.delivery_type === "DELIVERY" && (
+              <>
+                <p
+                  className="
+                    mt-3
+                    text-sm
+                    text-(--color-text-muted)
+                  "
+                >
+                  {order.status === "PENDING"
+                    ? "Your order is being processed."
+                    : order.status === "CONFIRMED"
+                      ? "Your order has been confirmed and will be prepared shortly."
+                      : order.status === "PREPARING"
+                        ? "Your order is being prepared."
+                        : order.status === "OUT_FOR_DELIVERY"
+                          ? "Your order is on its way to you."
+                          : order.status === "DELIVERED"
+                            ? "Your order has been delivered to:"
+                            : order.status === "CANCELLED"
+                              ? "Your order has been cancelled."
+                              : "Your order is being processed."}
+                </p>
+
+                {order.address_text && (
+                  <div>
+                    <p
+                      className="
+                        mt-2
+                        text-sm
+                        font-semibold
+                        text-(--color-text-muted)
+                      "
+                    >
+                      {order.address_text}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {order.delivery_type === "PICKUP" && (
+              <p
+                className="
+                  mt-3
+                  text-sm
+                  text-(--color-text-muted)
+                "
+              >
+                {order.status === "READY_FOR_PICKUP"
+                  ? "Your order is ready for pickup."
+                  : order.status === "PICKED_UP"
+                    ? "Your order has been picked up."
+                    : order.status === "CANCELLED"
+                      ? "Your order has been cancelled."
+                      : 'Your order will be ready for collection once it reaches "Ready for Pickup".'}
+              </p>
+            )}
+          </section>
       </div>
     </PageContainer>
   );
