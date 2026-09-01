@@ -16,6 +16,14 @@ export const reviewService = {
     return response.data;
   },
 
+  async getAllReviews(): Promise<Review[]> {
+    const response = await api.get(
+      "/reviews/"
+    );
+
+    return response.data;
+  },
+
   async createReview(
     data: ReviewCreateData
   ): Promise<Review> {

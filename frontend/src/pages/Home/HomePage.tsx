@@ -1,3 +1,5 @@
+import ReviewBand from "../../components/reviews/ReviewBand";
+
 export default function HomePage() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
@@ -11,6 +13,10 @@ export default function HomePage() {
         asaana, lamugin, suya and more
         from KAHWƐ by Maritina Foods.
       </p>
+
+      <div className="mt-24">
+        <ReviewBand />
+      </div>
     </section>
   );
 }

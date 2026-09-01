@@ -67,3 +67,16 @@ class ReviewService:
             rating=rating,
             comment=comment,
         )
+
+    @staticmethod
+    def list_all_reviews():
+
+        return (
+            Review.objects
+            .select_related(
+                "user",
+                "product",
+                "variant",
+            )
+            .order_by("-created_at")
+        )

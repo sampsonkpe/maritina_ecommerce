@@ -36,3 +36,19 @@ body {
   background-color: var(--color-background);
   color: var(--color-text);
 }
+
+@keyframes review-band-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.review-band-track {
+  display: flex;
+  width: max-content;
+  animation: review-band-scroll 35s linear infinite;
+}

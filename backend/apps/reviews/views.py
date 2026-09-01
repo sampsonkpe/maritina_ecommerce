@@ -14,6 +14,22 @@ from .serializers import (
 from .services import ReviewService
 
 
+class AllReviewsView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+
+        reviews = ReviewService.list_all_reviews()
+
+        serializer = ReviewSerializer(
+            reviews,
+            many=True,
+        )
+
+        return Response(serializer.data)
+
+    
 class ProductReviewsView(APIView):
 
     permission_classes = [AllowAny]

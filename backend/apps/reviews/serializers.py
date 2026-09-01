@@ -7,10 +7,16 @@ class ReviewSerializer(
     serializers.ModelSerializer
 ):
 
-    customer_first_name = serializers.CharField(
-        source="user.first_name",
-        read_only=True,
-    )
+    customer_first_name = serializers.SerializerMethodField()
+
+    def get_customer_first_name(self, obj):
+        full_name = obj.user.full_name or ""
+
+        return (
+            full_name.split()[0]
+            if full_name.strip()
+            else ""
+        )
 
     product_name = serializers.CharField(
         source="product.name",
