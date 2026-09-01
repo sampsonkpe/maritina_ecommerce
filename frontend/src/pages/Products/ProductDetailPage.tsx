@@ -14,6 +14,8 @@ import Alert from "../../components/common/Alert";
 import { useCart } from "../../context/CartContext";
 import { productService } from "../../services/productService";
 import FavouriteButton from "../../components/favourites/FavouriteButton";
+import ReviewList from "../../components/reviews/ReviewList";
+import ReviewForm from "../../components/reviews/ReviewForm";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -29,6 +31,9 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState("1");
 
   const [loading, setLoading] = useState(true);
+
+  const [reviewRefreshKey, setReviewRefreshKey] =
+    useState(0);
 
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -187,6 +192,29 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
+      </div>
+
+      <div className="mt-16">
+        <h2 className="text-2xl font-bold">
+          Customer Reviews
+        </h2>
+
+        <div className="mt-6">
+          <ReviewList
+            productId={product.id}
+            refreshKey={reviewRefreshKey}
+          />
+        </div>
+
+        <ReviewForm
+          productId={product.id}
+          variants={product.variants}
+          onSuccess={() =>
+            setReviewRefreshKey(
+              (value) => value + 1
+            )
+          }
+        />
       </div>
     </PageContainer>
   );

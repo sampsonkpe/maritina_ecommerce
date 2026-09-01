@@ -41,7 +41,7 @@ class ReviewService:
 
         if already_reviewed:
             raise ValueError(
-                "You have already reviewed this variant."
+                "You have already reviewed this product variant."
             )
 
         purchased = (

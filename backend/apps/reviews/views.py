@@ -6,11 +6,6 @@ from rest_framework.permissions import (
     IsAuthenticated,
 )
 
-from apps.products.models import (
-    Product,
-    ProductVariant,
-)
-
 from .models import Review
 from .serializers import (
     ReviewSerializer,
@@ -51,23 +46,15 @@ class CreateReviewView(APIView):
             raise_exception=True
         )
 
-        product_id = serializer.validated_data[
+        product = serializer.validated_data[
             "product"
         ]
 
-        variant_id = serializer.validated_data[
+        variant = serializer.validated_data[
             "variant"
         ]
 
         try:
-            product = Product.objects.get(
-                id=product_id
-            )
-
-            variant = ProductVariant.objects.get(
-                id=variant_id
-            )
-
             review = ReviewService.create_review(
                 user=request.user,
                 product=product,
@@ -78,18 +65,6 @@ class CreateReviewView(APIView):
                 comment=serializer.validated_data[
                     "comment"
                 ],
-            )
-
-        except Product.DoesNotExist:
-            return Response(
-                {"error": "Product not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        except ProductVariant.DoesNotExist:
-            return Response(
-                {"error": "Product variant not found."},
-                status=status.HTTP_404_NOT_FOUND,
             )
 
         except ValueError as error:
