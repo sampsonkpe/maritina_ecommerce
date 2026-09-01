@@ -17,6 +17,7 @@ export default function CartPage() {
     loading,
     updateCart,
     removeItem,
+    clearCart,
   } = useCart();
 
   const handleRemove = async (
@@ -24,6 +25,22 @@ export default function CartPage() {
   ) => {
     try {
       await removeItem(variantId);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleClearCart = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to clear your cart?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await clearCart();
     } catch (error) {
       console.error(error);
     }
@@ -86,6 +103,21 @@ export default function CartPage() {
         <p>Your cart is empty.</p>
       ) : (
         <>
+          <div className="mb-4 flex justify-end">
+            <button
+              type="button"
+              onClick={handleClearCart}
+              className="
+                text-sm
+                text-(--color-text-muted)
+                transition-opacity
+                hover:opacity-60
+              "
+            >
+              Clear Cart
+            </button>
+          </div>
+
           <div className="space-y-4">
             {cart?.items?.map(
               (item: CartItem) => (
