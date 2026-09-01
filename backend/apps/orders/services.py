@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, IntegerField
 
 from .models import (
     Order,
@@ -7,7 +7,8 @@ from .models import (
 )
 
 from .delivery import DeliveryService
-
+from apps.cart.services import CartService
+from apps.products.models import ProductVariant
 from apps.addresses.models import Address
 
 from apps.common.constants import (
@@ -92,7 +93,37 @@ class OrderService:
             .prefetch_related(
                 "items",
             )
-            .order_by("-created_at")
+            .annotate(
+                order_priority=Case(
+                    When(
+                        status__in={
+                            STATUS_PENDING,
+                            STATUS_CONFIRMED,
+                            STATUS_PREPARING,
+                            STATUS_OUT_FOR_DELIVERY,
+                            STATUS_READY_FOR_PICKUP,
+                        },
+                        then=Value(0),
+                    ),
+                    When(
+                        status__in={
+                            STATUS_DELIVERED,
+                            STATUS_PICKED_UP,
+                        },
+                        then=Value(1),
+                    ),
+                    When(
+                        status=STATUS_CANCELLED,
+                        then=Value(2),
+                    ),
+                    default=Value(3),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by(
+                "order_priority",
+                "-created_at",
+            )
         )
 
     @staticmethod
@@ -426,3 +457,102 @@ class OrderService:
         )
 
         return order
+
+    @staticmethod
+    @transaction.atomic
+    def reorder_order(
+        order_id,
+        *,
+        user,
+    ):
+        """
+        Add the items from a fulfilled order to the
+        customer's current cart.
+
+        Only Delivered and Picked Up orders can be reordered.
+        Items whose original variant no longer exists or is
+        unavailable are skipped and reported.
+        """
+
+        order = (
+            Order.objects
+            .prefetch_related("items")
+            .select_for_update()
+            .get(
+                id=order_id,
+                user=user,
+            )
+        )
+
+        if order.status not in {
+            STATUS_DELIVERED,
+            STATUS_PICKED_UP,
+        }:
+            raise ValueError(
+                "Only delivered or picked up orders can be reordered."
+            )
+
+        cart = CartService.get_or_create_cart(
+            user=user,
+        )
+
+        added_items = []
+        unavailable_items = []
+
+        for order_item in order.items.all():
+
+            variant = (
+                ProductVariant.objects
+                .select_related("product")
+                .filter(
+                    product__name=order_item.product_name,
+                    name=order_item.variant_name,
+                )
+                .first()
+            )
+
+            if not variant:
+                unavailable_items.append({
+                    "product_name": order_item.product_name,
+                    "variant_name": order_item.variant_name,
+                    "reason": "This variant is no longer available.",
+                })
+                continue
+
+            if variant.stock < order_item.quantity:
+                unavailable_items.append({
+                    "product_name": order_item.product_name,
+                    "variant_name": order_item.variant_name,
+                    "reason": (
+                        f"Only {variant.stock} "
+                        f"available."
+                    ),
+                })
+                continue
+
+            try:
+                CartService.add_to_cart(
+                    cart=cart,
+                    variant_id=variant.id,
+                    quantity=order_item.quantity,
+                )
+
+            except ValueError as error:
+                unavailable_items.append({
+                    "product_name": order_item.product_name,
+                    "variant_name": order_item.variant_name,
+                    "reason": str(error),
+                })
+                continue
+
+            added_items.append({
+                "product_name": variant.product.name,
+                "variant_name": variant.name,
+                "quantity": order_item.quantity,
+            })
+
+        return {
+            "order": order,
+            "added_items": added_items,
+            "unavailable_items": unavailable_items,
+        }

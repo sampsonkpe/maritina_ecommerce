@@ -92,4 +92,26 @@ export const orderService = {
 
     return response.data;
   },
+
+  async reorderOrder(
+    orderId: number
+  ): Promise<{
+    message: string;
+    added_items: {
+      product_name: string;
+      variant_name: string;
+      quantity: number;
+    }[];
+    unavailable_items: {
+      product_name: string;
+      variant_name: string;
+      reason: string;
+    }[];
+  }> {
+    const response = await api.post(
+      `/orders/${orderId}/reorder/`
+    );
+
+    return response.data;
+  },
 };
