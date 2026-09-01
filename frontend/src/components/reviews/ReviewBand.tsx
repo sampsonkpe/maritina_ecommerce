@@ -48,73 +48,80 @@ export default function ReviewBand() {
 
   return (
     <section
-      aria-label="Customer reviews"
-      className="
-        w-full
-        overflow-hidden
-        border-y
-        border-(--color-border)
-        py-5
-      "
+        aria-label="Customer reviews"
+        className="
+            fixed
+            bottom-15
+            left-0
+            right-0
+            z-50
+            w-full
+            overflow-hidden
+            border-y
+            border-(--color-border)
+            bg-(--color-background)/30
+            backdrop-blur-md
+            py-5
+        "
     >
-      <div className="review-band-track">
-        {scrollingReviews.map(
-          (review, index) => (
-            <div
-              key={`${review.id}-${index}`}
-              className="
-                flex
-                shrink-0
-                items-center
-                gap-3
-                px-8
-              "
-            >
-              <div className="flex items-center gap-0.5">
-                {Array.from({
-                  length: 5,
-                }).map((_, starIndex) => (
-                  <Star
-                    key={starIndex}
-                    size={15}
-                    strokeWidth={1.8}
-                    fill={
-                      starIndex <
-                      review.rating
-                        ? "currentColor"
-                        : "none"
-                    }
-                  />
-                ))}
-              </div>
-
-              <span className="text-sm">
-                "{review.comment}"
-              </span>
-
-              <span
+        <div className="review-band-track">
+            {scrollingReviews.map(
+            (review, index) => (
+                <div
+                key={`${review.id}-${index}`}
                 className="
-                  text-sm
-                  text-(--color-text-muted)
+                    flex
+                    shrink-0
+                    items-center
+                    gap-5
+                    px-3
                 "
-              >
-                {review.customer_first_name}
-                {" · "}
-                {review.product_name}
-                {" · "}
-                {review.variant_name}
-              </span>
+                >
+                <div className="flex items-center gap-0.5">
+                    {Array.from({
+                    length: 5,
+                    }).map((_, starIndex) => (
+                    <Star
+                        key={starIndex}
+                        size={15}
+                        strokeWidth={1.8}
+                        fill={
+                        starIndex <
+                        review.rating
+                            ? "currentColor"
+                            : "none"
+                        }
+                    />
+                    ))}
+                </div>
 
-              <span
-                aria-hidden="true"
-                className="mx-4"
-              >
-                |
-              </span>
-            </div>
-          )
-        )}
-      </div>
+                <span className="text-sm">
+                    "{review.comment}"
+                </span>
+
+                <span
+                    className="
+                    text-sm
+                    text-(--color-text-muted)
+                    "
+                >
+                    {review.customer_first_name}
+                    {" · "}
+                    {review.product_name}
+                    {" · "}
+                    {review.variant_name}
+                </span>
+
+                <span
+                    aria-hidden="true"
+                    className="mx-4"
+                >
+                    |
+                </span>
+                </div>
+            )
+            )}
+        </div>
     </section>
   );
 }
