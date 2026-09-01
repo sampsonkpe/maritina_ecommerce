@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-from apps.products.models import Product
+from apps.products.models import ProductVariant
 
 
 class FavouriteItem(models.Model):
@@ -12,8 +12,8 @@ class FavouriteItem(models.Model):
         related_name="favourite_items",
     )
 
-    product = models.ForeignKey(
-        Product,
+    variant = models.ForeignKey(
+        ProductVariant,
         on_delete=models.CASCADE,
         related_name="favourite_items",
     )
@@ -25,7 +25,7 @@ class FavouriteItem(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "product"],
+                fields=["user", "variant"],
                 name="unique_favourite_item",
             ),
         ]
@@ -35,5 +35,6 @@ class FavouriteItem(models.Model):
     def __str__(self):
         return (
             f"{self.user} - "
-            f"{self.product.name}"
+            f"{self.variant.product.name} - "
+            f"{self.variant.name}"
         )

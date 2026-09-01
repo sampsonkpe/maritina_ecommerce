@@ -30,15 +30,15 @@ class FavouritesAddView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        product_id = request.data.get(
-            "product_id"
+        variant_id = request.data.get(
+            "variant_id"
         )
 
-        if not product_id:
+        if not variant_id:
             return Response(
                 {
                     "error": (
-                        "Product ID is required."
+                        "Variant ID is required."
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -48,7 +48,7 @@ class FavouritesAddView(APIView):
             item, created = (
                 FavouriteService.add_item(
                     user=request.user,
-                    product_id=product_id,
+                    variant_id=variant_id,
                 )
             )
 
@@ -78,11 +78,11 @@ class FavouritesAddView(APIView):
 class FavouritesRemoveView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def delete(self, request, product_id):
+    def delete(self, request, variant_id):
         try:
             FavouriteService.remove_item(
                 user=request.user,
-                product_id=product_id,
+                variant_id=variant_id,
             )
 
         except ValueError as error:
@@ -94,7 +94,8 @@ class FavouritesRemoveView(APIView):
         return Response(
             {
                 "message": (
-                    "Product removed from favourite."
+                    "Product variant removed "
+                    "from Favourites."
                 )
             },
             status=status.HTTP_200_OK,

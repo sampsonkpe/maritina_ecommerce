@@ -121,9 +121,11 @@ export default function ProductDetailPage() {
               {product.name}
             </h1>
 
-            <FavouriteButton
-              productId={product.id}
-            />
+            {selectedVariant && (
+              <FavouriteButton
+                variantId={selectedVariant.id}
+              />
+            )}
           </div>
 
           <p className="mt-4 text-gray-600">

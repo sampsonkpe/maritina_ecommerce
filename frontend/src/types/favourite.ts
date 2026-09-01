@@ -1,8 +1,17 @@
-import type { Product } from "./product";
+export interface FavouriteVariant {
+  id: number;
+  product_id: number;
+  product_name: string;
+  product_image: string | null;
+  name: string;
+  price: string;
+  stock: number;
+  is_available: boolean;
+}
 
 export interface FavouriteItem {
   id: number;
-  product: Product;
+  variant: FavouriteVariant;
   created_at: string;
 }
 

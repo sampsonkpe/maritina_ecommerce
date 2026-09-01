@@ -15,8 +15,11 @@ export default function FavouritesPage() {
   const [favourites, setFavourites] =
     useState<FavouriteItem[]>([]);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
     const loadFavourites = async () => {
@@ -40,10 +43,11 @@ export default function FavouritesPage() {
     loadFavourites();
   }, []);
 
-  const handleRemove = (productId: number) => {
+  const handleRemove = (variantId: number) => {
     setFavourites((current) =>
       current.filter(
-        (item) => item.product.id !== productId
+        (item) =>
+          item.variant.id !== variantId
       )
     );
   };
@@ -57,7 +61,7 @@ export default function FavouritesPage() {
   }
 
   return (
-    <PageContainer>
+    <PageContainer maxWidth="6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">
           Favourites
@@ -74,12 +78,18 @@ export default function FavouritesPage() {
         </div>
       )}
 
-      {!error && favourites.length === 0 ? (
+      {favourites.length === 0 ? (
         <EmptyState
-          title="You haven't added any Favourites yet."
+          title="You have no Favourites yet."
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div
+          className="
+            grid
+            gap-6
+            md:grid-cols-2
+          "
+        >
           {favourites.map((item) => (
             <FavouriteCard
               key={item.id}

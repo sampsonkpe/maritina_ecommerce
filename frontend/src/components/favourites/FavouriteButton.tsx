@@ -5,11 +5,11 @@ import { useAuth } from "../../context/AuthContext";
 import { favouriteService } from "../../services/favouriteService";
 
 interface FavouriteButtonProps {
-  productId: number;
+  variantId: number;
 }
 
 export default function FavouriteButton({
-  productId,
+  variantId,
 }: FavouriteButtonProps) {
   const { authenticated } = useAuth();
 
@@ -36,7 +36,7 @@ export default function FavouriteButton({
         setFavourited(
           items.some(
             (item) =>
-              item.product.id === productId
+              item.variant.id === variantId
           )
         );
       } catch (error) {
@@ -47,7 +47,7 @@ export default function FavouriteButton({
     };
 
     checkFavourite();
-  }, [authenticated, productId]);
+  }, [authenticated, variantId]);
 
   const handleToggle = async () => {
     if (!authenticated || loading) {
@@ -59,13 +59,13 @@ export default function FavouriteButton({
     try {
       if (favourited) {
         await favouriteService.removeFromFavourites(
-          productId
+          variantId
         );
 
         setFavourited(false);
       } else {
         await favouriteService.addToFavourites(
-          productId
+          variantId
         );
 
         setFavourited(true);

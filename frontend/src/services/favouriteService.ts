@@ -14,12 +14,12 @@ export const favouriteService = {
   },
 
   async addToFavourites(
-    productId: number
+    variantId: number
   ): Promise<FavouriteAddResponse> {
     const response = await api.post(
       "/favourites/add/",
       {
-        product_id: productId,
+        variant_id: variantId,
       }
     );
 
@@ -27,10 +27,10 @@ export const favouriteService = {
   },
 
   async removeFromFavourites(
-    productId: number
+    variantId: number
   ): Promise<FavouriteRemoveResponse> {
     const response = await api.delete(
-      `/favourites/remove/${productId}/`
+      `/favourites/remove/${variantId}/`
     );
 
     return response.data;

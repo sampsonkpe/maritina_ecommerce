@@ -1,7 +1,7 @@
 from django.db import IntegrityError
 
 from .models import FavouriteItem
-from apps.products.models import Product
+from apps.products.models import ProductVariant
 
 
 class FavouriteService:
@@ -12,11 +12,9 @@ class FavouriteService:
             FavouriteItem.objects
             .filter(user=user)
             .select_related(
-                "product",
-                "product__category",
-            )
-            .prefetch_related(
-                "product__variants",
+                "variant",
+                "variant__product",
+                "variant__product__category",
             )
         )
 
@@ -24,28 +22,30 @@ class FavouriteService:
     def add_item(
         *,
         user,
-        product_id,
+        variant_id,
     ):
         try:
-            product = Product.objects.get(
-                id=product_id,
+            variant = (
+                ProductVariant.objects
+                .select_related("product")
+                .get(id=variant_id)
             )
-        except Product.DoesNotExist:
+        except ProductVariant.DoesNotExist:
             raise ValueError(
-                "Product not found."
+                "Product variant not found."
             )
 
         try:
             item, created = (
                 FavouriteItem.objects.get_or_create(
                     user=user,
-                    product=product,
+                    variant=variant,
                 )
             )
         except IntegrityError:
             item = FavouriteItem.objects.get(
                 user=user,
-                product=product,
+                variant=variant,
             )
             created = False
 
@@ -55,18 +55,18 @@ class FavouriteService:
     def remove_item(
         *,
         user,
-        product_id,
+        variant_id,
     ):
         deleted, _ = (
             FavouriteItem.objects.filter(
                 user=user,
-                product_id=product_id,
+                variant_id=variant_id,
             ).delete()
         )
 
         if not deleted:
             raise ValueError(
-                "Product is not in your Favourites."
+                "Product variant is not in your Favourites."
             )
 
         return True

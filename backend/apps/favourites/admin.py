@@ -9,7 +9,7 @@ class FavouriteItemAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "user",
-        "product",
+        "variant",
         "created_at",
     ]
 
