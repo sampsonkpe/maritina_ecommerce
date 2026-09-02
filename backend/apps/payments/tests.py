@@ -685,7 +685,10 @@ class PaymentRefundTests(APITestCase):
             "status": True,
             "message": "Refund initiated",
             "data": {
+                "id": 12345,
                 "refund_reference": "REFUND-123",
+                "amount": 1000000,
+                "status": "processed",
             },
         }
 

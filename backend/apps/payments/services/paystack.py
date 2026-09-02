@@ -1,18 +1,18 @@
 import uuid
 import logging
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.utils import timezone
 import requests
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import models, transaction
 
 from requests.exceptions import RequestException
 
 from .base import BasePaymentService
-from ..models import Payment
+from ..models import Payment, Refund
 
 from apps.checkout.models import CheckoutTransaction
 from apps.checkout.services import CheckoutService
@@ -20,6 +20,7 @@ from apps.orders.serializers import OrderSerializer
 
 
 logger = logging.getLogger(__name__)
+
 
 def _get_payment_method(data):
     channel = data.get("channel")
@@ -406,51 +407,27 @@ class PaystackPaymentService(BasePaymentService):
 
         return payment
 
-    def reconcile_pending_payments(self):
+    def reconcile_refund(self, refund):
         """
-        Reconcile all locally initiated Paystack payments.
-
-        Returns the number of payments reconciled.
+        Reconcile a local refund against Paystack.
         """
 
-        payments = (
-            Payment.objects
-            .select_related("checkout")
-            .filter(
-                provider="paystack",
-                status=Payment.STATUS_INITIATED,
+        if refund.status in {
+            Refund.STATUS_PROCESSED,
+            Refund.STATUS_FAILED,
+        }:
+            return refund
+
+        if not refund.paystack_refund_id:
+            logger.warning(
+                "Refund #%s has no Paystack refund ID.",
+                refund.id,
             )
-            .order_by("created_at")
-        )
-
-        reconciled = 0
-
-        for payment in payments:
-
-            before_status = payment.status
-
-            self.reconcile_payment(payment)
-
-            payment.refresh_from_db()
-
-            if payment.status != before_status:
-                reconciled += 1
-
-        return reconciled
-
-    def reconcile_refund(self, payment):
-        """
-        Reconcile a pending Paystack refund.
-
-        Returns the resulting local payment state.
-        """
-
-        if payment.status != Payment.STATUS_REFUND_PENDING:
-            return payment
+            return refund
 
         url = (
             f"{self.BASE_URL}/refund/"
-            f"{payment.reference}"
+            f"{refund.paystack_refund_id}"
         )
 
         headers = {
@@ -472,56 +449,51 @@ class PaystackPaymentService(BasePaymentService):
 
         except RequestException:
             logger.exception(
-                "Failed to reconcile Paystack refund for %s.",
-                payment.reference,
+                "Failed to reconcile Paystack refund #%s.",
+                refund.id,
             )
-
-            return payment
+            return refund
 
         if result.get("status") is not True:
-            return payment
+            logger.warning(
+                "Paystack could not reconcile refund #%s: %s",
+                refund.id,
+                result.get("message"),
+            )
+            return refund
 
         data = result.get("data", {})
 
-        refund_status = data.get("status")
+        refund.status = self._map_refund_status(
+            data.get("status")
+        )
 
-        if refund_status == "processed":
-
-            payment.status = Payment.STATUS_REFUNDED
-
-            payment.refund_reference = (
-                data.get("reference")
-                or payment.refund_reference
+        if data.get("reference"):
+            refund.refund_reference = (
+                data["reference"]
             )
 
-            payment.refunded_at = timezone.now()
-
-            payment.save(
-                update_fields=[
-                    "status",
-                    "refund_reference",
-                    "refunded_at",
-                    "updated_at",
-                ]
+        if data.get("amount") is not None:
+            refund.amount = (
+                Decimal(str(data["amount"]))
+                / Decimal("100")
             )
 
-        elif refund_status in {
-            "failed",
-            "rejected",
-        }:
+        if (
+            refund.status == Refund.STATUS_PROCESSED
+            and refund.processed_at is None
+        ):
+            refund.processed_at = timezone.now()
 
-            payment.status = (
-                Payment.STATUS_REFUND_FAILED
-            )
+        refund.save()
 
-            payment.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
-                ]
-            )
+        self._sync_payment_refund_state(
+            refund.payment
+        )
 
-        return payment
+        refund.refresh_from_db()
+
+        return refund
 
     def reconcile_pending_refunds(self):
         """
@@ -530,26 +502,30 @@ class PaystackPaymentService(BasePaymentService):
         Returns the number of refunds whose local status changed.
         """
 
-        payments = (
-            Payment.objects
+        refunds = (
+            Refund.objects
+            .select_related("payment")
             .filter(
-                provider="paystack",
-                status=Payment.STATUS_REFUND_PENDING,
+                payment__provider="paystack",
+                status__in=[
+                    Refund.STATUS_PENDING,
+                    Refund.STATUS_PROCESSING,
+                    Refund.STATUS_NEEDS_ATTENTION,
+                ],
             )
             .order_by("created_at")
         )
 
         reconciled = 0
 
-        for payment in payments:
+        for refund in refunds:
+            before_status = refund.status
 
-            before_status = payment.status
+            self.reconcile_refund(refund)
 
-            self.reconcile_refund(payment)
+            refund.refresh_from_db()
 
-            payment.refresh_from_db()
-
-            if payment.status != before_status:
+            if refund.status != before_status:
                 reconciled += 1
 
         return reconciled
@@ -558,17 +534,20 @@ class PaystackPaymentService(BasePaymentService):
         event = payload.get("event")
 
         data = payload.get("data", {})
-        reference = data.get("reference")
-
-        if not reference:
-            return
 
         # -------------------------------------------------
         # Successful payment
         # -------------------------------------------------
 
         if event == "charge.success":
-            self.mark_as_paid(reference, transaction_data=data)
+            reference = data.get("reference")
+
+            if reference:
+                self.mark_as_paid(
+                    reference,
+                    transaction_data=data,
+                )
+
             return
 
         # -------------------------------------------------
@@ -576,7 +555,142 @@ class PaystackPaymentService(BasePaymentService):
         # -------------------------------------------------
 
         if event == "charge.failed":
-            self.mark_as_failed(reference)
+            reference = data.get("reference")
+
+            if reference:
+                self.mark_as_failed(reference)
+
+            return
+
+        # -------------------------------------------------
+        # Refund events
+        # -------------------------------------------------
+
+        if event in {
+            "refund.pending",
+            "refund.processing",
+            "refund.needs-attention",
+            "refund.failed",
+            "refund.processed",
+        }:
+            self.handle_refund_webhook(
+                event,
+                data,
+            )
+
+    @transaction.atomic
+    def handle_refund_webhook(self, event, data):
+        """
+        Process a Paystack refund webhook.
+
+        This handles refunds initiated both through the
+        application and directly through the Paystack
+        Dashboard.
+        """
+
+        transaction_reference = data.get(
+            "transaction_reference"
+        )
+
+        if not transaction_reference:
+            logger.warning(
+                "Paystack refund webhook missing "
+                "transaction_reference."
+            )
+            return
+
+        try:
+            payment = (
+                Payment.objects
+                .select_for_update()
+                .select_related("order")
+                .get(
+                    reference=transaction_reference,
+                    provider="paystack",
+                )
+            )
+
+        except Payment.DoesNotExist:
+            logger.warning(
+                "No local Paystack payment found for "
+                "refund transaction %s.",
+                transaction_reference,
+            )
+            return
+
+        paystack_amount = data.get("amount")
+
+        if paystack_amount is None:
+            logger.warning(
+                "Paystack refund webhook missing amount "
+                "for transaction %s.",
+                transaction_reference,
+            )
+            return
+
+        amount = (
+            Decimal(str(paystack_amount))
+            / Decimal("100")
+        )
+
+        status = self._map_refund_status(
+            data.get("status")
+        )
+
+        refund = self._find_refund_for_webhook(
+            payment,
+            data,
+        )
+
+        if refund is None:
+            refund = Refund.objects.create(
+                payment=payment,
+                order=payment.order,
+                paystack_refund_id=data.get("id"),
+                refund_reference=data.get(
+                    "refund_reference"
+                ),
+                transaction_reference=(
+                    transaction_reference
+                ),
+                amount=amount,
+                status=status,
+            )
+
+        else:
+            if data.get("id"):
+                refund.paystack_refund_id = data["id"]
+
+            if data.get("refund_reference"):
+                refund.refund_reference = (
+                    data["refund_reference"]
+                )
+
+            refund.amount = amount
+            refund.status = status
+
+        if (
+            status == Refund.STATUS_PROCESSED
+            and refund.processed_at is None
+        ):
+            refund.processed_at = timezone.now()
+
+        refund.save()
+
+        self._sync_payment_refund_state(
+            payment
+        )
+
+        logger.info(
+            "Processed Paystack refund webhook: "
+            "payment=%s refund=%s status=%s amount=%s",
+            payment.reference,
+            refund.refund_reference
+            or refund.paystack_refund_id
+            or refund.id,
+            refund.status,
+            refund.amount,
+        )
 
     @transaction.atomic
     def mark_as_failed(self, reference):
@@ -772,65 +886,278 @@ class PaystackPaymentService(BasePaymentService):
 
         return order
 
+    @staticmethod
+    def _map_refund_status(status):
+        return {
+            "pending": Refund.STATUS_PENDING,
+            "processing": Refund.STATUS_PROCESSING,
+            "needs-attention": Refund.STATUS_NEEDS_ATTENTION,
+            "processed": Refund.STATUS_PROCESSED,
+            "failed": Refund.STATUS_FAILED,
+        }.get(
+            status,
+            Refund.STATUS_PENDING,
+        )
+
+    @staticmethod
+    def _sync_payment_refund_state(payment):
+        """
+        Synchronise the aggregate refund fields on Payment
+        from the individual Refund records.
+        """
+
+        processed_total = (
+            payment.refunds
+            .filter(
+                status=Refund.STATUS_PROCESSED
+            )
+            .aggregate(
+                total=models.Sum("amount")
+            )["total"]
+            or Decimal("0")
+        )
+
+        pending_exists = payment.refunds.filter(
+            status__in=[
+                Refund.STATUS_PENDING,
+                Refund.STATUS_PROCESSING,
+                Refund.STATUS_NEEDS_ATTENTION,
+            ]
+        ).exists()
+
+        failed_exists = payment.refunds.filter(
+            status=Refund.STATUS_FAILED
+        ).exists()
+
+        latest_refund = (
+            payment.refunds
+            .exclude(refund_reference__isnull=True)
+            .exclude(refund_reference="")
+            .order_by("-created_at")
+            .first()
+        )
+
+        payment.refunded_amount = processed_total
+        payment.refund_reference = (
+            latest_refund.refund_reference
+            if latest_refund
+            else None
+        )
+
+        update_fields = [
+            "refunded_amount",
+            "refund_reference",
+            "updated_at",
+        ]
+
+        if processed_total >= payment.amount:
+            payment.status = Payment.STATUS_REFUNDED
+            payment.refunded_at = (
+                payment.refunded_at
+                or timezone.now()
+            )
+
+            update_fields.extend([
+                "status",
+                "refunded_at",
+            ])
+
+        elif pending_exists:
+            payment.status = Payment.STATUS_REFUND_PENDING
+
+            update_fields.append("status")
+
+        elif payment.refunded_amount > 0:
+            # We have successfully processed at least one
+            # partial refund and there are currently no
+            # pending refunds.
+            payment.status = Payment.STATUS_SUCCESS
+
+            update_fields.append("status")
+
+        elif failed_exists:
+            payment.status = Payment.STATUS_REFUND_FAILED
+
+            update_fields.append("status")
+
+        else:
+            payment.status = Payment.STATUS_SUCCESS
+
+            update_fields.append("status")
+
+        payment.save(
+            update_fields=update_fields
+        )
+
+    @staticmethod
+    def _find_refund_for_webhook(
+        payment,
+        data,
+    ):
+        """
+        Find an existing local Refund represented by a
+        Paystack webhook.
+
+        Paystack may initially omit refund_reference, so
+        matching must progressively use the identifiers
+        available in the webhook.
+        """
+
+        refund_reference = data.get(
+            "refund_reference"
+        )
+
+        if refund_reference:
+            refund = (
+                Refund.objects
+                .select_for_update()
+                .filter(
+                    refund_reference=refund_reference
+                )
+                .first()
+            )
+
+            if refund:
+                return refund
+
+        paystack_refund_id = data.get("id")
+
+        if paystack_refund_id:
+            refund = (
+                Refund.objects
+                .select_for_update()
+                .filter(
+                    paystack_refund_id=paystack_refund_id
+                )
+                .first()
+            )
+
+            if refund:
+                return refund
+
+        transaction_reference = data.get(
+            "transaction_reference"
+        )
+
+        amount = data.get("amount")
+
+        if transaction_reference and amount is not None:
+            amount_major = (
+                Decimal(str(amount))
+                / Decimal("100")
+            )
+
+            refund = (
+                Refund.objects
+                .select_for_update()
+                .filter(
+                    payment=payment,
+                    transaction_reference=(
+                        transaction_reference
+                    ),
+                    amount=amount_major,
+                    status__in=[
+                        Refund.STATUS_PENDING,
+                        Refund.STATUS_PROCESSING,
+                        Refund.STATUS_NEEDS_ATTENTION,
+                    ],
+                )
+                .order_by("-created_at")
+                .first()
+            )
+
+            if refund:
+                return refund
+
+        return None
+
     @transaction.atomic
     def refund(self, payment, amount=None):
         """
-        Initiate a Paystack refund for a successful payment.
+        Initiate a Paystack refund.
 
-        `amount` is in the application's currency unit.
-        Paystack receives the amount in kobo/pesewas.
+        `amount` is expressed in the application's
+        currency unit (GHS).
+
+        Paystack receives the amount in pesewas.
         """
 
         payment = (
             Payment.objects
             .select_for_update()
+            .select_related("order")
             .get(pk=payment.pk)
         )
 
-        if payment.status == Payment.STATUS_REFUNDED:
-            raise ValidationError(
-                "This payment has already been refunded."
-            )
-
-        if payment.status == Payment.STATUS_REFUND_PENDING:
-            raise ValidationError(
-                "A refund is already pending for this payment."
-            )
-
-        if payment.status != Payment.STATUS_SUCCESS:
+        if payment.status not in {
+            Payment.STATUS_SUCCESS,
+            Payment.STATUS_REFUND_PENDING,
+        }:
             raise ValidationError(
                 "Only successful payments can be refunded."
             )
 
         if amount is None:
             amount = payment.amount
+
         else:
-            amount = Decimal(str(amount))
+            try:
+                amount = Decimal(str(amount))
+            except (
+                InvalidOperation,
+                TypeError,
+                ValueError,
+            ):
+                raise ValidationError(
+                    "Invalid refund amount."
+                )
+
+        amount = amount.quantize(
+            Decimal("0.01")
+        )
 
         if amount <= 0:
             raise ValidationError(
                 "Refund amount must be greater than zero."
             )
 
-        if amount > payment.amount:
-            raise ValidationError(
-                "Refund amount cannot exceed the payment amount."
+        processed_total = (
+            payment.refunds
+            .filter(
+                status=Refund.STATUS_PROCESSED
             )
-
-        if payment.refunded_amount + amount > payment.amount:
-            raise ValidationError(
-                "Total refunded amount cannot exceed "
-                "the payment amount."
-            )
-
-        payment.status = Payment.STATUS_REFUND_PENDING
-
-        payment.save(
-            update_fields=[
-                "status",
-                "updated_at",
-            ]
+            .aggregate(
+                total=models.Sum("amount")
+            )["total"]
+            or Decimal("0")
         )
+
+        pending_total = (
+            payment.refunds
+            .filter(
+                status__in=[
+                    Refund.STATUS_PENDING,
+                    Refund.STATUS_PROCESSING,
+                    Refund.STATUS_NEEDS_ATTENTION,
+                ]
+            )
+            .aggregate(
+                total=models.Sum("amount")
+            )["total"]
+            or Decimal("0")
+        )
+
+        refundable_remaining = (
+            payment.amount
+            - processed_total
+            - pending_total
+        )
+
+        if amount > refundable_remaining:
+            raise ValidationError(
+                "Refund amount exceeds the remaining "
+                "refundable amount."
+            )
 
         url = f"{self.BASE_URL}/refund"
 
@@ -844,7 +1171,7 @@ class PaystackPaymentService(BasePaymentService):
         payload = {
             "transaction": payment.reference,
             "amount": int(
-                Decimal(str(amount)) * 100
+                amount * Decimal("100")
             ),
         }
 
@@ -861,21 +1188,9 @@ class PaystackPaymentService(BasePaymentService):
             result = response.json()
 
         except RequestException as error:
-
             logger.exception(
                 "Failed to initiate Paystack refund for %s.",
                 payment.reference,
-            )
-
-            payment.status = (
-                Payment.STATUS_REFUND_FAILED
-            )
-
-            payment.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
-                ]
             )
 
             raise ValidationError(
@@ -884,18 +1199,6 @@ class PaystackPaymentService(BasePaymentService):
             ) from error
 
         if result.get("status") is not True:
-
-            payment.status = (
-                Payment.STATUS_REFUND_FAILED
-            )
-
-            payment.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
-                ]
-            )
-
             raise ValidationError(
                 result.get(
                     "message",
@@ -905,30 +1208,66 @@ class PaystackPaymentService(BasePaymentService):
 
         data = result.get("data", {})
 
-        refund_reference = (
-            data.get("refund_reference")
-            or data.get("reference")
+        provider_status = (
+            data.get("status")
+            or "pending"
         )
 
-        payment.refund_reference = refund_reference
-        payment.refunded_amount += amount
+        refund_status = (
+            self._map_refund_status(
+                provider_status
+            )
+        )
 
-        if payment.refunded_amount >= payment.amount:
-            payment.status = Payment.STATUS_REFUNDED
+        provider_amount = data.get("amount")
 
-        else:
-            payment.status = Payment.STATUS_REFUND_PENDING
+        if provider_amount is not None:
+            provider_amount = (
+                Decimal(str(provider_amount))
+                / Decimal("100")
+            )
 
-        payment.refunded_at = timezone.now()
+            if provider_amount != amount:
+                logger.warning(
+                    "Paystack refund amount mismatch "
+                    "for payment %s. Requested=%s "
+                    "Provider=%s",
+                    payment.reference,
+                    amount,
+                    provider_amount,
+                )
 
-        payment.save(
-            update_fields=[
-                "refund_reference",
-                "refunded_amount",
-                "refunded_at",
-                "status",
-                "updated_at",
-            ]
+                raise ValidationError(
+                    "Paystack returned an unexpected "
+                    "refund amount."
+                )
+
+        refund = Refund.objects.create(
+            payment=payment,
+            order=payment.order,
+            paystack_refund_id=data.get("id"),
+            refund_reference=data.get(
+                "refund_reference"
+            ),
+            transaction_reference=payment.reference,
+            amount=amount,
+            status=refund_status,
+        )
+
+        if (
+            refund.status == Refund.STATUS_PROCESSED
+        ):
+            refund.processed_at = timezone.now()
+
+            refund.save(
+                update_fields=[
+                    "processed_at",
+                    "updated_at",
+                ]
+            )
+
+        self._sync_payment_refund_state(
+            payment
         )
 
         return result

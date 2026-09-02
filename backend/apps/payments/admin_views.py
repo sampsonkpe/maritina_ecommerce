@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
@@ -19,7 +21,12 @@ class AdminPaymentsView(APIView):
 
     def get(self, request):
 
-        payments = Payment.objects.all().order_by("-created_at")
+        payments = (
+            Payment.objects
+            .select_related("order")
+            .prefetch_related("refunds")
+            .order_by("-created_at")
+        )
 
         data = [
             {
@@ -28,11 +35,40 @@ class AdminPaymentsView(APIView):
                 "amount": payment.amount,
                 "status": payment.status,
                 "provider": payment.provider,
+                "payment_method": (
+                    payment.payment_method
+                ),
+                "refunded_amount": (
+                    payment.refunded_amount
+                ),
                 "order_id": (
                     payment.order.id
                     if payment.order
                     else None
                 ),
+                "refunds": [
+                    {
+                        "id": refund.id,
+                        "amount": refund.amount,
+                        "status": refund.status,
+                        "refund_reference": (
+                            refund.refund_reference
+                        ),
+                        "transaction_reference": (
+                            refund.transaction_reference
+                        ),
+                        "created_at": (
+                            refund.created_at
+                        ),
+                        "updated_at": (
+                            refund.updated_at
+                        ),
+                        "processed_at": (
+                            refund.processed_at
+                        ),
+                    }
+                    for refund in payment.refunds.all()
+                ],
                 "created_at": payment.created_at,
             }
             for payment in payments
@@ -56,11 +92,22 @@ class AdminPaymentRefundView(APIView):
 
         if amount is not None:
             try:
-                amount = int(amount)
-            except (TypeError, ValueError):
+                amount = Decimal(str(amount))
+
+            except (
+                InvalidOperation,
+                TypeError,
+                ValueError,
+            ):
                 return Response(
-                    {"error": "Invalid refund amount."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {
+                        "error": (
+                            "Invalid refund amount."
+                        )
+                    },
+                    status=(
+                        status.HTTP_400_BAD_REQUEST
+                    ),
                 )
 
         try:
@@ -77,21 +124,51 @@ class AdminPaymentRefundView(APIView):
 
         payment.refresh_from_db()
 
+        refunds = [
+            {
+                "id": refund.id,
+                "amount": refund.amount,
+                "status": refund.status,
+                "refund_reference": (
+                    refund.refund_reference
+                ),
+                "transaction_reference": (
+                    refund.transaction_reference
+                ),
+                "created_at": refund.created_at,
+                "updated_at": refund.updated_at,
+                "processed_at": (
+                    refund.processed_at
+                ),
+            }
+            for refund in payment.refunds.order_by(
+                "-created_at"
+            )
+        ]
+
         record_admin_action(
             admin=request.user,
             action=AuditLog.ACTION_REFUND_INITIATED,
             object_type="Payment",
             object_id=payment.id,
             details={
-                "payment_reference": payment.reference,
-                "refund_amount": amount,
+                "payment_reference": (
+                    payment.reference
+                ),
+                "refund_amount": (
+                    str(amount)
+                    if amount is not None
+                    else None
+                ),
                 "order_id": payment.order_id,
             },
         )
 
         return Response(
             {
-                "message": "Refund initiated successfully.",
+                "message": (
+                    "Refund initiated successfully."
+                ),
                 "payment": {
                     "id": payment.id,
                     "reference": payment.reference,
@@ -100,13 +177,8 @@ class AdminPaymentRefundView(APIView):
                     "refunded_amount": (
                         payment.refunded_amount
                     ),
-                    "refund_reference": (
-                        payment.refund_reference
-                    ),
-                    "refunded_at": (
-                        payment.refunded_at
-                    ),
                 },
+                "refunds": refunds,
                 "provider_response": result,
             },
             status=status.HTTP_200_OK,
