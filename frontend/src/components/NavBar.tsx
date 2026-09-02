@@ -1,4 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+
+import {
+  Menu,
+  X,
+} from "lucide-react";
 
 import LogoutButton from "./auth/LogoutButton";
 
@@ -16,61 +22,370 @@ export default function NavBar() {
     loading,
   } = useCart();
 
+  const [mobileMenuOpen, setMobileMenuOpen] =
+    useState(false);
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
   return (
     <nav className="border-b border-(--color-border)">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 p-4">
-        <Link
-          to="/"
-          className="shrink-0 text-xl font-bold"
+      <div
+        className="
+          mx-auto
+          max-w-7xl
+          px-4
+          sm:px-6
+          lg:px-8
+        "
+      >
+        <div
+          className="
+            flex
+            min-h-18
+            items-center
+            justify-between
+            gap-6
+          "
         >
-          KAHWƐ by Maritina Foods
-        </Link>
+          {/* Brand */}
+          <Link
+            to="/"
+            onClick={closeMobileMenu}
+            className="
+              shrink-0
+              text-lg
+              font-bold
+              tracking-tight
+              text-(--color-text)
+              sm:text-xl
+            "
+          >
+            <span className="sm:hidden">
+              KAHWƐ
+            </span>
 
-        <div className="flex shrink-0 items-center gap-4 sm:gap-6">
-          <Link to="/" className="whitespace-nowrap">
-            Home
+            <span className="hidden sm:inline">
+              KAHWƐ by Maritina Foods
+            </span>
           </Link>
 
-          <Link to="/products" className="whitespace-nowrap">
-            Products
-          </Link>
+          {/* Desktop Navigation */}
+          <div
+            className="
+              hidden
+              items-center
+              gap-6
+              md:flex
+            "
+          >
+            <Link
+              to="/"
+              className="
+                whitespace-nowrap
+                text-sm
+                transition-opacity
+                hover:opacity-60
+              "
+            >
+              Home
+            </Link>
 
-          {!authenticated ? (
-            <>
-              <Link to="/cart" className="whitespace-nowrap">
-                Cart {loading ? "" : `[${itemCount}]`}
-              </Link>
+            <Link
+              to="/products"
+              className="
+                whitespace-nowrap
+                text-sm
+                transition-opacity
+                hover:opacity-60
+              "
+            >
+              Products
+            </Link>
 
-              <Link to="/login" className="whitespace-nowrap">
-                Login
-              </Link>
+            {!authenticated ? (
+              <>
+                <Link
+                  to="/cart"
+                  className="
+                    whitespace-nowrap
+                    text-sm
+                    transition-opacity
+                    hover:opacity-60
+                  "
+                >
+                  Cart
+                  {!loading && ` [${itemCount}]`}
+                </Link>
 
-              <Link to="/register" className="whitespace-nowrap">
-                Register
-              </Link>
-            </>
-          ) : user?.is_staff ? (
-            <>
-              <Link to="/admin/orders" className="whitespace-nowrap">
+                <Link
+                  to="/login"
+                  className="
+                    whitespace-nowrap
+                    text-sm
+                    transition-opacity
+                    hover:opacity-60
+                  "
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to="/register"
+                  className="
+                    whitespace-nowrap
+                    text-sm
+                    transition-opacity
+                    hover:opacity-60
+                  "
+                >
+                  Register
+                </Link>
+              </>
+            ) : user?.is_staff ? (
+              <Link
+                to="/admin/orders"
+                className="
+                  whitespace-nowrap
+                  text-sm
+                  transition-opacity
+                  hover:opacity-60
+                "
+              >
                 All Orders
               </Link>
+            ) : (
+              <>
+                <Link
+                  to="/cart"
+                  className="
+                    whitespace-nowrap
+                    text-sm
+                    transition-opacity
+                    hover:opacity-60
+                  "
+                >
+                  Cart
+                  {!loading && ` [${itemCount}]`}
+                </Link>
 
-              <LogoutButton />
-            </>
-          ) : (
-            <>
-              <Link to="/cart" className="whitespace-nowrap">
-                Cart [{itemCount}]
-              </Link>
+                <Link
+                  to="/orders"
+                  className="
+                    whitespace-nowrap
+                    text-sm
+                    transition-opacity
+                    hover:opacity-60
+                  "
+                >
+                  Orders
+                </Link>
 
-              <Link to="/orders" className="whitespace-nowrap">
-                Orders
-              </Link>
+                <Link
+                  to="/profile"
+                  className="
+                    whitespace-nowrap
+                    text-sm
+                    transition-opacity
+                    hover:opacity-60
+                  "
+                >
+                  Profile
+                </Link>
+              </>
+            )}
 
-              <LogoutButton />
-            </>
-          )}
+            {authenticated && <LogoutButton />}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            type="button"
+            onClick={() =>
+              setMobileMenuOpen(
+                (open) => !open
+              )
+            }
+            aria-label={
+              mobileMenuOpen
+                ? "Close navigation menu"
+                : "Open navigation menu"
+            }
+            aria-expanded={mobileMenuOpen}
+            className="
+              rounded-md
+              p-2
+              text-(--color-text)
+              transition-opacity
+              hover:opacity-60
+              md:hidden
+            "
+          >
+            {mobileMenuOpen ? (
+              <X
+                size={24}
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+            ) : (
+              <Menu
+                size={24}
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+            )}
+          </button>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div
+            className="
+              border-t
+              border-(--color-border)
+              py-4
+              md:hidden
+            "
+          >
+            <div className="flex flex-col">
+              <Link
+                to="/"
+                onClick={closeMobileMenu}
+                className="
+                  border-b
+                  border-(--color-border)
+                  py-3
+                  text-sm
+                "
+              >
+                Home
+              </Link>
+
+              <Link
+                to="/products"
+                onClick={closeMobileMenu}
+                className="
+                  border-b
+                  border-(--color-border)
+                  py-3
+                  text-sm
+                "
+              >
+                Products
+              </Link>
+
+              {!authenticated ? (
+                <>
+                  <Link
+                    to="/cart"
+                    onClick={closeMobileMenu}
+                    className="
+                      border-b
+                      border-(--color-border)
+                      py-3
+                      text-sm
+                    "
+                  >
+                    Cart
+                    {!loading &&
+                      ` [${itemCount}]`}
+                  </Link>
+
+                  <Link
+                    to="/login"
+                    onClick={closeMobileMenu}
+                    className="
+                      border-b
+                      border-(--color-border)
+                      py-3
+                      text-sm
+                    "
+                  >
+                    Login
+                  </Link>
+
+                  <Link
+                    to="/register"
+                    onClick={closeMobileMenu}
+                    className="
+                      py-3
+                      text-sm
+                    "
+                  >
+                    Register
+                  </Link>
+                </>
+              ) : user?.is_staff ? (
+                <>
+                  <Link
+                    to="/admin/orders"
+                    onClick={closeMobileMenu}
+                    className="
+                      border-b
+                      border-(--color-border)
+                      py-3
+                      text-sm
+                    "
+                  >
+                    All Orders
+                  </Link>
+
+                  <div className="pt-3">
+                    <LogoutButton />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/cart"
+                    onClick={closeMobileMenu}
+                    className="
+                      border-b
+                      border-(--color-border)
+                      py-3
+                      text-sm
+                    "
+                  >
+                    Cart
+                    {!loading &&
+                      ` [${itemCount}]`}
+                  </Link>
+
+                  <Link
+                    to="/orders"
+                    onClick={closeMobileMenu}
+                    className="
+                      border-b
+                      border-(--color-border)
+                      py-3
+                      text-sm
+                    "
+                  >
+                    Orders
+                  </Link>
+
+                  <Link
+                    to="/profile"
+                    onClick={closeMobileMenu}
+                    className="
+                      border-b
+                      border-(--color-border)
+                      py-3
+                      text-sm
+                    "
+                  >
+                    Profile
+                  </Link>
+
+                  <div className="pt-3">
+                    <LogoutButton />
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
