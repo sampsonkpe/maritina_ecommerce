@@ -129,6 +129,8 @@ export default function OrdersPage() {
             subtotal={order.subtotal}
             deliveryFee={order.delivery_fee}
             total={order.total_amount}
+            refundedAmount={order.refunded_amount}
+            refundStatus={order.refund_status}
           />
 
           <div className="mt-5">

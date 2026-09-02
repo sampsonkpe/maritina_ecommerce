@@ -33,6 +33,8 @@ export interface Order {
   payment_reference: string | null;
   payment_method: string | null;
   paid_at: string | null;
+  refunded_amount: number | string;
+  refund_status: string | null;
 
   address: number | null;
   address_text: string | null;

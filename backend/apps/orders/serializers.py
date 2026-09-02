@@ -91,6 +91,42 @@ class OrderSerializer(serializers.ModelSerializer):
 
     payment_method = serializers.SerializerMethodField()
 
+    refunded_amount = serializers.SerializerMethodField()
+    refund_status = serializers.SerializerMethodField()
+
+    def get_refunded_amount(self, obj):
+        payment = (
+            obj.payments
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not payment:
+            return 0
+
+        return payment.refunded_amount
+
+    def get_refund_status(self, obj):
+        payment = (
+            obj.payments
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not payment:
+            return None
+
+        refund = (
+            payment.refunds
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not refund:
+            return None
+
+        return refund.status
+
     def get_payment_method(self, obj):
         payment = (
             obj.payments
@@ -127,6 +163,8 @@ class OrderSerializer(serializers.ModelSerializer):
             "payment_reference",
             "payment_method",
             "paid_at",
+            "refunded_amount",
+            "refund_status",
             "address",
             "address_text",
             "items",

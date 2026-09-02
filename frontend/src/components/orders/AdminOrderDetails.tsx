@@ -50,6 +50,8 @@ export default function AdminOrderDetails({
         subtotal={order.subtotal}
         deliveryFee={order.delivery_fee}
         total={order.total_amount}
+        refundedAmount={order.refunded_amount}
+        refundStatus={order.refund_status}
       />
 
       <OrderStatusEditor
