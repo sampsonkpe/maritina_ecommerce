@@ -5,7 +5,7 @@ from rest_framework import status
 
 from django.contrib.auth import get_user_model
 
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, ProfileSerializer, ChangePasswordSerializer
 from .services import UserService
 
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -78,17 +78,32 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
+        serializer = ProfileSerializer(
+            request.user
+        )
 
         return Response({
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "phone": user.phone,
-                "full_name": user.full_name,
-                "is_staff": user.is_staff,
-            }
+            "user": serializer.data
+        })
+
+    def patch(self, request):
+        serializer = ProfileSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+        )
+
+        serializer.is_valid(
+            raise_exception=True,
+        )
+
+        user = UserService.update_profile(
+            request.user,
+            serializer.validated_data,
+        )
+
+        return Response({
+            "user": ProfileSerializer(user).data
         })
 
 class LoginView(APIView):
@@ -162,3 +177,42 @@ class VerifyEmailView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True,
+        )
+
+        data = serializer.validated_data
+
+        try:
+            UserService.change_password(
+                user=request.user,
+                current_password=data[
+                    "current_password"
+                ],
+                new_password=data[
+                    "new_password"
+                ],
+            )
+
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "message":
+                    "Password changed successfully."
+            },
+            status=status.HTTP_200_OK,
+        )

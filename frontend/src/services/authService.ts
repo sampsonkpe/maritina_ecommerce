@@ -1,27 +1,52 @@
 import api from "../api/axios";
 
-export interface AuthResponse {
-  user: {
-    id: number;
-    username: string;
-    email: string | null;
-    phone: string | null;
-    full_name: string;
-    is_staff: boolean;
-  };
+import type { User } from "../types/user";
 
+export interface AuthResponse {
   tokens: {
     access: string;
     refresh: string;
   };
+  user: User;
+}
+
+export interface UpdateProfileData {
+  username?: string;
+  phone?: string | null;
+  full_name?: string;
+}
+
+export interface Profile extends User {
+  email_verified: boolean;
+}
+
+export interface ChangePasswordData {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
 }
 
 export const authService = {
+  async register(data: {
+    username?: string;
+    email?: string;
+    phone?: string;
+    full_name: string;
+    password: string;
+  }): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>(
+      "/auth/register/",
+      data
+    );
+
+    return response.data;
+  },
+
   async login(
     identifier: string,
     password: string
   ): Promise<AuthResponse> {
-    const response = await api.post(
+    const response = await api.post<AuthResponse>(
       "/auth/login/",
       {
         identifier,
@@ -32,26 +57,34 @@ export const authService = {
     return response.data;
   },
 
-  async register(
-    data: {
-      username: string;
-      full_name: string;
-      email?: string;
-      phone?: string;
-      password: string;
-    }
-  ): Promise<AuthResponse> {
-    const response = await api.post(
-      "/auth/register/",
+  async logout(refresh: string): Promise<void> {
+    await api.post("/auth/logout/", { refresh });
+  },
+
+  async getProfile(): Promise<Profile> {
+    const response = await api.get<Profile>("/auth/me/");
+    return response.data;
+  },
+
+  async updateProfile(
+    data: UpdateProfileData
+  ): Promise<Profile> {
+    const response = await api.patch<Profile>(
+      "/auth/me/",
       data
     );
 
     return response.data;
   },
 
-  async logout(refresh: string): Promise<void> {
-    await api.post("/auth/logout/", {
-      refresh,
-    });
+  async changePassword(
+    data: ChangePasswordData
+  ): Promise<{ detail: string }> {
+    const response = await api.post<{ detail: string }>(
+      "/auth/change-password/",
+      data
+    );
+
+    return response.data;
   },
 };

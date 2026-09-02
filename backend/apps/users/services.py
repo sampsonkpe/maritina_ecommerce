@@ -182,3 +182,35 @@ class UserService:
             from_email=None,
             recipient_list=[user.email],
         )
+
+    @staticmethod
+    def update_profile(user, validated_data):
+        for field, value in validated_data.items():
+            setattr(user, field, value)
+
+        user.save()
+
+        return user
+
+
+    @staticmethod
+    def change_password(
+        user,
+        current_password,
+        new_password,
+    ):
+        if not user.check_password(
+            current_password
+        ):
+            raise ValueError(
+                "Current password is incorrect."
+            )
+
+        user.set_password(new_password)
+
+        user.save(
+            update_fields=[
+                "password",
+                "updated_at",
+            ]
+        )
