@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 import { orderService } from "../../services/orderService";
 
 import type { Order } from "../../types/order";
+
+import {
+  ORDER_STATUS,
+  type OrderStatus,
+} from "../../constants/order";
 
 import PageHeader from "../../components/common/PageHeader";
 import LoadingState from "../../components/common/LoadingState";
@@ -21,13 +30,19 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] =
     useState(true);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
   const [expandedOrders, setExpandedOrders] =
     useState<number[]>([]);
 
+  const [collapsedSections, setCollapsedSections] =
+    useState<string[]>([]);
+
   const [selectedStatuses, setSelectedStatuses] =
-  useState<Record<number, Order["status"]>>({});
+    useState<
+      Record<number, Order["status"]>
+    >({});
 
   const [updatingOrders, setUpdatingOrders] =
     useState<number[]>([]);
@@ -46,13 +61,14 @@ export default function AdminOrdersPage() {
   const [debouncedSearch, setDebouncedSearch] =
     useState(search);
 
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        setDebouncedSearch(search);
-      }, 500);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
 
-      return () => clearTimeout(timeout);
-    }, [search]);
+    return () =>
+      clearTimeout(timeout);
+  }, [search]);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +81,8 @@ export default function AdminOrdersPage() {
         const data =
           await orderService.getAdminOrders({
             status: statusFilter,
-            deliveryType: deliveryTypeFilter,
+            deliveryType:
+              deliveryTypeFilter,
             search: debouncedSearch,
           });
 
@@ -75,13 +92,19 @@ export default function AdminOrdersPage() {
 
         setOrders(data);
 
-        const initialStatuses: Record<number, Order["status"]> = {};
+        const initialStatuses: Record<
+          number,
+          Order["status"]
+        > = {};
 
         data.forEach((order) => {
-          initialStatuses[order.id] = order.status;
+          initialStatuses[order.id] =
+            order.status;
         });
 
-        setSelectedStatuses(initialStatuses);
+        setSelectedStatuses(
+          initialStatuses
+        );
       } catch (error) {
         if (cancelled) {
           return;
@@ -121,6 +144,18 @@ export default function AdminOrdersPage() {
     );
   };
 
+  const toggleSection = (
+    section: string
+  ) => {
+    setCollapsedSections((current) =>
+      current.includes(section)
+        ? current.filter(
+            (item) => item !== section
+          )
+        : [...current, section]
+    );
+  };
+
   const handleUpdateStatus = async (
     orderId: number
   ) => {
@@ -138,7 +173,10 @@ export default function AdminOrdersPage() {
         return;
       }
 
-      if (currentOrder.status === newStatus) {
+      if (
+        currentOrder.status ===
+        newStatus
+      ) {
         return;
       }
 
@@ -164,7 +202,9 @@ export default function AdminOrdersPage() {
       );
     } catch (error) {
       console.error(error);
-      setError("Failed to update order status.");
+      setError(
+        "Failed to update order status."
+      );
     } finally {
       setUpdatingOrders((current) =>
         current.filter(
@@ -174,6 +214,165 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const activeExcludedStatuses: OrderStatus[] = [
+    ORDER_STATUS.DELIVERED,
+    ORDER_STATUS.PICKED_UP,
+    ORDER_STATUS.CANCELLED,
+  ];
+
+  const activeOrders = orders.filter(
+    (order) =>
+      !activeExcludedStatuses.includes(
+        order.status
+      )
+  );
+
+  const fulfilledOrders = orders.filter(
+    (order) =>
+      order.status ===
+        ORDER_STATUS.DELIVERED ||
+      order.status ===
+        ORDER_STATUS.PICKED_UP
+  );
+
+  const cancelledOrders = orders.filter(
+    (order) =>
+      order.status ===
+      ORDER_STATUS.CANCELLED
+  );
+
+  const renderOrders = (
+    ordersToRender: Order[]
+  ) => (
+    <div className="space-y-5">
+      {ordersToRender.map((order) => (
+        <div
+          key={order.id}
+          className="
+            rounded-md
+            border
+            border-(--color-border)
+            bg-(--color-surface)
+            p-6
+            shadow-sm
+          "
+        >
+          <OrderHeader
+            order={order}
+            showCustomer
+            expanded={expandedOrders.includes(
+              order.id
+            )}
+            onToggle={() =>
+              toggleOrder(order.id)
+            }
+          />
+
+          {expandedOrders.includes(
+            order.id
+          ) && (
+            <AdminOrderDetails
+              order={order}
+              selectedStatus={
+                selectedStatuses[order.id] ??
+                order.status
+              }
+              updating={updatingOrders.includes(
+                order.id
+              )}
+              onStatusChange={(status) =>
+                setSelectedStatuses(
+                  (current) => ({
+                    ...current,
+                    [order.id]:
+                      status as Order["status"],
+                  })
+                )
+              }
+              onUpdate={() =>
+                handleUpdateStatus(
+                  order.id
+                )
+              }
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderSection = (
+    key: string,
+    title: string,
+    ordersToRender: Order[]
+  ) => {
+    if (ordersToRender.length === 0) {
+      return null;
+    }
+
+    const collapsed =
+      collapsedSections.includes(key);
+
+    return (
+      <section>
+        <button
+          type="button"
+          onClick={() =>
+            toggleSection(key)
+          }
+          aria-expanded={!collapsed}
+          className="
+            flex
+            w-full
+            items-center
+            justify-between
+            text-left
+          "
+        >
+          <span
+            className="
+              text-sm
+              font-semibold
+              uppercase
+              tracking-wider
+            "
+          >
+            {title}
+          </span>
+
+          {collapsed ? (
+            <ChevronDown
+              size={20}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+          ) : (
+            <ChevronUp
+              size={20}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+          )}
+        </button>
+
+        <div
+          className="
+            mt-3
+            border-t
+            border-(--color-border)
+          "
+        />
+
+        {!collapsed && (
+          <div className="mt-6">
+            {renderOrders(
+              ordersToRender
+            )}
+          </div>
+        )}
+      </section>
+    );
+  };
 
   if (loading) {
     return (
@@ -186,69 +385,54 @@ export default function AdminOrdersPage() {
   return (
     <PageContainer>
       <PageHeader title="All Orders" />
-      {error && <Alert message={error} />}
+
+      {error && (
+        <Alert message={error} />
+      )}
 
       <AdminOrderFilters
-          search={search}
-          statusFilter={statusFilter}
-          deliveryTypeFilter={deliveryTypeFilter}
-          onSearchChange={setSearch}
-          onStatusChange={setStatusFilter}
-          onDeliveryTypeChange={setDeliveryTypeFilter}
-          onClear={() => {
-            setSearch("");
-            setStatusFilter("");
-            setDeliveryTypeFilter("");
-          }}
+        search={search}
+        statusFilter={statusFilter}
+        deliveryTypeFilter={
+          deliveryTypeFilter
+        }
+        onSearchChange={setSearch}
+        onStatusChange={
+          setStatusFilter
+        }
+        onDeliveryTypeChange={
+          setDeliveryTypeFilter
+        }
+        onClear={() => {
+          setSearch("");
+          setStatusFilter("");
+          setDeliveryTypeFilter("");
+        }}
+      />
+
+      {orders.length === 0 ? (
+        <EmptyState
+          title="No orders found."
         />
+      ) : (
+        <div className="space-y-12">
+          {renderSection(
+            "active",
+            "Active Orders",
+            activeOrders
+          )}
 
-        {orders.length === 0 ? (
-          <EmptyState title="No orders found." />
-        ) : (
-        <div className="space-y-5">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="
-                rounded-md
-                border border-(--color-border)
-                bg-(--color-surface)
-                p-6
-                shadow-sm
-              "
-            >
-              <OrderHeader
-                order={order}
-                showCustomer
-                expanded={expandedOrders.includes(order.id)}
-                onToggle={() =>
-                  toggleOrder(order.id)
-                }
-              />
+          {renderSection(
+            "fulfilled",
+            "Fulfilled Orders",
+            fulfilledOrders
+          )}
 
-              {expandedOrders.includes(order.id) && (
-                <AdminOrderDetails
-                  order={order}
-                  selectedStatus={
-                    selectedStatuses[order.id] ??
-                    order.status
-                  }
-                  updating={updatingOrders.includes(
-                    order.id
-                  )}
-                  onStatusChange={(status) =>
-                    setSelectedStatuses((current) => ({
-                      ...current,
-                      [order.id]: status as Order["status"],
-                    }))
-                  }
-                  onUpdate={() =>
-                    handleUpdateStatus(order.id)
-                  }
-                />
-              )}
-            </div>
-          ))}
+          {renderSection(
+            "cancelled",
+            "Cancelled Orders",
+            cancelledOrders
+          )}
         </div>
       )}
     </PageContainer>

@@ -6,7 +6,13 @@ import { orderService } from "../../services/orderService";
 import type { Order } from "../../types/order";
 
 import {
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+
+import {
   ORDER_STATUS,
+  type OrderStatus,
 } from "../../constants/order";
 
 import PageHeader from "../../components/common/PageHeader";
@@ -33,6 +39,9 @@ export default function OrdersPage() {
   const [expandedOrders, setExpandedOrders] =
     useState<number[]>([]);
 
+  const [collapsedSections, setCollapsedSections] =
+    useState<string[]>([]);
+
   const toggleOrder = (orderId: number) => {
     setExpandedOrders((prev) =>
       prev.includes(orderId)
@@ -43,24 +52,43 @@ export default function OrdersPage() {
     );
   };
 
+  const toggleSection = (
+    section: string
+  ) => {
+    setCollapsedSections((prev) =>
+      prev.includes(section)
+        ? prev.filter(
+            (item) => item !== section
+          )
+        : [...prev, section]
+    );
+  };
+
+  const activeExcludedStatuses: OrderStatus[] = [
+    ORDER_STATUS.DELIVERED,
+    ORDER_STATUS.PICKED_UP,
+    ORDER_STATUS.CANCELLED,
+  ];
+
   const activeOrders = orders.filter(
     (order) =>
-      ![
-        ORDER_STATUS.DELIVERED,
-        ORDER_STATUS.PICKED_UP,
-        ORDER_STATUS.CANCELLED,
-      ].includes(order.status)
+      !activeExcludedStatuses.includes(
+        order.status
+      )
   );
 
   const fulfilledOrders = orders.filter(
     (order) =>
-      order.status === ORDER_STATUS.DELIVERED ||
-      order.status === ORDER_STATUS.PICKED_UP
+      order.status ===
+        ORDER_STATUS.DELIVERED ||
+      order.status ===
+        ORDER_STATUS.PICKED_UP
   );
 
   const cancelledOrders = orders.filter(
     (order) =>
-      order.status === ORDER_STATUS.CANCELLED
+      order.status ===
+      ORDER_STATUS.CANCELLED
   );
 
   const renderOrders = (
@@ -89,7 +117,9 @@ export default function OrdersPage() {
             }
           />
 
-          {expandedOrders.includes(order.id) && (
+          {expandedOrders.includes(
+            order.id
+          ) && (
             <OrderItemsList
               items={order.items}
             />
@@ -129,6 +159,77 @@ export default function OrdersPage() {
       ))}
     </div>
   );
+
+  const renderSection = (
+    key: string,
+    title: string,
+    ordersToRender: Order[]
+  ) => {
+    if (ordersToRender.length === 0) {
+      return null;
+    }
+
+    const collapsed =
+      collapsedSections.includes(key);
+
+    return (
+      <section>
+        <button
+          type="button"
+          onClick={() =>
+            toggleSection(key)
+          }
+          aria-expanded={!collapsed}
+          className="
+            flex
+            w-full
+            items-center
+            justify-between
+            text-left
+          "
+        >
+          <span
+            className="
+              text-sm
+              font-semibold
+              uppercase
+              tracking-wider
+            "
+          >
+            {title}
+          </span>
+
+          {collapsed ? (
+            <ChevronDown
+              size={20}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+          ) : (
+            <ChevronUp
+              size={20}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+          )}
+        </button>
+
+        <div
+          className="
+            mt-3
+            border-t
+            border-(--color-border)
+          "
+        />
+
+        {!collapsed && (
+          <div className="mt-6">
+            {renderOrders(ordersToRender)}
+          </div>
+        )}
+      </section>
+    );
+  };
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -176,88 +277,22 @@ export default function OrdersPage() {
       ) : (
         <div className="space-y-12">
 
-          {/* Active Orders */}
-          {activeOrders.length > 0 && (
-            <section>
-              <div className="mb-6">
-                <h2
-                  className="
-                    text-sm
-                    font-semibold
-                    uppercase
-                    tracking-wider
-                  "
-                >
-                  Active Orders
-                </h2>
-
-                <div
-                  className="
-                    mt-3
-                    border-t
-                    border-(--color-border)
-                  "
-                />
-              </div>
-
-              {renderOrders(activeOrders)}
-            </section>
+          {renderSection(
+            "active",
+            "Active Orders",
+            activeOrders
           )}
 
-          {/* Fulfilled Orders */}
-          {fulfilledOrders.length > 0 && (
-            <section>
-              <div className="mb-6">
-                <h2
-                  className="
-                    text-sm
-                    font-semibold
-                    uppercase
-                    tracking-wider
-                  "
-                >
-                  Fulfilled Orders
-                </h2>
-
-                <div
-                  className="
-                    mt-3
-                    border-t
-                    border-(--color-border)
-                  "
-                />
-              </div>
-
-              {renderOrders(fulfilledOrders)}
-            </section>
+          {renderSection(
+            "fulfilled",
+            "Fulfilled Orders",
+            fulfilledOrders
           )}
 
-          {/* Cancelled Orders */}
-          {cancelledOrders.length > 0 && (
-            <section>
-              <div className="mb-6">
-                <h2
-                  className="
-                    text-sm
-                    font-semibold
-                    uppercase
-                    tracking-wider
-                  "
-                >
-                  Cancelled Orders
-                </h2>
-
-                <div
-                  className="
-                    mt-3
-                    border-t
-                    border-(--color-border)
-                  "
-                />
-              </div>
-
-              {renderOrders(cancelledOrders)}
-            </section>
+          {renderSection(
+            "cancelled",
+            "Cancelled Orders",
+            cancelledOrders
           )}
 
         </div>
