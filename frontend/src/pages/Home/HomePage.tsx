@@ -9,6 +9,13 @@ import LoadingState from "../../components/common/LoadingState";
 import { productService } from "../../services/productService";
 import type { Product } from "../../types/product";
 
+const FEATURED_PRODUCT_IDS = {
+  fingerFoods: 4,
+  localBeverages: 5,
+  grills: 8,
+  additional: 3,
+};
+
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -17,7 +24,21 @@ export default function HomePage() {
     const loadProducts = async () => {
       try {
         const productsData = await productService.getProducts();
-        setProducts(productsData.slice(0, 4));
+
+        const featuredProductIds = Object.values(
+          FEATURED_PRODUCT_IDS
+        );
+
+        const featuredProducts = featuredProductIds
+          .map((id) =>
+            productsData.find((product: Product) => product.id === id)
+          )
+          .filter(
+            (product): product is Product =>
+              product !== undefined
+          );
+
+        setProducts(featuredProducts);
       } catch (error) {
         console.error(error);
       } finally {
@@ -34,7 +55,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden">
         <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:px-8">
           <div className="relative z-10 max-w-2xl">
-            <p className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[var(--color-text-muted)]">
+            <p className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
               KAHWƐ by Maritina Foods
             </p>
 
@@ -46,36 +67,37 @@ export default function HomePage() {
               delivered.
             </h1>
 
-            <p className="mt-8 max-w-xl text-base leading-7 text-[var(--color-text-muted)] sm:text-lg">
-              Authentic Ghanaian snacks, drinks and grills made for every
-              moment. Discover your favourites and have them delivered to you.
+            <p className="mt-8 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+              Authentic Ghanaian snacks, drinks and grills made
+              for every moment. Discover your favourites and
+              have them delivered to you.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link
                 to="/products"
-                className="rounded-full border border-[var(--color-border)] bg-[var(--color-text)] px-7 py-3.5 text-sm font-medium text-[var(--color-background)] transition-opacity hover:opacity-80"
+                className="rounded-full border border-(--color-border) bg-(--color-text) px-7 py-3.5 text-sm font-medium text-(--color-background) transition-opacity hover:opacity-80"
               >
                 Shop Now
               </Link>
 
               <a
                 href="#categories"
-                className="rounded-full border border-[var(--color-border)] px-7 py-3.5 text-sm font-medium transition-colors hover:bg-[var(--color-surface-muted)]"
+                className="rounded-full border border-(--color-border) px-7 py-3.5 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)"
               >
                 Explore Categories
               </a>
             </div>
           </div>
 
-          <div className="relative flex min-h-[420px] items-center justify-center lg:min-h-[620px]">
-            <div className="relative flex h-[360px] w-[300px] items-center justify-center rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface-muted)] sm:h-[480px] sm:w-[380px]">
+          <div className="relative flex min-h-105 items-center justify-center lg:min-h-155">
+            <div className="relative flex h-90 w-75 items-center justify-center rounded-4xl border border-(--color-border) bg-(--color-surface-muted) sm:h-120 sm:w-95">
               <div className="text-center">
                 <p className="text-5xl font-semibold tracking-tight sm:text-6xl">
                   KAHWƐ
                 </p>
 
-                <p className="mt-3 text-xs uppercase tracking-[0.35em] text-[var(--color-text-muted)]">
+                <p className="mt-3 text-xs uppercase tracking-[0.35em] text-(--color-text-muted)">
                   Taste Ghana
                 </p>
               </div>
@@ -90,7 +112,7 @@ export default function HomePage() {
         className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32"
       >
         <div className="mb-12 max-w-2xl">
-          <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-[var(--color-text-muted)]">
+          <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
             Explore KAHWƐ
           </p>
 
@@ -102,10 +124,10 @@ export default function HomePage() {
         <div className="grid gap-5 md:grid-cols-3">
           <Link
             to="/products?category=1"
-            className="group relative flex min-h-[420px] flex-col justify-between overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-8 transition-transform duration-300 hover:-translate-y-1"
+            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface-muted) p-8 transition-transform duration-300 hover:-translate-y-1"
           >
             <div>
-              <p className="text-sm uppercase tracking-[0.25em] text-[var(--color-text-muted)]">
+              <p className="text-sm uppercase tracking-[0.25em] text-(--color-text-muted)">
                 01
               </p>
 
@@ -113,22 +135,26 @@ export default function HomePage() {
                 Finger Foods
               </h3>
 
-              <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--color-text-muted)]">
-                Crispy, crunchy Ghanaian favourites made for every occasion.
+              <p className="mt-3 max-w-xs text-sm leading-6 text-(--color-text-muted)">
+                Crispy, crunchy Ghanaian favourites made for
+                every occasion.
               </p>
             </div>
 
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border)] transition-transform duration-300 group-hover:translate-x-1">
-              <ArrowRight size={18} aria-hidden="true" />
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-(--color-border) transition-transform duration-300 group-hover:translate-x-1">
+              <ArrowRight
+                size={18}
+                aria-hidden="true"
+              />
             </span>
           </Link>
 
           <Link
             to="/products?category=2"
-            className="group relative flex min-h-[420px] flex-col justify-between overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-8 transition-transform duration-300 hover:-translate-y-1"
+            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface-muted) p-8 transition-transform duration-300 hover:-translate-y-1"
           >
             <div>
-              <p className="text-sm uppercase tracking-[0.25em] text-[var(--color-text-muted)]">
+              <p className="text-sm uppercase tracking-[0.25em] text-(--color-text-muted)">
                 02
               </p>
 
@@ -136,22 +162,26 @@ export default function HomePage() {
                 Local Beverages
               </h3>
 
-              <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--color-text-muted)]">
-                Refreshing Ghanaian drinks, from sobolo to asaana and more.
+              <p className="mt-3 max-w-xs text-sm leading-6 text-(--color-text-muted)">
+                Refreshing Ghanaian drinks, from sobolo to asaana
+                and more.
               </p>
             </div>
 
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border)] transition-transform duration-300 group-hover:translate-x-1">
-              <ArrowRight size={18} aria-hidden="true" />
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-(--color-border) transition-transform duration-300 group-hover:translate-x-1">
+              <ArrowRight
+                size={18}
+                aria-hidden="true"
+              />
             </span>
           </Link>
 
           <Link
             to="/products?category=3"
-            className="group relative flex min-h-[420px] flex-col justify-between overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-8 transition-transform duration-300 hover:-translate-y-1"
+            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface-muted) p-8 transition-transform duration-300 hover:-translate-y-1"
           >
             <div>
-              <p className="text-sm uppercase tracking-[0.25em] text-[var(--color-text-muted)]">
+              <p className="text-sm uppercase tracking-[0.25em] text-(--color-text-muted)">
                 03
               </p>
 
@@ -159,24 +189,28 @@ export default function HomePage() {
                 Grills
               </h3>
 
-              <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--color-text-muted)]">
-                Freshly prepared grills and Ghanaian favourites made to order.
+              <p className="mt-3 max-w-xs text-sm leading-6 text-(--color-text-muted)">
+                Freshly prepared grills and Ghanaian favourites made
+                to order.
               </p>
             </div>
 
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border)] transition-transform duration-300 group-hover:translate-x-1">
-              <ArrowRight size={18} aria-hidden="true" />
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-(--color-border) transition-transform duration-300 group-hover:translate-x-1">
+              <ArrowRight
+                size={18}
+                aria-hidden="true"
+              />
             </span>
           </Link>
         </div>
       </section>
 
       {/* Featured Products */}
-      <section className="border-y border-[var(--color-border)]">
+      <section className="border-y border-(--color-border)">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
           <div className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-2xl">
-              <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-[var(--color-text-muted)]">
+              <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
                 From KAHWƐ
               </p>
 
@@ -184,18 +218,6 @@ export default function HomePage() {
                 Favourites worth trying.
               </h2>
             </div>
-
-            <Link
-              to="/products"
-              className="group inline-flex shrink-0 items-center gap-2 text-sm font-medium"
-            >
-              View All Products
-              <ArrowRight
-                size={17}
-                aria-hidden="true"
-                className="transition-transform duration-300 group-hover:translate-x-1"
-              />
-            </Link>
           </div>
 
           {loadingProducts ? (
@@ -210,10 +232,137 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <p className="py-12 text-center text-[var(--color-text-muted)]">
+            <p className="py-12 text-center text-(--color-text-muted)">
               No products are available at the moment.
             </p>
           )}
+        </div>
+      </section>
+
+      {/* KAHWƐ Story */}
+      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
+        <div className="grid overflow-hidden rounded-4xl border border-(--color-border) lg:grid-cols-2">
+          <div className="flex min-h-105 items-center justify-center bg-(--color-surface-muted) p-12 sm:min-h-125 lg:min-h-155">
+            <div className="text-center">
+              <p className="text-5xl font-semibold tracking-tight sm:text-6xl">
+                KAHWƐ
+              </p>
+
+              <p className="mt-3 text-xs uppercase tracking-[0.35em] text-(--color-text-muted)">
+                By Maritina Foods
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+            <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+              About KAHWƐ
+            </p>
+
+            <h2 className="max-w-xl text-4xl font-semibold tracking-tight sm:text-5xl">
+              Ghanaian taste, made with care.
+            </h2>
+
+            <p className="mt-6 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+              KAHWƐ brings together the flavours people know and love, from
+              traditional Ghanaian snacks and refreshing local beverages to
+              freshly prepared grills.
+            </p>
+
+            <p className="mt-5 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+              Proudly brought to you by Maritina Foods, KAHWƐ makes it simple
+              to discover your favourites, order with ease and enjoy them
+              wherever you are.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="border-y border-(--color-border)">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
+          <div className="mb-16 max-w-2xl">
+            <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+              How It Works
+            </p>
+
+            <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+              Good food, without the fuss.
+            </h2>
+          </div>
+
+          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <p className="text-sm font-medium text-(--color-text-muted)">
+                01
+              </p>
+
+              <h3 className="mt-5 text-2xl font-semibold tracking-tight">
+                Choose
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-(--color-text-muted)">
+                Browse our snacks, drinks and grills and choose your favourites.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-(--color-text-muted)">
+                02
+              </p>
+
+              <h3 className="mt-5 text-2xl font-semibold tracking-tight">
+                Order
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-(--color-text-muted)">
+                Add what you want to your cart and complete your order securely.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-(--color-text-muted)">
+                03
+              </p>
+
+              <h3 className="mt-5 text-2xl font-semibold tracking-tight">
+                We prepare
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-(--color-text-muted)">
+                We'll prepare your order with care and get it ready for you.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-(--color-text-muted)">
+                04
+              </p>
+
+              <h3 className="mt-5 text-2xl font-semibold tracking-tight">
+                Enjoy
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-(--color-text-muted)">
+                Choose delivery or pickup and enjoy your KAHWƐ favourites.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-end">
+            <Link
+              to="/products"
+              className="group inline-flex items-center gap-2 text-sm font-medium"
+            >
+              Explore the Menu
+
+              <ArrowRight
+                size={17}
+                aria-hidden="true"
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -64,7 +64,7 @@ const handleSubmit = async (
       // Continue login even if there are no claimable orders.
     }
 
-    navigate("/products");
+    navigate("/");
   } catch {
     setError(
       "Invalid credentials"

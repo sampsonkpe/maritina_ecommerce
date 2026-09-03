@@ -18,7 +18,7 @@ export default function AdminRoute({
   }
 
   if (!user?.is_staff) {
-    return <Navigate to="/products" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

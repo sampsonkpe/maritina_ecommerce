@@ -11,6 +11,6 @@ export default function PublicRoute({
   const { authenticated } = useAuth();
 
   return authenticated
-    ? <Navigate to="/products" replace />
+    ? <Navigate to="/" replace />
     : <>{children}</>;
 }
