@@ -49,6 +49,8 @@ export default function ProfilePage() {
     );
   }
 
+  const firstName = profile.full_name.trim().split(/\s+/)[0];
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
@@ -57,7 +59,7 @@ export default function ProfilePage() {
           Profile
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Welcome back, {profile.full_name}.
+          Welcome back, <b>{firstName}</b>.
         </p>
       </div>
 

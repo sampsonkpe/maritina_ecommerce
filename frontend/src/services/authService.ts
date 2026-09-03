@@ -62,19 +62,19 @@ export const authService = {
   },
 
   async getProfile(): Promise<Profile> {
-    const response = await api.get<Profile>("/auth/me/");
-    return response.data;
+    const response = await api.get<{ user: Profile }>("/auth/me/");
+    return response.data.user;
   },
 
   async updateProfile(
     data: UpdateProfileData
   ): Promise<Profile> {
-    const response = await api.patch<Profile>(
+    const response = await api.patch<{ user: Profile }>(
       "/auth/me/",
       data
     );
 
-    return response.data;
+    return response.data.user;
   },
 
   async changePassword(

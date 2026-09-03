@@ -24,6 +24,8 @@ import PaymentCancelledPage from "./pages/Payments/PaymentCancelledPage";
 import OrderTrackingPage from "./pages/Orders/OrderTrackingPage";
 import FavouritesPage from "./pages/Favourites/FavouritesPage";
 import ProfilePage from "./pages/Profile/ProfilePage";
+import ProfileEditPage from "./pages/Profile/ProfileEditPage";
+import ChangePasswordPage from "./pages/Profile/ChangePasswordPage";
 
 export default function App() {
   return (
@@ -47,6 +49,8 @@ export default function App() {
           <Route path="/orders/:orderId" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
           <Route path="/favourites" element={<ProtectedRoute><FavouritesPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
+          <Route path="/profile/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>
