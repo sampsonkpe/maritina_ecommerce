@@ -1,32 +1,28 @@
 import { useEffect, useState } from "react";
-
-import ProductCard from "../../components/products/ProductCard";
-
+import { useSearchParams } from "react-router-dom";
 import { productService } from "../../services/productService";
-
+import ProductCard from "../../components/products/ProductCard";
+import LoadingState from "../../components/common/LoadingState";
 import type { Product } from "../../types/product";
 import type { Category } from "../../types/category";
 
-
-import LoadingState from "../../components/common/LoadingState";
-
 export default function ProductsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-
-  const [selectedCategory, setSelectedCategory] =
-    useState<number | null>(null);
-
   const [loading, setLoading] = useState(true);
+
+  const categoryParam = searchParams.get("category");
+  const selectedCategory = categoryParam
+    ? Number(categoryParam)
+    : null;
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const productsData =
-          await productService.getProducts();
-
-        const categoriesData =
-          await productService.getCategories();
+        const productsData = await productService.getProducts();
+        const categoriesData = await productService.getCategories();
 
         setProducts(productsData);
         setCategories(categoriesData);
@@ -44,16 +40,22 @@ export default function ProductsPage() {
     selectedCategory === null
       ? products
       : products.filter(
-          (product) =>
-            product.category === selectedCategory
+          (product) => product.category === selectedCategory
         );
 
+  const handleCategoryChange = (categoryId: number | null) => {
+    if (categoryId === null) {
+      setSearchParams({});
+      return;
+    }
+
+    setSearchParams({
+      category: String(categoryId),
+    });
+  };
+
   if (loading) {
-    return (
-      <LoadingState
-        message="Loading products..."
-      />
-    );
+    return <LoadingState message="Loading products..." />;
   }
 
   return (
@@ -64,7 +66,8 @@ export default function ProductsPage() {
 
       <div className="mb-8 flex flex-wrap gap-3">
         <button
-          onClick={() => setSelectedCategory(null)}
+          type="button"
+          onClick={() => handleCategoryChange(null)}
           className="rounded-md border px-4 py-2"
         >
           All
@@ -73,9 +76,8 @@ export default function ProductsPage() {
         {categories.map((category) => (
           <button
             key={category.id}
-            onClick={() =>
-              setSelectedCategory(category.id)
-            }
+            type="button"
+            onClick={() => handleCategoryChange(category.id)}
             className="rounded-md border px-4 py-2"
           >
             {category.name}

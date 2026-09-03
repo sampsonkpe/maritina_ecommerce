@@ -86,7 +86,6 @@ export default function NavBar() {
         z-50
         border-b
         border-(--color-border)
-        bg-white/95
         backdrop-blur
         transition-transform
         duration-300
