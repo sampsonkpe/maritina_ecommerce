@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 import {
   Menu,
@@ -22,15 +22,82 @@ export default function NavBar() {
     loading,
   } = useCart();
 
+  const location = useLocation();
+
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
+
+  const [headerVisible, setHeaderVisible] =
+    useState(true);
+
+  const lastScrollY = useRef(0);
+
+  const isHomePage =
+    location.pathname === "/";
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
 
+  useEffect(() => {
+    if (isHomePage) {
+      return;
+    }
+
+    lastScrollY.current = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY <= 0) {
+        setHeaderVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+
+      if (currentScrollY > lastScrollY.current) {
+        setHeaderVisible(false);
+      } else if (currentScrollY < lastScrollY.current) {
+        setHeaderVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      { passive: true }
+    );
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+    };
+  }, [isHomePage]);
+
   return (
-    <nav className="border-b border-(--color-border)">
+    <nav
+      className={`
+        sticky
+        top-0
+        z-50
+        border-b
+        border-(--color-border)
+        bg-white/95
+        backdrop-blur
+        transition-transform
+        duration-300
+        ease-out
+        ${
+          !isHomePage && !headerVisible
+            ? "-translate-y-full"
+            : "translate-y-0"
+        }
+      `}
+    >
       <div
         className="
           mx-auto
