@@ -91,16 +91,12 @@ export default function HomePage() {
           </div>
 
           <div className="relative flex min-h-105 items-center justify-center lg:min-h-155">
-            <div className="relative flex h-90 w-75 items-center justify-center rounded-4xl border border-(--color-border) bg-(--color-surface-muted) sm:h-120 sm:w-95">
-              <div className="text-center">
-                <p className="text-5xl font-semibold tracking-tight sm:text-6xl">
-                  KAHWƐ
-                </p>
-
-                <p className="mt-3 text-xs uppercase tracking-[0.35em] text-(--color-text-muted)">
-                  Taste Ghana
-                </p>
-              </div>
+            <div className="relative h-90 w-75 overflow-hidden rounded-4xl border border-(--color-border) sm:h-120 sm:w-95">
+              <img
+                src="/images/kahwe-hero.png"
+                alt="Ghanaian snacks and local beverage"
+                className="h-full w-full object-cover object-[70%_center]"
+              />
             </div>
           </div>
         </div>
@@ -122,26 +118,35 @@ export default function HomePage() {
         </div>
 
         <div className="grid gap-5 md:grid-cols-3">
+          {/* Finger Foods */}
           <Link
             to="/products?category=1"
-            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface-muted) p-8 transition-transform duration-300 hover:-translate-y-1"
+            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-white/30"
           >
-            <div>
-              <p className="text-sm uppercase tracking-[0.25em] text-(--color-text-muted)">
+            <img
+              src="/images/finger-foods.png"
+              alt="Ghanaian finger foods"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+
+            <div className="absolute inset-0 bg-black/35 transition-opacity duration-300 group-hover:opacity-45" />
+
+            <div className="relative z-10 p-8">
+              <p className="text-sm uppercase tracking-[0.25em] text-white">
                 01
               </p>
 
-              <h3 className="mt-4 text-3xl font-semibold tracking-tight">
+              <h3 className="mt-4 text-3xl font-semibold tracking-tight text-white">
                 Finger Foods
               </h3>
 
-              <p className="mt-3 max-w-xs text-sm leading-6 text-(--color-text-muted)">
-                Crispy, crunchy Ghanaian favourites made for
-                every occasion.
+              <p className="mt-3 max-w-xs text-sm leading-6 text-white/80">
+                Crispy, crunchy Ghanaian favourites made for every
+                occasion.
               </p>
             </div>
 
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-(--color-border) transition-transform duration-300 group-hover:translate-x-1">
+            <span className="relative z-10 ml-8 mb-8 flex h-11 w-11 items-center justify-center rounded-full border border-white/70 text-white transition-transform duration-300 group-hover:translate-x-1">
               <ArrowRight
                 size={18}
                 aria-hidden="true"
@@ -149,26 +154,35 @@ export default function HomePage() {
             </span>
           </Link>
 
+          {/* Local Beverages */}
           <Link
             to="/products?category=2"
-            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface-muted) p-8 transition-transform duration-300 hover:-translate-y-1"
+            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-white/30"
           >
-            <div>
-              <p className="text-sm uppercase tracking-[0.25em] text-(--color-text-muted)">
+            <img
+              src="/images/local-beverages.png"
+              alt="Ghanaian local beverages"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+
+            <div className="absolute inset-0 bg-black/35 transition-opacity duration-300 group-hover:opacity-45" />
+
+            <div className="relative z-10 p-8">
+              <p className="text-sm uppercase tracking-[0.25em] text-white">
                 02
               </p>
 
-              <h3 className="mt-4 text-3xl font-semibold tracking-tight">
+              <h3 className="mt-4 text-3xl font-semibold tracking-tight text-white">
                 Local Beverages
               </h3>
 
-              <p className="mt-3 max-w-xs text-sm leading-6 text-(--color-text-muted)">
-                Refreshing Ghanaian drinks, from sobolo to asaana
-                and more.
+              <p className="mt-3 max-w-xs text-sm leading-6 text-white/80">
+                Refreshing Ghanaian drinks, from sobolo to asaana and
+                more.
               </p>
             </div>
 
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-(--color-border) transition-transform duration-300 group-hover:translate-x-1">
+            <span className="relative z-10 ml-8 mb-8 flex h-11 w-11 items-center justify-center rounded-full border border-white/70 text-white transition-transform duration-300 group-hover:translate-x-1">
               <ArrowRight
                 size={18}
                 aria-hidden="true"
@@ -176,26 +190,35 @@ export default function HomePage() {
             </span>
           </Link>
 
+          {/* Grills */}
           <Link
             to="/products?category=3"
-            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface-muted) p-8 transition-transform duration-300 hover:-translate-y-1"
+            className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl border border-white/30"
           >
-            <div>
-              <p className="text-sm uppercase tracking-[0.25em] text-(--color-text-muted)">
+            <img
+              src="/images/grills.png"
+              alt="Ghanaian grilled foods"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+
+            <div className="absolute inset-0 bg-black/35 transition-opacity duration-300 group-hover:opacity-45" />
+
+            <div className="relative z-10 p-8">
+              <p className="text-sm uppercase tracking-[0.25em] text-white">
                 03
               </p>
 
-              <h3 className="mt-4 text-3xl font-semibold tracking-tight">
+              <h3 className="mt-4 text-3xl font-semibold tracking-tight text-white">
                 Grills
               </h3>
 
-              <p className="mt-3 max-w-xs text-sm leading-6 text-(--color-text-muted)">
-                Freshly prepared grills and Ghanaian favourites made
-                to order.
+              <p className="mt-3 max-w-xs text-sm leading-6 text-white/80">
+                Freshly prepared grills and Ghanaian favourites made to
+                order.
               </p>
             </div>
 
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-(--color-border) transition-transform duration-300 group-hover:translate-x-1">
+            <span className="relative z-10 ml-8 mb-8 flex h-11 w-11 items-center justify-center rounded-full border border-white/70 text-white transition-transform duration-300 group-hover:translate-x-1">
               <ArrowRight
                 size={18}
                 aria-hidden="true"
