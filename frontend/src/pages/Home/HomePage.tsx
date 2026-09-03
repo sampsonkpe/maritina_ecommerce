@@ -389,6 +389,39 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Final CTA */}
+      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
+        <div className="rounded-4xl border border-(--color-border) bg-(--color-surface-muted) px-8 py-16 text-center sm:px-12 lg:px-16 lg:py-24">
+          <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+            Ready when you are
+          </p>
+
+          <h2 className="mx-auto max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-7xl">
+            A taste of Ghana is just a few clicks away.
+          </h2>
+
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+            Discover your favourites, place your order and enjoy KAHWƐ
+            wherever you are.
+          </p>
+
+          <div className="mt-10">
+            <Link
+              to="/products"
+              className="group inline-flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-text) px-7 py-3.5 text-sm font-medium text-(--color-background) transition-opacity hover:opacity-80"
+            >
+              Explore the Menu
+
+              <ArrowRight
+                size={17}
+                aria-hidden="true"
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <ReviewBand />
     </>
   );
