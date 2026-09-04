@@ -31,6 +31,19 @@ FRONTEND_URL = os.getenv(
 )
 
 
+CLOUDINARY_CLOUD_NAME = os.getenv(
+    "CLOUDINARY_CLOUD_NAME"
+)
+
+CLOUDINARY_API_KEY = os.getenv(
+    "CLOUDINARY_API_KEY"
+)
+
+CLOUDINARY_API_SECRET = os.getenv(
+    "CLOUDINARY_API_SECRET"
+)
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,6 +57,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'cloudinary',
 
     'apps.users',
     'apps.products',

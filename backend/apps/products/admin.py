@@ -1,4 +1,13 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+
+import cloudinary.uploader
+
+from maritina_ecommerce.cloudinary_config import (
+    configure_cloudinary,
+)
+
+from .forms import ProductImageAdminForm
 
 from .models import (
     Category,
@@ -81,6 +90,8 @@ class ProductVariantAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
+    form = ProductImageAdminForm
+
     list_display = [
         "product",
         "is_primary",
@@ -102,3 +113,47 @@ class ProductImageAdmin(admin.ModelAdmin):
         "display_order",
         "id",
     ]
+
+    def save_model(self, request, obj, form, change):
+        uploaded_file = form.cleaned_data.get(
+            "image_upload"
+        )
+
+        if uploaded_file:
+            configure_cloudinary()
+
+            try:
+                result = cloudinary.uploader.upload(
+                    uploaded_file,
+                    folder="kahwe/products",
+                    resource_type="image",
+                )
+
+                obj.image = result["secure_url"]
+
+            except Exception as error:
+                raise ValidationError(
+                    f"Cloudinary upload failed: {error}"
+                )
+
+        elif not obj.image:
+            raise ValidationError(
+                "Please upload an image."
+            )
+
+        if obj.is_primary:
+            ProductImage.objects.filter(
+                product=obj.product,
+                is_primary=True,
+            ).exclude(
+                pk=obj.pk,
+            ).update(
+                is_primary=False,
+            )
+
+        super().save_model(
+            request,
+            obj,
+            form,
+            change,
+        )
