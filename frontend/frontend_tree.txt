@@ -4,7 +4,12 @@
 ├── index.html
 ├── package-lock.json
 ├── package.json
-├── README.md
+├── public
+│   └── images
+│       ├── finger-foods.png
+│       ├── grills.png
+│       ├── kahwe-hero.png
+│       └── local-beverages.png
 ├── src
 │   ├── api
 │   │   └── axios.ts
@@ -28,6 +33,9 @@
 │   │   │   ├── SectionTitle.tsx
 │   │   │   ├── StatusBadge.tsx
 │   │   │   └── Toast.tsx
+│   │   ├── favourites
+│   │   │   ├── FavouriteButton.tsx
+│   │   │   └── FavouriteCard.tsx
 │   │   ├── Footer.tsx
 │   │   ├── NavBar.tsx
 │   │   ├── orders
@@ -42,9 +50,15 @@
 │   │   │   ├── OrderHeader.tsx
 │   │   │   ├── OrderItemsList.tsx
 │   │   │   ├── OrderStatusEditor.tsx
-│   │   │   └── OrderSummary.tsx
-│   │   └── products
-│   │       └── ProductCard.tsx
+│   │   │   ├── OrderSummary.tsx
+│   │   │   └── OrderTracking.tsx
+│   │   ├── products
+│   │   │   └── ProductCard.tsx
+│   │   └── reviews
+│   │       ├── ReviewBand.tsx
+│   │       ├── ReviewCard.tsx
+│   │       ├── ReviewForm.tsx
+│   │       └── ReviewList.tsx
 │   ├── constants
 │   │   ├── checkout.ts
 │   │   ├── order.ts
@@ -74,19 +88,26 @@
 │   │   │   └── CartPage.tsx
 │   │   ├── Checkout
 │   │   │   └── CheckoutPage.tsx
+│   │   ├── Favourites
+│   │   │   └── FavouritesPage.tsx
 │   │   ├── Home
 │   │   │   └── HomePage.tsx
 │   │   ├── Login
 │   │   │   └── LoginPage.tsx
 │   │   ├── Orders
 │   │   │   ├── OrdersPage.tsx
-│   │   │   └── OrderSuccessPage.tsx
+│   │   │   ├── OrderSuccessPage.tsx
+│   │   │   └── OrderTrackingPage.tsx
 │   │   ├── Payments
 │   │   │   ├── PaymentCancelledPage.tsx
 │   │   │   └── PaymentReturnPage.tsx
 │   │   ├── Products
 │   │   │   ├── ProductDetailPage.tsx
 │   │   │   └── ProductsPage.tsx
+│   │   ├── Profile
+│   │   │   ├── ChangePasswordPage.tsx
+│   │   │   ├── ProfileEditPage.tsx
+│   │   │   └── ProfilePage.tsx
 │   │   ├── Register
 │   │   │   └── RegisterPage.tsx
 │   │   └── VerifyEmail
@@ -96,16 +117,20 @@
 │   │   ├── authService.ts
 │   │   ├── cartService.ts
 │   │   ├── checkoutService.ts
+│   │   ├── favouriteService.ts
 │   │   ├── orderService.ts
 │   │   ├── paymentService.ts
-│   │   └── productService.ts
+│   │   ├── productService.ts
+│   │   └── reviewService.ts
 │   ├── types
 │   │   ├── address.ts
 │   │   ├── api.ts
 │   │   ├── cart.ts
 │   │   ├── category.ts
+│   │   ├── favourite.ts
 │   │   ├── order.ts
 │   │   ├── product.ts
+│   │   ├── review.ts
 │   │   └── user.ts
 │   └── utils
 │       ├── auth.ts
@@ -117,4 +142,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-28 directories, 90 files
+34 directories, 109 files

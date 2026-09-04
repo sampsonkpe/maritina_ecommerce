@@ -16,6 +16,7 @@ import { productService } from "../../services/productService";
 import FavouriteButton from "../../components/favourites/FavouriteButton";
 import ReviewList from "../../components/reviews/ReviewList";
 import ReviewForm from "../../components/reviews/ReviewForm";
+import ProductImageGallery from "../../components/products/ProductImageGallery";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -115,9 +116,11 @@ export default function ProductDetailPage() {
       <div className="grid gap-10 md:grid-cols-2">
 
         <div>
-          <div className="flex h-96 items-center justify-center rounded-md border">
-            Product Image
-          </div>
+          <ProductImageGallery
+            images={product.images}
+            fallbackImage={product.image}
+            productName={product.name}
+          />
         </div>
 
         <div>

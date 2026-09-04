@@ -9,6 +9,11 @@ class Category(models.Model):
         null=True
     )
 
+    image = models.URLField(
+        blank=True,
+        null=True
+    )
+
     class Meta:
         verbose_name_plural = "Categories"
 
@@ -42,6 +47,55 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="images"
+    )
+
+    image = models.URLField()
+
+    is_primary = models.BooleanField(
+        default=False
+    )
+
+    display_order = models.PositiveIntegerField(
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ["display_order", "id"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product"],
+                condition=models.Q(is_primary=True),
+                name="unique_primary_image_per_product",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.is_primary:
+            ProductImage.objects.filter(
+                product=self.product,
+                is_primary=True,
+            ).exclude(
+                pk=self.pk,
+            ).update(
+                is_primary=False,
+            )
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.product.name} image"
 
 
 class ProductVariant(models.Model):

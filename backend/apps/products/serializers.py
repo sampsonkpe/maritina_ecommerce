@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import (
     Category,
     Product,
+    ProductImage,
     ProductVariant,
 )
 
@@ -15,6 +16,25 @@ class CategorySerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
+            "image",
+        ]
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProductImage
+        fields = [
+            "id",
+            "product",
+            "image",
+            "is_primary",
+            "display_order",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "created_at",
         ]
 
 
@@ -34,6 +54,11 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
 
+    images = ProductImageSerializer(
+        many=True,
+        read_only=True,
+    )
+
     variants = ProductVariantSerializer(
         many=True,
         read_only=True,
@@ -48,5 +73,6 @@ class ProductSerializer(serializers.ModelSerializer):
             "description",
             "image",
             "created_at",
+            "images",
             "variants",
         ]
