@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 
 import type { ProductImage } from "../../types/product";
 
+import OptimizedImage from "../common/OptimizedImage";
+
 interface ProductImageGalleryProps {
   images: ProductImage[];
   fallbackImage: string | null;
@@ -27,22 +29,25 @@ export default function ProductImageGallery({
     ) ?? sortedImages[0];
 
   const [selectedImageId, setSelectedImageId] =
-    useState<number | null>(
-      primaryImage?.id ?? null
-    );
+    useState<number | null>(null);
 
   const selectedImage =
     sortedImages.find(
       (image) => image.id === selectedImageId
     ) ?? primaryImage;
 
+  /*
+   * No gallery images.
+   * Fall back to the legacy Product.image field.
+   */
   if (sortedImages.length === 0) {
     if (fallbackImage) {
       return (
         <div className="overflow-hidden rounded-md border">
-          <img
+          <OptimizedImage
             src={fallbackImage}
             alt={productName}
+            priority
             className="
               h-96
               w-full
@@ -54,7 +59,16 @@ export default function ProductImageGallery({
     }
 
     return (
-      <div className="flex h-96 items-center justify-center rounded-md border">
+      <div
+        className="
+          flex
+          h-96
+          items-center
+          justify-center
+          rounded-md
+          border
+        "
+      >
         Product Image
       </div>
     );
@@ -62,18 +76,23 @@ export default function ProductImageGallery({
 
   return (
     <div>
+      {/* Main product image */}
       <div className="overflow-hidden rounded-md border">
-        <img
-          src={selectedImage?.image}
-          alt={productName}
-          className="
-            h-96
-            w-full
-            object-cover
-          "
-        />
+        {selectedImage && (
+          <OptimizedImage
+            src={selectedImage.image}
+            alt={productName}
+            priority
+            className="
+              h-96
+              w-full
+              object-cover
+            "
+          />
+        )}
       </div>
 
+      {/* Thumbnail images */}
       {sortedImages.length > 1 && (
         <div className="mt-4 flex gap-3 overflow-x-auto">
           {sortedImages.map((image) => (
@@ -86,6 +105,9 @@ export default function ProductImageGallery({
               aria-label={`View ${productName} image ${
                 image.display_order + 1
               }`}
+              aria-pressed={
+                selectedImage?.id === image.id
+              }
               className={`
                 h-20
                 w-20
@@ -100,7 +122,7 @@ export default function ProductImageGallery({
                 }
               `}
             >
-              <img
+              <OptimizedImage
                 src={image.image}
                 alt=""
                 className="

@@ -42,10 +42,10 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const loadProduct = async () => {
       setError("");
+
       try {
-        const data = await productService.getProduct(
-          id!
-        );
+        const data =
+          await productService.getProduct(id!);
 
         setProduct(data);
 
@@ -103,7 +103,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <EmptyState
-          title="Product not found."
+        title="Product not found."
       />
     );
   }
@@ -112,16 +112,14 @@ export default function ProductDetailPage() {
     <PageContainer>
       {success && <Alert message={success} />}
       {error && <Alert message={error} />}
-      
+
       <div className="grid gap-10 md:grid-cols-2">
 
-        <div>
-          <ProductImageGallery
-            images={product.images}
-            fallbackImage={product.image}
-            productName={product.name}
-          />
-        </div>
+        <ProductImageGallery
+          images={product.images}
+          fallbackImage={product.image}
+          productName={product.name}
+        />
 
         <div>
           <div className="flex items-start justify-between gap-4">
@@ -152,11 +150,19 @@ export default function ProductDetailPage() {
                   onClick={() =>
                     setSelectedVariant(variant)
                   }
-                  className={`block w-full rounded-md border p-3 text-left ${
-                    selectedVariant?.id === variant.id
-                      ? "border-black"
-                      : ""
-                  }`}
+                  className={`
+                    block
+                    w-full
+                    rounded-md
+                    border
+                    p-3
+                    text-left
+                    ${
+                      selectedVariant?.id === variant.id
+                        ? "border-black"
+                        : ""
+                    }
+                  `}
                 >
                   {variant.name} — GHS {variant.price}
                 </button>
@@ -174,10 +180,16 @@ export default function ProductDetailPage() {
               type="number"
               min="1"
               value={quantity}
-              onChange={(e) =>
-                setQuantity(e.target.value)
+              onChange={(event) =>
+                setQuantity(event.target.value)
               }
-              className="mt-2 w-24 rounded-md border p-2"
+              className="
+                mt-2
+                w-24
+                rounded-md
+                border
+                p-2
+              "
             />
           </div>
 
@@ -188,13 +200,19 @@ export default function ProductDetailPage() {
 
             <button
               onClick={handleAddToCart}
-              className="mt-4 rounded-md bg-black px-6 py-3 text-white"
+              className="
+                mt-4
+                rounded-md
+                bg-black
+                px-6
+                py-3
+                text-white
+              "
             >
               Add To Cart
             </button>
           </div>
         </div>
-
       </div>
 
       <div className="mt-16">
