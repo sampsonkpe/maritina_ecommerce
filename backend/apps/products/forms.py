@@ -1,6 +1,23 @@
 from django import forms
 
-from .models import ProductImage
+from .models import Category, ProductImage
+
+
+class CategoryAdminForm(forms.ModelForm):
+
+    image_upload = forms.FileField(
+        required=False,
+        label="Upload image",
+        help_text="Upload an image to Cloudinary.",
+    )
+
+    class Meta:
+        model = Category
+        fields = [
+            "name",
+            "description",
+            "image_upload",
+        ]
 
 
 class ProductImageAdminForm(forms.ModelForm):
@@ -19,6 +36,3 @@ class ProductImageAdminForm(forms.ModelForm):
             "is_primary",
             "display_order",
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)

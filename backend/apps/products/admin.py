@@ -7,7 +7,7 @@ from maritina_ecommerce.cloudinary_config import (
     configure_cloudinary,
 )
 
-from .forms import ProductImageAdminForm
+from .forms import CategoryAdminForm, ProductImageAdminForm
 
 from .models import (
     Category,
@@ -19,6 +19,8 @@ from .models import (
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    form = CategoryAdminForm
+
     list_display = [
         "name",
     ]
@@ -26,6 +28,35 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = [
         "name",
     ]
+
+    def save_model(self, request, obj, form, change):
+        uploaded_file = form.cleaned_data.get(
+            "image_upload"
+        )
+
+        if uploaded_file:
+            configure_cloudinary()
+
+            try:
+                result = cloudinary.uploader.upload(
+                    uploaded_file,
+                    folder="kahwe/categories",
+                    resource_type="image",
+                )
+
+                obj.image = result["secure_url"]
+
+            except Exception as error:
+                raise ValidationError(
+                    f"Cloudinary upload failed: {error}"
+                )
+
+        super().save_model(
+            request,
+            obj,
+            form,
+            change,
+        )
 
 
 class ProductVariantInline(admin.TabularInline):
