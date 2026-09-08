@@ -102,7 +102,9 @@ export default function ReviewForm({
             "Unable to submit your review."
         );
       } else {
-        setError("Unable to submit your review.");
+        setError(
+          "Unable to submit your review."
+        );
       }
     } finally {
       setLoading(false);
@@ -113,37 +115,65 @@ export default function ReviewForm({
     <form
       onSubmit={handleSubmit}
       className="
-        mt-8
-        rounded-md
+        mt-12
+        rounded-2xl
         border
         border-(--color-border)
         p-6
+        sm:p-8
       "
     >
-      <h3 className="text-lg font-semibold">
-        Write a Review
-      </h3>
+      <div>
+        <p
+          className="
+            text-sm
+            font-medium
+            uppercase
+            tracking-[0.2em]
+            text-(--color-text-muted)
+          "
+        >
+          Share your experience
+        </p>
 
-      {error && (
-        <div className="mt-4">
-          <Alert message={error} />
-        </div>
-      )}
+        <h3
+          className="
+            mt-2
+            text-2xl
+            font-semibold
+            tracking-tight
+          "
+        >
+          Write a Review
+        </h3>
+      </div>
 
-      {success && (
-        <div className="mt-4">
-          <Alert
-            message={success}
-            variant="success"
-          />
+      {(error || success) && (
+        <div className="mt-6">
+          {error && (
+            <Alert message={error} />
+          )}
+
+          {success && (
+            <Alert
+              message={success}
+              variant="success"
+            />
+          )}
         </div>
       )}
 
       {variants.length > 1 && (
-        <div className="mt-6">
+        <div className="mt-8">
           <label
             htmlFor="review-variant"
-            className="block text-sm font-semibold"
+            className="
+              block
+              text-sm
+              font-semibold
+              uppercase
+              tracking-[0.15em]
+            "
           >
             Variant
           </label>
@@ -159,13 +189,18 @@ export default function ReviewForm({
               )
             }
             className="
-              mt-2
+              mt-3
+              h-12
               w-full
-              rounded-md
+              rounded-xl
               border
               border-(--color-border)
               bg-(--color-background)
-              p-3
+              px-4
+              text-sm
+              outline-none
+              transition-colors
+              focus:border-(--color-text)
             "
           >
             <option value="">
@@ -184,13 +219,20 @@ export default function ReviewForm({
         </div>
       )}
 
-      <div className="mt-6">
-        <p className="text-sm font-semibold">
+      <div className="mt-8">
+        <p
+          className="
+            text-sm
+            font-semibold
+            uppercase
+            tracking-[0.15em]
+          "
+        >
           Rating
         </p>
 
         <div
-          className="mt-2 flex gap-1"
+          className="mt-3 flex gap-1"
           role="radiogroup"
           aria-label="Rating"
         >
@@ -214,6 +256,7 @@ export default function ReviewForm({
                     rating === value
                   }
                   className="
+                    rounded-sm
                     transition-opacity
                     hover:opacity-60
                   "
@@ -234,10 +277,16 @@ export default function ReviewForm({
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <label
           htmlFor="review-comment"
-          className="block text-sm font-semibold"
+          className="
+            block
+            text-sm
+            font-semibold
+            uppercase
+            tracking-[0.15em]
+          "
         >
           Your review
         </label>
@@ -248,18 +297,22 @@ export default function ReviewForm({
           onChange={(event) =>
             setComment(event.target.value)
           }
-          rows={4}
+          rows={5}
           placeholder="Tell us what you think..."
           className="
-            mt-2
+            mt-3
             w-full
             resize-none
-            rounded-md
+            rounded-xl
             border
             border-(--color-border)
             bg-(--color-background)
-            p-3
+            px-4
+            py-3
+            text-base
             outline-none
+            transition-colors
+            focus:border-(--color-text)
           "
         />
       </div>
@@ -268,12 +321,17 @@ export default function ReviewForm({
         type="submit"
         disabled={loading}
         className="
-          mt-6
-          rounded-md
+          mt-8
+          inline-flex
+          items-center
+          rounded-full
+          border
+          border-(--color-border)
           bg-(--color-text)
           px-6
           py-3
           text-sm
+          font-medium
           text-(--color-background)
           transition-opacity
           hover:opacity-80
