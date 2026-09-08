@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 import OptimizedImage from "../common/OptimizedImage";
 
@@ -9,25 +10,35 @@ interface Props {
 }
 
 export default function ProductCard({ product }: Props) {
-  const primaryVariant = product.variants[0];
-
   const primaryImage =
-    product.images?.find((image) => image.is_primary)?.image ??
+    product.images?.find(
+      (image) => image.is_primary
+    )?.image ??
     product.images?.[0]?.image ??
     product.image;
 
+  const lowestPrice =
+    product.variants?.length > 0
+      ? Math.min(
+          ...product.variants.map((variant) =>
+            Number(variant.price)
+          )
+        )
+      : null;
+
   return (
-    <article className="group overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-background)">
+    <article className="group flex h-full flex-col overflow-hidden rounded-4xl border border-(--color-border) bg-(--color-background)">
       <Link
         to={`/products/${product.id}`}
-        className="block"
+        className="flex h-full flex-col"
       >
-        <div className="aspect-square overflow-hidden bg-(--color-surface-muted)">
+        {/* Image */}
+        <div className="aspect-square shrink-0 overflow-hidden bg-(--color-surface-muted)">
           {primaryImage ? (
             <OptimizedImage
               src={primaryImage}
               alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -38,24 +49,33 @@ export default function ProductCard({ product }: Props) {
           )}
         </div>
 
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight">
-                {product.name}
-              </h2>
+        {/* Content */}
+        <div className="flex flex-1 flex-col items-center p-6 text-center sm:p-7">
+          <h2 className="text-base font-semibold tracking-tight sm:text-lg">
+            {product.name}
+          </h2>
 
-              <p className="mt-2 text-sm leading-6 text-(--color-text-muted)">
-                {product.description}
-              </p>
-            </div>
+          {product.description && (
+            <p className="mt-1 max-w-xs text-sm leading-6 text-(--color-text-muted)">
+              {product.description}
+            </p>
+          )}
 
-            {primaryVariant && (
-              <span className="shrink-0 text-sm font-medium">
-                GHS {primaryVariant.price}
-              </span>
-            )}
-          </div>
+          {lowestPrice !== null && (
+            <p className="mt-5 text-sm font-semibold">
+              From GHS {lowestPrice.toFixed(2)}
+            </p>
+          )}
+
+          <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-(--color-border) px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)">
+            View Product
+
+            <ArrowRight
+              size={17}
+              aria-hidden="true"
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </span>
         </div>
       </Link>
     </article>

@@ -253,7 +253,7 @@ export default function HomePage() {
                 About KAHWƐ
               </p>
 
-              <h2 className="max-w-xl text-4xl font-semibold tracking-tight sm:text-5xl">
+              <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
                 Ghanaian taste, made with care.
               </h2>
 
@@ -375,7 +375,7 @@ export default function HomePage() {
               Ready when you are
             </p>
 
-            <h2 className="mx-auto max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-7xl">
+            <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
               A taste of Ghana is just a few clicks away.
             </h2>
 
