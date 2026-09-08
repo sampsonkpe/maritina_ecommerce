@@ -115,7 +115,10 @@ export default function ReviewForm({
     <form
       onSubmit={handleSubmit}
       className="
+        mx-auto
         mt-12
+        w-full
+        max-w-3xl
         rounded-2xl
         border
         border-(--color-border)
@@ -123,9 +126,11 @@ export default function ReviewForm({
         sm:p-8
       "
     >
+      {/* Header */}
       <div>
         <p
           className="
+            text-center
             text-sm
             font-medium
             uppercase
@@ -139,6 +144,7 @@ export default function ReviewForm({
         <h3
           className="
             mt-2
+            text-center
             text-2xl
             font-semibold
             tracking-tight
@@ -148,6 +154,7 @@ export default function ReviewForm({
         </h3>
       </div>
 
+      {/* Alerts */}
       {(error || success) && (
         <div className="mt-6">
           {error && (
@@ -163,120 +170,145 @@ export default function ReviewForm({
         </div>
       )}
 
-      {variants.length > 1 && (
-        <div className="mt-8">
-          <label
-            htmlFor="review-variant"
+      {/* Variant + Rating */}
+      <div
+        className="
+          mt-8
+          grid
+          grid-cols-1
+          gap-8
+          md:grid-cols-2
+          md:gap-6
+        "
+      >
+        {/* Variant */}
+        {variants.length > 1 && (
+          <div>
+            <label
+              htmlFor="review-variant"
+              className="
+                block
+                text-sm
+                font-semibold
+                uppercase
+                tracking-[0.15em]
+              "
+            >
+              Variant
+            </label>
+
+            <select
+              id="review-variant"
+              value={variantId}
+              onChange={(event) =>
+                setVariantId(
+                  event.target.value
+                    ? Number(event.target.value)
+                    : ""
+                )
+              }
+              className="
+                mt-3
+                h-12
+                w-full
+                rounded-xl
+                border
+                border-(--color-border)
+                bg-(--color-background)
+                px-4
+                text-sm
+                outline-none
+                transition-colors
+                focus:border-(--color-text)
+              "
+            >
+              <option value="">
+                Select a variant
+              </option>
+
+              {variants.map((variant) => (
+                <option
+                  key={variant.id}
+                  value={variant.id}
+                >
+                  {variant.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Rating */}
+        <div
+          className={
+            variants.length > 1
+              ? ""
+              : "md:col-span-2"
+          }
+        >
+          <p
             className="
-              block
               text-sm
               font-semibold
               uppercase
               tracking-[0.15em]
             "
           >
-            Variant
-          </label>
+            Rating
+          </p>
 
-          <select
-            id="review-variant"
-            value={variantId}
-            onChange={(event) =>
-              setVariantId(
-                event.target.value
-                  ? Number(event.target.value)
-                  : ""
-              )
-            }
+          <div
             className="
               mt-3
-              h-12
-              w-full
-              rounded-xl
-              border
-              border-(--color-border)
-              bg-(--color-background)
-              px-4
-              text-sm
-              outline-none
-              transition-colors
-              focus:border-(--color-text)
+              flex
+              gap-1
             "
+            role="radiogroup"
+            aria-label="Rating"
           >
-            <option value="">
-              Select a variant
-            </option>
+            {Array.from({ length: 5 }).map(
+              (_, index) => {
+                const value = index + 1;
 
-            {variants.map((variant) => (
-              <option
-                key={variant.id}
-                value={variant.id}
-              >
-                {variant.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      <div className="mt-8">
-        <p
-          className="
-            text-sm
-            font-semibold
-            uppercase
-            tracking-[0.15em]
-          "
-        >
-          Rating
-        </p>
-
-        <div
-          className="mt-3 flex gap-1"
-          role="radiogroup"
-          aria-label="Rating"
-        >
-          {Array.from({ length: 5 }).map(
-            (_, index) => {
-              const value = index + 1;
-
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() =>
-                    setRating(value)
-                  }
-                  aria-label={`${value} star${
-                    value === 1
-                      ? ""
-                      : "s"
-                  }`}
-                  aria-pressed={
-                    rating === value
-                  }
-                  className="
-                    rounded-sm
-                    transition-opacity
-                    hover:opacity-60
-                  "
-                >
-                  <Star
-                    size={22}
-                    strokeWidth={1.8}
-                    fill={
-                      value <= rating
-                        ? "currentColor"
-                        : "none"
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() =>
+                      setRating(value)
                     }
-                  />
-                </button>
-              );
-            }
-          )}
+                    aria-label={`${value} star${
+                      value === 1
+                        ? ""
+                        : "s"
+                    }`}
+                    aria-pressed={
+                      rating === value
+                    }
+                    className="
+                      rounded-sm
+                      transition-opacity
+                      hover:opacity-60
+                    "
+                  >
+                    <Star
+                      size={22}
+                      strokeWidth={1.8}
+                      fill={
+                        value <= rating
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </button>
+                );
+              }
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Review */}
       <div className="mt-8">
         <label
           htmlFor="review-comment"
@@ -317,32 +349,33 @@ export default function ReviewForm({
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="
-          mt-8
-          inline-flex
-          items-center
-          rounded-full
-          border
-          border-(--color-border)
-          bg-(--color-text)
-          px-6
-          py-3
-          text-sm
-          font-medium
-          text-(--color-background)
-          transition-opacity
-          hover:opacity-80
-          disabled:cursor-not-allowed
-          disabled:opacity-50
-        "
-      >
-        {loading
-          ? "Submitting..."
-          : "Submit Review"}
-      </button>
+      {/* Submit */}
+      <div className="mt-8 flex justify-center">
+        <button
+          type="submit"
+          disabled={loading}
+          className="
+            inline-flex
+            items-center
+            justify-center
+            rounded-full
+            border
+            border-(--color-border)
+            px-6
+            py-3
+            text-sm
+            font-medium
+            transition-colors
+            hover:bg-(--color-surface-muted)
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+        >
+          {loading
+            ? "Submitting..."
+            : "Submit Review"}
+        </button>
+      </div>
     </form>
   );
 }

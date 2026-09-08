@@ -181,6 +181,41 @@ export default function ProductDetailPage() {
             </div>
           )}
 
+          {/* Product heading */}
+          <div
+            className="
+              mb-10
+              flex
+              items-start
+              justify-between
+              gap-6
+              lg:mb-12
+            "
+          >
+            <div>
+
+              <h1
+                className="
+                  text-4xl
+                  font-semibold
+                  leading-tight
+                  tracking-tight
+                  sm:text-5xl
+                  lg:text-6xl
+                "
+              >
+                {product.name}
+              </h1>
+            </div>
+
+            {selectedVariant && (
+              <FavouriteButton
+                variantId={selectedVariant.id}
+              />
+            )}
+          </div>
+
+          {/* Product content */}
           <div
             className="
               grid
@@ -200,34 +235,9 @@ export default function ProductDetailPage() {
 
             {/* Product information */}
             <div className="flex flex-col justify-center">
-              <div
-                className="
-                  flex
-                  items-start
-                  justify-between
-                  gap-6
-                "
-              >
-                <div>
-
-                  <h2 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-                    {product.name}
-                  </h2>
-                </div>
-
-                {selectedVariant && (
-                  <FavouriteButton
-                    variantId={
-                      selectedVariant.id
-                    }
-                  />
-                )}
-              </div>
-
               {product.description && (
                 <p
                   className="
-                    mt-6
                     max-w-xl
                     text-base
                     leading-7
@@ -431,14 +441,12 @@ export default function ProductDetailPage() {
                       rounded-full
                       border
                       border-(--color-border)
-                      bg-(--color-text)
-                      px-7
-                      py-3.5
+                      px-6
+                      py-3
                       text-sm
                       font-medium
-                      text-(--color-background)
-                      transition-opacity
-                      hover:opacity-80
+                      transition-colors
+                      hover:bg-(--color-surface-muted)
                       disabled:cursor-not-allowed
                       disabled:opacity-40
                     "
@@ -503,7 +511,7 @@ export default function ProductDetailPage() {
           "
         >
           <div className="mx-auto max-w-3xl">
-            <div className="mb-12">
+            <div className="mb-12 text-center">
               <p
                 className="
                   mb-4
