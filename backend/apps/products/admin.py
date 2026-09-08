@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
+import cloudinary
 import cloudinary.uploader
 
 from maritina_ecommerce.cloudinary_config import (
@@ -17,6 +18,10 @@ from .models import (
 )
 
 
+# ---------------------------------------------------------------------------
+# Category
+# ---------------------------------------------------------------------------
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     form = CategoryAdminForm
@@ -30,9 +35,7 @@ class CategoryAdmin(admin.ModelAdmin):
     ]
 
     def save_model(self, request, obj, form, change):
-        uploaded_file = form.cleaned_data.get(
-            "image_upload"
-        )
+        uploaded_file = form.cleaned_data.get("image_upload")
 
         if uploaded_file:
             configure_cloudinary()
@@ -42,6 +45,14 @@ class CategoryAdmin(admin.ModelAdmin):
                     uploaded_file,
                     folder="kahwe/categories",
                     resource_type="image",
+                    transformation=[
+                        {
+                            "width": 800,
+                            "height": 1120,
+                            "crop": "fill",
+                            "gravity": "auto",
+                        }
+                    ],
                 )
 
                 obj.image = result["secure_url"]
@@ -59,6 +70,10 @@ class CategoryAdmin(admin.ModelAdmin):
         )
 
 
+# ---------------------------------------------------------------------------
+# Product inlines
+# ---------------------------------------------------------------------------
+
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
@@ -74,6 +89,10 @@ class ProductImageInline(admin.TabularInline):
         "display_order",
     ]
 
+
+# ---------------------------------------------------------------------------
+# Product
+# ---------------------------------------------------------------------------
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -98,6 +117,10 @@ class ProductAdmin(admin.ModelAdmin):
     ]
 
 
+# ---------------------------------------------------------------------------
+# Product Variant
+# ---------------------------------------------------------------------------
+
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
     list_display = [
@@ -118,6 +141,10 @@ class ProductVariantAdmin(admin.ModelAdmin):
         "name",
     ]
 
+
+# ---------------------------------------------------------------------------
+# Product Image
+# ---------------------------------------------------------------------------
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
