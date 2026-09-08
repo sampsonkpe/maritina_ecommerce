@@ -86,7 +86,9 @@ export default function NavBar() {
         z-50
         border-b
         border-(--color-border)
+        bg-(--color-background)/45
         backdrop-blur
+        shadow-[0_8px_30px_rgba(0,0,0,0.04)]
         transition-transform
         duration-300
         ease-out
@@ -310,6 +312,8 @@ export default function NavBar() {
             className="
               border-t
               border-(--color-border)
+              bg-(--color-background)/45
+              backdrop-blur
               py-4
               md:hidden
             "

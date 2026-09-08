@@ -6,10 +6,27 @@
 ├── package.json
 ├── public
 │   └── images
+│       ├── asaana-02.png
+│       ├── asaana.png
 │       ├── finger-foods.png
 │       ├── grills.png
 │       ├── kahwe-hero.png
-│       └── local-beverages.png
+│       ├── kahwe-team.png
+│       ├── kubecake-02.png
+│       ├── kubecake.png
+│       ├── lamugin-02.png
+│       ├── lamugin.png
+│       ├── local-beverages.png
+│       ├── original-plantain-chips-02.png
+│       ├── original-plantain-chips.png
+│       ├── poloo-02.png
+│       ├── poloo-03.png
+│       ├── poloo.png
+│       ├── ripe-plantain-chips-02.png
+│       ├── ripe-plantain-chips.png
+│       ├── sausages-02.png
+│       ├── sausages.png
+│       └── suya.png
 ├── src
 │   ├── api
 │   │   └── axios.ts
@@ -28,6 +45,7 @@
 │   │   │   ├── Button.tsx
 │   │   │   ├── EmptyState.tsx
 │   │   │   ├── LoadingState.tsx
+│   │   │   ├── OptimizedImage.tsx
 │   │   │   ├── PageContainer.tsx
 │   │   │   ├── PageHeader.tsx
 │   │   │   ├── SectionTitle.tsx
@@ -53,7 +71,8 @@
 │   │   │   ├── OrderSummary.tsx
 │   │   │   └── OrderTracking.tsx
 │   │   ├── products
-│   │   │   └── ProductCard.tsx
+│   │   │   ├── ProductCard.tsx
+│   │   │   └── ProductImageGallery.tsx
 │   │   └── reviews
 │   │       ├── ReviewBand.tsx
 │   │       ├── ReviewCard.tsx
@@ -142,4 +161,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-34 directories, 109 files
+34 directories, 128 files

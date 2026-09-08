@@ -48,21 +48,22 @@ export default function ReviewBand() {
 
   return (
     <section
-        aria-label="Customer reviews"
-        className="
-            fixed
-            bottom-15
-            left-0
-            right-0
-            z-50
-            w-full
-            overflow-hidden
-            border-y
-            border-(--color-border)
-            bg-(--color-background)/30
-            backdrop-blur-md
-            py-5
-        "
+      aria-label="Customer reviews"
+      className="
+        fixed
+        bottom-15
+        left-0
+        right-0
+        z-50
+        w-full
+        overflow-hidden
+        border-y
+        border-(--color-border)
+        bg-(--color-background)/45
+        backdrop-blur
+        shadow-[0_-8px_30px_rgba(0,0,0,0.06)]
+        py-5
+      "
     >
         <div className="review-band-track">
             {scrollingReviews.map(

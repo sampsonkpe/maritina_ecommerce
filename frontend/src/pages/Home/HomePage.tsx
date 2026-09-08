@@ -82,8 +82,8 @@ export default function HomePage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-(--color-border)">
-        <div className="mx-auto grid min-h-[calc(60vh-4rem)] max-w-7xl items-center gap-10 px-6 py-12 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-16">
-          <div className="relative z-10 max-w-2xl">
+        <div className="mx-auto grid min-h-[calc(60vh-4rem)] max-w-7xl items-center gap-12 px-6 py-14 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-20">
+          <div className="relative z-10 mx-auto max-w-2xl text-center">
             <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
               KAHWƐ by Maritina Foods
             </p>
@@ -96,13 +96,13 @@ export default function HomePage() {
               delivered.
             </h1>
 
-            <p className="mt-7 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+            <p className="mx-auto mt-7 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
               Authentic Ghanaian snacks, drinks and grills made
               for every moment. Discover your favourites and
               have them delivered to you.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Link
                 to="/products"
                 className="rounded-full border border-(--color-border) bg-(--color-text) px-7 py-3.5 text-sm font-medium text-(--color-background) transition-opacity hover:opacity-80"
@@ -120,7 +120,7 @@ export default function HomePage() {
           </div>
 
           <div className="relative flex items-center justify-center">
-            <div className="relative h-80 w-66 overflow-hidden rounded-4xl border border-(--color-border) sm:h-105 sm:w-84 lg:h-120 lg:w-95">
+            <div className="relative h-105 w-80 overflow-hidden rounded-4xl border border-(--color-border) sm:h-110 sm:w-84 lg:h-130 lg:w-110">
               <img
                 src="/images/kahwe-hero.png"
                 alt="Ghanaian snacks and local beverage"
@@ -136,7 +136,7 @@ export default function HomePage() {
         id="categories"
         className="mx-auto max-w-7xl border-b border-(--color-border) px-6 py-20 lg:px-8 lg:py-24"
       >
-        <div className="mb-12 max-w-2xl">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
             Explore KAHWƐ
           </p>
@@ -183,7 +183,7 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <span className="relative z-10 mb-8 ml-8 flex h-11 w-11 items-center justify-center rounded-full border border-white/70 text-white transition-transform duration-300 group-hover:translate-x-1">
+                <span className="relative z-10 mb-8 mr-8 flex h-11 w-11 items-center justify-center self-end rounded-full border border-white/70 text-white transition-transform duration-300 group-hover:translate-x-1">
                   <ArrowRight
                     size={18}
                     aria-hidden="true"
@@ -202,7 +202,7 @@ export default function HomePage() {
       {/* Featured Products */}
       <section className="border-b border-(--color-border)">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
-          <div className="mb-12 max-w-3xl">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
               Made for the moment
             </p>
@@ -248,7 +248,7 @@ export default function HomePage() {
               />
             </div>
 
-            <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+            <div className="flex flex-col items-center justify-center p-8 text-center sm:p-12 lg:p-16">
               <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
                 About KAHWƐ
               </p>
@@ -276,7 +276,7 @@ export default function HomePage() {
       {/* How It Works */}
       <section className="border-b border-(--color-border)">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
-          <div className="mb-12 max-w-2xl">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
               How It Works
             </p>
@@ -288,7 +288,7 @@ export default function HomePage() {
 
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {/* 01 */}
-            <div className="rounded-3xl border border-(--color-border) p-7 sm:p-8">
+            <div className="rounded-3xl border border-(--color-border) p-7 text-center sm:p-8">
               <p className="text-sm font-medium text-(--color-text-muted)">
                 01
               </p>
@@ -304,7 +304,7 @@ export default function HomePage() {
             </div>
 
             {/* 02 */}
-            <div className="rounded-3xl border border-(--color-border) p-7 sm:p-8">
+            <div className="rounded-3xl border border-(--color-border) p-7 text-center sm:p-8">
               <p className="text-sm font-medium text-(--color-text-muted)">
                 02
               </p>
@@ -320,7 +320,7 @@ export default function HomePage() {
             </div>
 
             {/* 03 */}
-            <div className="rounded-3xl border border-(--color-border) p-7 sm:p-8">
+            <div className="rounded-3xl border border-(--color-border) p-7 text-center sm:p-8">
               <p className="text-sm font-medium text-(--color-text-muted)">
                 03
               </p>
@@ -335,7 +335,7 @@ export default function HomePage() {
             </div>
 
             {/* 04 */}
-            <div className="rounded-3xl border border-(--color-border) p-7 sm:p-8">
+            <div className="rounded-3xl border border-(--color-border) p-7 text-center sm:p-8">
               <p className="text-sm font-medium text-(--color-text-muted)">
                 04
               </p>
@@ -350,7 +350,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end">
+          <div className="mt-8 flex justify-center lg:justify-end">
             <Link
               to="/products"
               className="group inline-flex items-center gap-2 text-sm font-medium"
