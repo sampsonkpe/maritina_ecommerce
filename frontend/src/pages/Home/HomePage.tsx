@@ -81,10 +81,10 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:px-8">
+      <section className="relative overflow-hidden border-b border-(--color-border)">
+        <div className="mx-auto grid min-h-[calc(60vh-4rem)] max-w-7xl items-center gap-10 px-6 py-12 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-16">
           <div className="relative z-10 max-w-2xl">
-            <p className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+            <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
               KAHWƐ by Maritina Foods
             </p>
 
@@ -96,13 +96,13 @@ export default function HomePage() {
               delivered.
             </h1>
 
-            <p className="mt-8 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+            <p className="mt-7 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
               Authentic Ghanaian snacks, drinks and grills made
               for every moment. Discover your favourites and
               have them delivered to you.
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 to="/products"
                 className="rounded-full border border-(--color-border) bg-(--color-text) px-7 py-3.5 text-sm font-medium text-(--color-background) transition-opacity hover:opacity-80"
@@ -119,8 +119,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex min-h-105 items-center justify-center lg:min-h-155">
-            <div className="relative h-90 w-75 overflow-hidden rounded-4xl border border-(--color-border) sm:h-120 sm:w-95">
+          <div className="relative flex items-center justify-center">
+            <div className="relative h-80 w-66 overflow-hidden rounded-4xl border border-(--color-border) sm:h-105 sm:w-84 lg:h-120 lg:w-95">
               <img
                 src="/images/kahwe-hero.png"
                 alt="Ghanaian snacks and local beverage"
@@ -134,7 +134,7 @@ export default function HomePage() {
       {/* Categories */}
       <section
         id="categories"
-        className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32"
+        className="mx-auto max-w-7xl border-b border-(--color-border) px-6 py-20 lg:px-8 lg:py-24"
       >
         <div className="mb-12 max-w-2xl">
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
@@ -200,8 +200,8 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products */}
-      <section className="border-y border-(--color-border)">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
+      <section className="border-b border-(--color-border)">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
           <div className="mb-12 max-w-3xl">
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
               Made for the moment
@@ -237,44 +237,46 @@ export default function HomePage() {
       </section>
 
       {/* KAHWƐ Story */}
-      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
-        <div className="grid overflow-hidden rounded-4xl border border-(--color-border) lg:grid-cols-2">
-          <div className="min-h-105 overflow-hidden sm:min-h-125 lg:min-h-155">
-            <img
-              src="/images/kahwe-team.png"
-              alt="The KAHWƐ by Maritina Foods team"
-              className="h-full w-full object-cover"
-            />
-          </div>
+      <section className="border-b border-(--color-border)">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
+          <div className="grid overflow-hidden rounded-4xl border border-(--color-border) lg:grid-cols-2">
+            <div className="min-h-105 overflow-hidden sm:min-h-125 lg:min-h-145">
+              <img
+                src="/images/kahwe-team.png"
+                alt="The KAHWƐ by Maritina Foods team"
+                className="h-full w-full object-cover"
+              />
+            </div>
 
-          <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
-            <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
-              About KAHWƐ
-            </p>
+            <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+              <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+                About KAHWƐ
+              </p>
 
-            <h2 className="max-w-xl text-4xl font-semibold tracking-tight sm:text-5xl">
-              Ghanaian taste, made with care.
-            </h2>
+              <h2 className="max-w-xl text-4xl font-semibold tracking-tight sm:text-5xl">
+                Ghanaian taste, made with care.
+              </h2>
 
-            <p className="mt-6 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
-              KAHWƐ brings together the flavours people know and love, from
-              traditional Ghanaian snacks and refreshing local beverages to
-              freshly prepared grills.
-            </p>
+              <p className="mt-6 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+                KAHWƐ brings together the flavours people know and love, from
+                traditional Ghanaian snacks and refreshing local beverages to
+                freshly prepared grills.
+              </p>
 
-            <p className="mt-5 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
-              Proudly brought to you by Maritina Foods, KAHWƐ makes it simple
-              to discover your favourites, order with ease and enjoy them
-              wherever you are.
-            </p>
+              <p className="mt-5 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+                Proudly brought to you by Maritina Foods, KAHWƐ makes it simple
+                to discover your favourites, order with ease and enjoy them
+                wherever you are.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="border-y border-(--color-border)">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
-          <div className="mb-16 max-w-2xl">
+      <section className="border-b border-(--color-border)">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
+          <div className="mb-12 max-w-2xl">
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
               How It Works
             </p>
@@ -366,34 +368,36 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA */}
-      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
-        <div className="rounded-4xl border border-(--color-border) bg-(--color-surface-muted) px-8 py-16 text-center sm:px-12 lg:px-16 lg:py-24">
-          <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
-            Ready when you are
-          </p>
+      <section className="border-b border-(--color-border)">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
+          <div className="rounded-4xl border border-(--color-border) bg-(--color-surface-muted) px-8 py-16 text-center sm:px-12 lg:px-16 lg:py-20">
+            <p className="mb-5 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+              Ready when you are
+            </p>
 
-          <h2 className="mx-auto max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-7xl">
-            A taste of Ghana is just a few clicks away.
-          </h2>
+            <h2 className="mx-auto max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-7xl">
+              A taste of Ghana is just a few clicks away.
+            </h2>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
-            Discover your favourites, place your order and enjoy KAHWƐ
-            wherever you are.
-          </p>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+              Discover your favourites, place your order and enjoy KAHWƐ
+              wherever you are.
+            </p>
 
-          <div className="mt-10">
-            <Link
-              to="/products"
-              className="group inline-flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-text) px-7 py-3.5 text-sm font-medium text-(--color-background) transition-opacity hover:opacity-80"
-            >
-              Explore the Menu
+            <div className="mt-10">
+              <Link
+                to="/products"
+                className="group inline-flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-text) px-7 py-3.5 text-sm font-medium text-(--color-background) transition-opacity hover:opacity-80"
+              >
+                Explore the Menu
 
-              <ArrowRight
-                size={17}
-                aria-hidden="true"
-                className="transition-transform duration-300 group-hover:translate-x-1"
-              />
-            </Link>
+                <ArrowRight
+                  size={17}
+                  aria-hidden="true"
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
