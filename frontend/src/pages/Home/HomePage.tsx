@@ -287,7 +287,6 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {/* 01 */}
             <div className="rounded-3xl border border-(--color-border) p-7 text-center sm:p-8">
               <p className="text-sm font-medium text-(--color-text-muted)">
                 01
@@ -303,7 +302,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* 02 */}
             <div className="rounded-3xl border border-(--color-border) p-7 text-center sm:p-8">
               <p className="text-sm font-medium text-(--color-text-muted)">
                 02
@@ -319,7 +317,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* 03 */}
             <div className="rounded-3xl border border-(--color-border) p-7 text-center sm:p-8">
               <p className="text-sm font-medium text-(--color-text-muted)">
                 03
@@ -334,7 +331,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* 04 */}
             <div className="rounded-3xl border border-(--color-border) p-7 text-center sm:p-8">
               <p className="text-sm font-medium text-(--color-text-muted)">
                 04

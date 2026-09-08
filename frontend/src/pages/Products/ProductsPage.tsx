@@ -85,8 +85,8 @@ export default function ProductsPage() {
     <>
       {/* Page intro */}
       <section className="border-b border-(--color-border)">
-        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
+        <div className="mx-auto flex min-h-[calc(60vh-4rem)] max-w-7xl items-center px-6 py-20 sm:px-8 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-2xl text-center">
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
               KAHWƐ Menu
             </p>
@@ -107,8 +107,8 @@ export default function ProductsPage() {
 
       {/* Category navigation */}
       <section className="border-b border-(--color-border)">
-        <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
-          <div className="flex items-center gap-3 overflow-x-auto pb-1">
+        <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-10">
+          <div className="flex items-center justify-center gap-10 overflow-x-auto pb-1 max-sm:justify-start max-sm:gap-3">
             <button
               type="button"
               onClick={() =>
