@@ -5,7 +5,6 @@ import SectionTitle from "../common/SectionTitle";
 import OrderItemsList from "./OrderItemsList";
 import OrderSummary from "./OrderSummary";
 import OrderStatusEditor from "./OrderStatusEditor";
-import OrderFooter from "./OrderFooter";
 
 interface AdminOrderDetailsProps {
   order: Order;
@@ -23,19 +22,19 @@ export default function AdminOrderDetails({
   onUpdate,
 }: AdminOrderDetailsProps) {
   return (
-    <div className="mt-6 border-t pt-6">
-
+    <div className="mt-6 border-t border-(--color-border) pt-6">
+      {/* Delivery Address */}
       <div>
         <SectionTitle>
           Delivery Address
         </SectionTitle>
 
-        <p className="mt-2 text-gray-600">
-          {order.address_text ??
-            "Pickup Order"}
+        <p className="mt-2 text-(--color-text-muted)">
+          {order.address_text ?? "Pickup Order"}
         </p>
       </div>
 
+      {/* Items */}
       <div className="mt-8">
         <SectionTitle>
           Items
@@ -46,6 +45,7 @@ export default function AdminOrderDetails({
         />
       </div>
 
+      {/* Order Summary */}
       <OrderSummary
         subtotal={order.subtotal}
         deliveryFee={order.delivery_fee}
@@ -54,19 +54,20 @@ export default function AdminOrderDetails({
         refundStatus={order.refund_status}
       />
 
-      <OrderStatusEditor
-        order={order}
-        selectedStatus={selectedStatus}
-        updating={updating}
-        onStatusChange={onStatusChange}
-        onUpdate={onUpdate}
-      />
+      {/* Status */}
+      <div className="mt-8">
+        <SectionTitle>
+          Order Status
+        </SectionTitle>
 
-      <OrderFooter
-        createdAt={order.created_at}
-        updatedAt={order.updated_at}
-        showPayButton={false}
-      />
+        <OrderStatusEditor
+          order={order}
+          selectedStatus={selectedStatus}
+          updating={updating}
+          onStatusChange={onStatusChange}
+          onUpdate={onUpdate}
+        />
+      </div>
     </div>
   );
 }

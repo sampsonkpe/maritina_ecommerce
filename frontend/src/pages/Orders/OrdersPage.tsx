@@ -1,24 +1,21 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-
-import { orderService } from "../../services/orderService";
-
-import type { Order } from "../../types/order";
 
 import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
 
+import { orderService } from "../../services/orderService";
+
+import type { Order } from "../../types/order";
+
 import {
   ORDER_STATUS,
   type OrderStatus,
 } from "../../constants/order";
 
-import PageHeader from "../../components/common/PageHeader";
 import LoadingState from "../../components/common/LoadingState";
 import EmptyState from "../../components/common/EmptyState";
-import PageContainer from "../../components/common/PageContainer";
 import Alert from "../../components/common/Alert";
 
 import OrderItemsList from "../../components/orders/OrderItemsList";
@@ -27,14 +24,9 @@ import OrderHeader from "../../components/orders/OrderHeader";
 import OrderFooter from "../../components/orders/OrderFooter";
 
 export default function OrdersPage() {
-  const [orders, setOrders] =
-    useState<Order[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [expandedOrders, setExpandedOrders] =
     useState<number[]>([]);
@@ -45,21 +37,15 @@ export default function OrdersPage() {
   const toggleOrder = (orderId: number) => {
     setExpandedOrders((prev) =>
       prev.includes(orderId)
-        ? prev.filter(
-            (id) => id !== orderId
-          )
+        ? prev.filter((id) => id !== orderId)
         : [...prev, orderId]
     );
   };
 
-  const toggleSection = (
-    section: string
-  ) => {
+  const toggleSection = (section: string) => {
     setCollapsedSections((prev) =>
       prev.includes(section)
-        ? prev.filter(
-            (item) => item !== section
-          )
+        ? prev.filter((item) => item !== section)
         : [...prev, section]
     );
   };
@@ -72,93 +58,72 @@ export default function OrdersPage() {
 
   const activeOrders = orders.filter(
     (order) =>
-      !activeExcludedStatuses.includes(
-        order.status
-      )
+      !activeExcludedStatuses.includes(order.status)
   );
 
   const fulfilledOrders = orders.filter(
     (order) =>
-      order.status ===
-        ORDER_STATUS.DELIVERED ||
-      order.status ===
-        ORDER_STATUS.PICKED_UP
+      order.status === ORDER_STATUS.DELIVERED ||
+      order.status === ORDER_STATUS.PICKED_UP
   );
 
   const cancelledOrders = orders.filter(
     (order) =>
-      order.status ===
-      ORDER_STATUS.CANCELLED
+      order.status === ORDER_STATUS.CANCELLED
   );
 
   const renderOrders = (
     ordersToRender: Order[]
   ) => (
-    <div className="space-y-6">
-      {ordersToRender.map((order) => (
-        <div
-          key={order.id}
-          className="
-            rounded-md
-            border
-            border-(--color-border)
-            bg-(--color-surface)
-            p-6
-            shadow-sm
-          "
-        >
-          <OrderHeader
-            order={order}
-            expanded={expandedOrders.includes(
-              order.id
-            )}
-            onToggle={() =>
-              toggleOrder(order.id)
-            }
-          />
+    <div className="space-y-5">
+      {ordersToRender.map((order) => {
+        const expanded = expandedOrders.includes(order.id);
 
-          {expandedOrders.includes(
-            order.id
-          ) && (
-            <OrderItemsList
-              items={order.items}
+        return (
+          <article
+            key={order.id}
+            className="
+              rounded-3xl
+              border
+              border-(--color-border)
+              bg-(--color-surface)
+              p-5
+              sm:p-6
+            "
+          >
+            <OrderHeader
+              order={order}
+              expanded={expanded}
+              onToggle={() =>
+                toggleOrder(order.id)
+              }
             />
-          )}
 
-          <OrderSummary
-            subtotal={order.subtotal}
-            deliveryFee={order.delivery_fee}
-            total={order.total_amount}
-            refundedAmount={order.refunded_amount}
-            refundStatus={order.refund_status}
-          />
+            {expanded && (
+              <>
+                <OrderItemsList
+                  items={order.items}
+                />
 
-          <div className="mt-5">
-            <Link
-              to={`/orders/${order.id}`}
-              className="
-                inline-flex
-                items-center
-                text-sm
-                font-medium
-                text-(--color-text)
-                underline
-                underline-offset-4
-                transition-opacity
-                hover:opacity-60
-              "
-            >
-              Track Order
-            </Link>
-          </div>
+                <OrderSummary
+                  subtotal={order.subtotal}
+                  deliveryFee={order.delivery_fee}
+                  total={order.total_amount}
+                  refundedAmount={order.refunded_amount}
+                  refundStatus={order.refund_status}
+                />
+              </>
+            )}
 
-          <OrderFooter
-            createdAt={order.created_at}
-            updatedAt={order.updated_at}
-            showPayButton={false}
-          />
-        </div>
-      ))}
+            <OrderFooter
+              orderId={order.id}
+              createdAt={order.created_at}
+              updatedAt={order.updated_at}
+              showTrackOrder
+            />
+          </article>
+        );
+      })}
     </div>
   );
 
@@ -178,26 +143,11 @@ export default function OrdersPage() {
       <section>
         <button
           type="button"
-          onClick={() =>
-            toggleSection(key)
-          }
+          onClick={() => toggleSection(key)}
           aria-expanded={!collapsed}
-          className="
-            flex
-            w-full
-            items-center
-            justify-between
-            text-left
-          "
-        >
+          className="flex w-full items-center justify-between text-left">
           <span
-            className="
-              text-sm
-              font-semibold
-              uppercase
-              tracking-wider
-            "
-          >
+            className="text-sm font-semibold uppercase tracking-[0.2em]">
             {title}
           </span>
 
@@ -217,12 +167,7 @@ export default function OrdersPage() {
         </button>
 
         <div
-          className="
-            mt-3
-            border-t
-            border-(--color-border)
-          "
-        />
+          className="mt-4 border-t border-(--color-border)"/>
 
         {!collapsed && (
           <div className="mt-6">
@@ -238,16 +183,13 @@ export default function OrdersPage() {
       setError("");
 
       try {
-        const data =
-          await orderService.getOrders();
+        const data = await orderService.getOrders();
 
         setOrders(data);
       } catch (error) {
         console.error(error);
 
-        setError(
-          "Failed to load orders."
-        );
+        setError("Failed to load orders.");
       } finally {
         setLoading(false);
       }
@@ -258,47 +200,65 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <LoadingState
-        message="Loading orders..."
-      />
+      <LoadingState message="Loading orders..." />
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader title="My Orders" />
+    <>
+      {/* Page intro */}
+      <section className="border-b border-(--color-border)">
+        <div className="mx-auto flex min-h-[calc(50vh-4rem)] max-w-7xl items-center px-6 py-20 sm:px-8 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+              Your KAHWƐ Orders
+            </p>
 
-      {error && (
-        <Alert message={error} />
-      )}
+            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl xl:text-8xl">
+              All your orders in one place.
+            </h1>
 
-      {orders.length === 0 ? (
-        <EmptyState
-          title="No orders found."
-        />
-      ) : (
-        <div className="space-y-12">
-
-          {renderSection(
-            "active",
-            "Active Orders",
-            activeOrders
-          )}
-
-          {renderSection(
-            "fulfilled",
-            "Fulfilled Orders",
-            fulfilledOrders
-          )}
-
-          {renderSection(
-            "cancelled",
-            "Cancelled Orders",
-            cancelledOrders
-          )}
-
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+              Keep track of your active orders, your completed orders and everything in between.
+            </p>
+          </div>
         </div>
-      )}
-    </PageContainer>
+      </section>
+
+      {/* Orders */}
+      <section>
+        <div className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-8 lg:py-24">
+          {error && (
+            <div className="mb-8">
+              <Alert message={error} />
+            </div>
+          )}
+
+          {orders.length === 0 ? (
+            <EmptyState title="No orders found. Please place an order to get started." />
+          ) : (
+            <div className="mx-auto max-w-5xl space-y-12">
+              {renderSection(
+                "active",
+                "Active Orders",
+                activeOrders
+              )}
+
+              {renderSection(
+                "fulfilled",
+                "Fulfilled Orders",
+                fulfilledOrders
+              )}
+
+              {renderSection(
+                "cancelled",
+                "Cancelled Orders",
+                cancelledOrders
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 }

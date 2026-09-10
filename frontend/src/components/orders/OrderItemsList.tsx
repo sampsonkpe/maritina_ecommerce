@@ -15,10 +15,12 @@ export default function OrderItemsList({
     <div
       className="
         mt-4
-        rounded-md
-        border border-(--color-border)
+        rounded-2xl
+        border
+        border-(--color-border)
         bg-(--color-surface-muted)
         p-4
+        sm:p-5
       "
     >
       <div className="space-y-5">
@@ -35,19 +37,48 @@ export default function OrderItemsList({
               {item.product_name}
             </p>
 
-            <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center text-sm">
-              <span className="min-w-0 text-(--color-text-muted)">
+            <div
+              className="
+                mt-1
+                grid
+                grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]
+                items-center
+                gap-3
+                text-sm
+              "
+            >
+              <span
+                className="
+                  min-w-0
+                  truncate
+                  text-(--color-text-muted)
+                "
+              >
                 {item.variant_name || "Standard"}
               </span>
 
-              <span className="justify-self-center text-(--color-text-muted)">
+              <span
+                className="
+                  justify-self-center
+                  whitespace-nowrap
+                  text-(--color-text-muted)
+                "
+              >
                 ×{item.quantity}
               </span>
 
-              {showPrice && (
-                <span className="justify-self-end text-(--color-text-muted)">
+              {showPrice ? (
+                <span
+                  className="
+                    justify-self-end
+                    whitespace-nowrap
+                    text-(--color-text-muted)
+                  "
+                >
                   {formatCurrency(item.subtotal)}
                 </span>
+              ) : (
+                <span />
               )}
             </div>
           </div>

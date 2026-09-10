@@ -22,6 +22,7 @@ import Alert from "../../components/common/Alert";
 import OrderHeader from "../../components/orders/OrderHeader";
 import AdminOrderFilters from "../../components/orders/AdminOrderFilters";
 import AdminOrderDetails from "../../components/orders/AdminOrderDetails";
+import OrderFooter from "../../components/orders/OrderFooter";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] =
@@ -268,34 +269,31 @@ export default function AdminOrdersPage() {
             }
           />
 
-          {expandedOrders.includes(
-            order.id
-          ) && (
+          {expandedOrders.includes(order.id) && (
             <AdminOrderDetails
               order={order}
               selectedStatus={
                 selectedStatuses[order.id] ??
                 order.status
               }
-              updating={updatingOrders.includes(
-                order.id
-              )}
+              updating={updatingOrders.includes(order.id)}
               onStatusChange={(status) =>
-                setSelectedStatuses(
-                  (current) => ({
-                    ...current,
-                    [order.id]:
-                      status as Order["status"],
-                  })
-                )
+                setSelectedStatuses((current) => ({
+                  ...current,
+                  [order.id]:
+                    status as Order["status"],
+                }))
               }
               onUpdate={() =>
-                handleUpdateStatus(
-                  order.id
-                )
+                handleUpdateStatus(order.id)
               }
             />
           )}
+
+          <OrderFooter
+            createdAt={order.created_at}
+            updatedAt={order.updated_at}
+          />
         </div>
       ))}
     </div>

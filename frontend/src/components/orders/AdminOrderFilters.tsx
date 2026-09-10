@@ -25,8 +25,8 @@ export default function AdminOrderFilters({
   onClear,
 }: AdminOrderFiltersProps) {
   return (
-    <div className="mb-8 flex flex-col gap-4 md:flex-row">
-
+    <div className="mb-8 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
+      {/* Search */}
       <input
         aria-label="Search orders"
         type="text"
@@ -35,16 +35,38 @@ export default function AdminOrderFilters({
         onChange={(e) =>
           onSearchChange(e.target.value)
         }
-        className="flex-1 rounded-md border px-4 py-3"
+        className="
+          min-w-0
+          rounded-2xl
+          border
+          border-(--color-border)
+          bg-(--color-surface)
+          px-4
+          py-3
+          text-sm
+          outline-none
+          transition-colors
+          focus:border-(--color-text)
+        "
       />
 
+      {/* Status */}
       <select
         aria-label="Filter by order status"
         value={statusFilter}
         onChange={(e) =>
           onStatusChange(e.target.value)
         }
-        className="rounded-md border px-4 py-3"
+        className="
+          rounded-2xl
+          border
+          border-(--color-border)
+          bg-(--color-surface)
+          px-4
+          py-3
+          text-sm
+          outline-none
+        "
       >
         <option value="">
           All Statuses
@@ -60,13 +82,23 @@ export default function AdminOrderFilters({
         ))}
       </select>
 
+      {/* Delivery Type */}
       <select
         aria-label="Filter by delivery type"
         value={deliveryTypeFilter}
         onChange={(e) =>
           onDeliveryTypeChange(e.target.value)
         }
-        className="rounded-md border px-4 py-3"
+        className="
+          rounded-2xl
+          border
+          border-(--color-border)
+          bg-(--color-surface)
+          px-4
+          py-3
+          text-sm
+          outline-none
+        "
       >
         <option value="">
           All Delivery Types
@@ -81,14 +113,15 @@ export default function AdminOrderFilters({
         </option>
       </select>
 
+      {/* Clear */}
       <Button
         type="button"
         variant="secondary"
         onClick={onClear}
+        rounded="2xl"
       >
         Clear Filters
       </Button>
-
     </div>
   );
 }

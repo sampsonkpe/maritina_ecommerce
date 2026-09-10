@@ -16,42 +16,53 @@ export default function OrderSummary({
   refundStatus = null,
 }: OrderSummaryProps) {
   const refunded = Number(refundedAmount);
+  const amountPaid = Math.max(
+    Number(total) - refunded,
+    0
+  );
 
   return (
     <div
       className="
         mt-5
-        rounded-md
-        border border-(--color-border)
+        rounded-2xl
+        border
+        border-(--color-border)
         bg-(--color-surface-muted)
         p-4
+        sm:p-5
       "
     >
-      <div className="flex justify-between text-sm">
+      {/* Subtotal */}
+      <div className="flex items-center justify-between gap-4 text-sm">
         <span className="text-(--color-text-muted)">
           Subtotal
         </span>
 
-        <span>
+        <span className="shrink-0">
           {formatCurrency(subtotal)}
         </span>
       </div>
 
-      <div className="mt-2 flex justify-between text-sm">
+      {/* Delivery Fee */}
+      <div className="mt-2 flex items-center justify-between gap-4 text-sm">
         <span className="text-(--color-text-muted)">
           Delivery Fee
         </span>
 
-        <span>
+        <span className="shrink-0">
           {formatCurrency(deliveryFee)}
         </span>
       </div>
 
+      {/* Total */}
       <div
         className="
           mt-3
           flex
+          items-center
           justify-between
+          gap-4
           border-t
           border-(--color-border)
           pt-3
@@ -60,28 +71,32 @@ export default function OrderSummary({
       >
         <span>Total</span>
 
-        <span>
+        <span className="shrink-0">
           {formatCurrency(total)}
         </span>
       </div>
 
+      {/* Refund information */}
       {refunded > 0 && (
-        <>
-          <div className="mt-2 flex justify-between text-sm">
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-4 text-sm">
             <span className="text-(--color-text-muted)">
               Refunded
             </span>
 
-            <span>
+            <span className="shrink-0">
               {formatCurrency(refunded)}
             </span>
           </div>
 
+          {/* Amount Paid */}
           <div
             className="
               mt-3
               flex
+              items-center
               justify-between
+              gap-4
               border-t
               border-(--color-border)
               pt-3
@@ -90,16 +105,12 @@ export default function OrderSummary({
           >
             <span>Amount Paid</span>
 
-            <span>
-              {formatCurrency(
-                Math.max(
-                  Number(total) - refunded,
-                  0
-                )
-              )}
+            <span className="shrink-0">
+              {formatCurrency(amountPaid)}
             </span>
           </div>
 
+          {/* Refund Status */}
           {refundStatus && (
             <div className="mt-2 text-right text-xs text-(--color-text-muted)">
               Refund status:{" "}
@@ -108,7 +119,7 @@ export default function OrderSummary({
               </span>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

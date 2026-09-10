@@ -10,17 +10,28 @@ interface ButtonProps
     | "primary"
     | "secondary"
     | "success";
+  rounded?:
+    | "md"
+    | "2xl"
+    | "full";
 }
 
 export default function Button({
   children,
   variant = "primary",
+  rounded = "md",
   className = "",
   type = "button",
   ...props
 }: ButtonProps) {
   const baseClasses =
-    "rounded-md font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
+    "font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
+
+  const roundedClasses = {
+    md: "rounded-md",
+    "2xl": "rounded-2xl",
+    full: "rounded-full",
+  };
 
   const variantClasses = {
     primary:
@@ -36,7 +47,12 @@ export default function Button({
   return (
     <button
       type={type}
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      className={`
+        ${baseClasses}
+        ${roundedClasses[rounded]}
+        ${variantClasses[variant]}
+        ${className}
+      `}
       {...props}
     >
       {children}
