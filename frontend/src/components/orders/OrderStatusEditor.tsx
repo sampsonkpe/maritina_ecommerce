@@ -54,7 +54,7 @@ export default function OrderStatusEditor({
                 onStatusChange(e.target.value)
               }
               className="
-                rounded-md
+                rounded-2xl
                 border border-(--color-border)
                 bg-(--color-surface)
                 px-4
@@ -82,6 +82,7 @@ export default function OrderStatusEditor({
                 updating ||
                 selectedStatus === order.status
               }
+              rounded="2xl"
             >
               {updating
                 ? "Updating..."

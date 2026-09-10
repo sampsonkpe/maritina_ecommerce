@@ -25,14 +25,9 @@ import AdminOrderDetails from "../../components/orders/AdminOrderDetails";
 import OrderFooter from "../../components/orders/OrderFooter";
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] =
-    useState<Order[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [expandedOrders, setExpandedOrders] =
     useState<number[]>([]);
@@ -41,36 +36,37 @@ export default function AdminOrdersPage() {
     useState<string[]>([]);
 
   const [selectedStatuses, setSelectedStatuses] =
-    useState<
-      Record<number, Order["status"]>
-    >({});
+    useState<Record<number, Order["status"]>>({});
 
   const [updatingOrders, setUpdatingOrders] =
     useState<number[]>([]);
 
-  const [statusFilter, setStatusFilter] =
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const [deliveryTypeFilter, setDeliveryTypeFilter] =
     useState("");
 
-  const [
-    deliveryTypeFilter,
-    setDeliveryTypeFilter,
-  ] = useState("");
-
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
   const [debouncedSearch, setDebouncedSearch] =
     useState(search);
 
+  /*
+   * Debounce search input so the API is not
+   * called on every keystroke.
+   */
   useEffect(() => {
     const timeout = setTimeout(() => {
       setDebouncedSearch(search);
     }, 500);
 
-    return () =>
-      clearTimeout(timeout);
+    return () => clearTimeout(timeout);
   }, [search]);
 
+  /*
+   * Load orders whenever a filter or the
+   * debounced search value changes.
+   */
   useEffect(() => {
     let cancelled = false;
 
@@ -79,13 +75,11 @@ export default function AdminOrdersPage() {
       setError("");
 
       try {
-        const data =
-          await orderService.getAdminOrders({
-            status: statusFilter,
-            deliveryType:
-              deliveryTypeFilter,
-            search: debouncedSearch,
-          });
+        const data = await orderService.getAdminOrders({
+          status: statusFilter,
+          deliveryType: deliveryTypeFilter,
+          search: debouncedSearch,
+        });
 
         if (cancelled) {
           return;
@@ -99,13 +93,10 @@ export default function AdminOrdersPage() {
         > = {};
 
         data.forEach((order) => {
-          initialStatuses[order.id] =
-            order.status;
+          initialStatuses[order.id] = order.status;
         });
 
-        setSelectedStatuses(
-          initialStatuses
-        );
+        setSelectedStatuses(initialStatuses);
       } catch (error) {
         if (cancelled) {
           return;
@@ -134,25 +125,18 @@ export default function AdminOrdersPage() {
     debouncedSearch,
   ]);
 
-  const toggleOrder = (id: number) => {
+  const toggleOrder = (orderId: number) => {
     setExpandedOrders((current) =>
-      current.includes(id)
-        ? current.filter(
-            (orderId) =>
-              orderId !== id
-          )
-        : [...current, id]
+      current.includes(orderId)
+        ? current.filter((id) => id !== orderId)
+        : [...current, orderId]
     );
   };
 
-  const toggleSection = (
-    section: string
-  ) => {
+  const toggleSection = (section: string) => {
     setCollapsedSections((current) =>
       current.includes(section)
-        ? current.filter(
-            (item) => item !== section
-          )
+        ? current.filter((item) => item !== section)
         : [...current, section]
     );
   };
@@ -162,30 +146,26 @@ export default function AdminOrdersPage() {
   ) => {
     setError("");
 
+    const newStatus = selectedStatuses[orderId];
+
+    const currentOrder = orders.find(
+      (order) => order.id === orderId
+    );
+
+    if (!currentOrder || !newStatus) {
+      return;
+    }
+
+    if (currentOrder.status === newStatus) {
+      return;
+    }
+
+    setUpdatingOrders((current) => [
+      ...current,
+      orderId,
+    ]);
+
     try {
-      const newStatus =
-        selectedStatuses[orderId];
-
-      const currentOrder = orders.find(
-        (order) => order.id === orderId
-      );
-
-      if (!currentOrder || !newStatus) {
-        return;
-      }
-
-      if (
-        currentOrder.status ===
-        newStatus
-      ) {
-        return;
-      }
-
-      setUpdatingOrders((current) => [
-        ...current,
-        orderId,
-      ]);
-
       await orderService.updateOrderStatus(
         orderId,
         newStatus
@@ -203,14 +183,13 @@ export default function AdminOrdersPage() {
       );
     } catch (error) {
       console.error(error);
+
       setError(
         "Failed to update order status."
       );
     } finally {
       setUpdatingOrders((current) =>
-        current.filter(
-          (id) => id !== orderId
-        )
+        current.filter((id) => id !== orderId)
       );
     }
   };
@@ -223,79 +202,81 @@ export default function AdminOrdersPage() {
 
   const activeOrders = orders.filter(
     (order) =>
-      !activeExcludedStatuses.includes(
-        order.status
-      )
+      !activeExcludedStatuses.includes(order.status)
   );
 
   const fulfilledOrders = orders.filter(
     (order) =>
-      order.status ===
-        ORDER_STATUS.DELIVERED ||
-      order.status ===
-        ORDER_STATUS.PICKED_UP
+      order.status === ORDER_STATUS.DELIVERED ||
+      order.status === ORDER_STATUS.PICKED_UP
   );
 
   const cancelledOrders = orders.filter(
     (order) =>
-      order.status ===
-      ORDER_STATUS.CANCELLED
+      order.status === ORDER_STATUS.CANCELLED
   );
 
   const renderOrders = (
     ordersToRender: Order[]
   ) => (
     <div className="space-y-5">
-      {ordersToRender.map((order) => (
-        <div
-          key={order.id}
-          className="
-            rounded-md
-            border
-            border-(--color-border)
-            bg-(--color-surface)
-            p-6
-            shadow-sm
-          "
-        >
-          <OrderHeader
-            order={order}
-            showCustomer
-            expanded={expandedOrders.includes(
-              order.id
-            )}
-            onToggle={() =>
-              toggleOrder(order.id)
-            }
-          />
+      {ordersToRender.map((order) => {
+        const expanded = expandedOrders.includes(
+          order.id
+        );
 
-          {expandedOrders.includes(order.id) && (
-            <AdminOrderDetails
+        return (
+          <article
+            key={order.id}
+            className="
+              rounded-3xl
+              border
+              border-(--color-border)
+              bg-(--color-surface)
+              p-5
+              sm:p-6
+            "
+          >
+            <OrderHeader
               order={order}
-              selectedStatus={
-                selectedStatuses[order.id] ??
-                order.status
-              }
-              updating={updatingOrders.includes(order.id)}
-              onStatusChange={(status) =>
-                setSelectedStatuses((current) => ({
-                  ...current,
-                  [order.id]:
-                    status as Order["status"],
-                }))
-              }
-              onUpdate={() =>
-                handleUpdateStatus(order.id)
+              showCustomer
+              expanded={expanded}
+              onToggle={() =>
+                toggleOrder(order.id)
               }
             />
-          )}
 
-          <OrderFooter
-            createdAt={order.created_at}
-            updatedAt={order.updated_at}
-          />
-        </div>
-      ))}
+            {expanded && (
+              <AdminOrderDetails
+                order={order}
+                selectedStatus={
+                  selectedStatuses[order.id] ??
+                  order.status
+                }
+                updating={updatingOrders.includes(
+                  order.id
+                )}
+                onStatusChange={(status) =>
+                  setSelectedStatuses((current) => ({
+                    ...current,
+                    [order.id]:
+                      status as Order["status"],
+                  }))
+                }
+                onUpdate={() =>
+                  handleUpdateStatus(order.id)
+                }
+              />
+            )}
+
+            <OrderFooter
+              orderId={order.id}
+              createdAt={order.created_at}
+              updatedAt={order.updated_at}
+            />
+          </article>
+        );
+      })}
     </div>
   );
 
@@ -315,9 +296,7 @@ export default function AdminOrdersPage() {
       <section>
         <button
           type="button"
-          onClick={() =>
-            toggleSection(key)
-          }
+          onClick={() => toggleSection(key)}
           aria-expanded={!collapsed}
           className="
             flex
@@ -332,7 +311,7 @@ export default function AdminOrdersPage() {
               text-sm
               font-semibold
               uppercase
-              tracking-wider
+              tracking-[0.2em]
             "
           >
             {title}
@@ -355,7 +334,7 @@ export default function AdminOrdersPage() {
 
         <div
           className="
-            mt-3
+            mt-4
             border-t
             border-(--color-border)
           "
@@ -363,9 +342,7 @@ export default function AdminOrdersPage() {
 
         {!collapsed && (
           <div className="mt-6">
-            {renderOrders(
-              ordersToRender
-            )}
+            {renderOrders(ordersToRender)}
           </div>
         )}
       </section>
@@ -374,9 +351,7 @@ export default function AdminOrdersPage() {
 
   if (loading) {
     return (
-      <LoadingState
-        message="Loading orders..."
-      />
+      <LoadingState message="Loading orders..." />
     );
   }
 
@@ -385,19 +360,17 @@ export default function AdminOrdersPage() {
       <PageHeader title="All Orders" />
 
       {error && (
-        <Alert message={error} />
+        <div className="mb-8">
+          <Alert message={error} />
+        </div>
       )}
 
       <AdminOrderFilters
         search={search}
         statusFilter={statusFilter}
-        deliveryTypeFilter={
-          deliveryTypeFilter
-        }
+        deliveryTypeFilter={deliveryTypeFilter}
         onSearchChange={setSearch}
-        onStatusChange={
-          setStatusFilter
-        }
+        onStatusChange={setStatusFilter}
         onDeliveryTypeChange={
           setDeliveryTypeFilter
         }
@@ -409,9 +382,7 @@ export default function AdminOrdersPage() {
       />
 
       {orders.length === 0 ? (
-        <EmptyState
-          title="No orders found."
-        />
+        <EmptyState title="No orders found." />
       ) : (
         <div className="space-y-12">
           {renderSection(

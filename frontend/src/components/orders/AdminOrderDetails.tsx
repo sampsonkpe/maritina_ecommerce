@@ -24,15 +24,14 @@ export default function AdminOrderDetails({
   return (
     <div className="mt-6 border-t border-(--color-border) pt-6">
       {/* Delivery Address */}
-      <div>
-        <SectionTitle>
-          Delivery Address
-        </SectionTitle>
-
-        <p className="mt-2 text-(--color-text-muted)">
-          {order.address_text ?? "Pickup Order"}
+      {order.address_text && (
+        <p className="text-(--color-text-muted)">
+          To{" "}
+          <span className="text-(--color-text)">
+            {order.address_text}
+          </span>
         </p>
-      </div>
+      )}
 
       {/* Items */}
       <div className="mt-8">
@@ -40,9 +39,7 @@ export default function AdminOrderDetails({
           Items
         </SectionTitle>
 
-        <OrderItemsList
-          items={order.items}
-        />
+        <OrderItemsList items={order.items} />
       </div>
 
       {/* Order Summary */}
@@ -56,10 +53,6 @@ export default function AdminOrderDetails({
 
       {/* Status */}
       <div className="mt-8">
-        <SectionTitle>
-          Order Status
-        </SectionTitle>
-
         <OrderStatusEditor
           order={order}
           selectedStatus={selectedStatus}
