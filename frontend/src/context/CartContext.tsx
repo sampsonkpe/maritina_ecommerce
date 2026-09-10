@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+
 import {
   createContext,
   useCallback,
@@ -55,6 +57,10 @@ export function CartProvider({
 
   const { authenticated } = useAuth();
 
+  /*
+   * Used when cart actions are performed
+   * after the cart has already loaded.
+   */
   const refreshCart = useCallback(async () => {
     setLoading(true);
 
@@ -110,9 +116,41 @@ export function CartProvider({
     await refreshCart();
   };
 
+  /*
+   * Initial/authentication-triggered cart load.
+   *
+   * This is kept separate from refreshCart()
+   * so the effect does not synchronously trigger
+   * setState through another function.
+   */
   useEffect(() => {
-    refreshCart();
-  }, [authenticated, refreshCart]);
+    let cancelled = false;
+
+    const loadCart = async () => {
+      try {
+        const data =
+          await cartService.getCart();
+
+        if (!cancelled) {
+          setCart(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setCart(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadCart();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated]);
 
   return (
     <CartContext.Provider
