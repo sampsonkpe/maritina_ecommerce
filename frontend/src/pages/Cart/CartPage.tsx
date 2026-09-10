@@ -121,7 +121,7 @@ export default function CartPage() {
             <div
               className="rounded-4xl border border-(--color-border) px-6 py-24 text-center">
               <h2
-                className="text-3xl font-semibold tracking-tightsm:text-4xl">
+                className="text-3xl font-semibold tracking-tight sm:text-4xl">
                 Nothing here yet.
               </h2>
 
@@ -275,7 +275,7 @@ export default function CartPage() {
                     </span>
 
                     <span className="sm:hidden">
-                      Checkout
+                      Continue to Checkout
                     </span>
 
                     <ArrowRight

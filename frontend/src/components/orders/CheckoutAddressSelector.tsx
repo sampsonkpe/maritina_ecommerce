@@ -1,7 +1,11 @@
-import { ChevronDown, ChevronUp, MapPinned } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import type { Address } from "../../types/address";
+
 interface CheckoutAddressSelectorProps {
   addresses: Address[];
   selectedAddress: number | null;
@@ -20,101 +24,108 @@ export default function CheckoutAddressSelector({
   const navigate = useNavigate();
 
   const currentAddress = addresses.find(
-    (address) => address.id === selectedAddress
+    (address) =>
+      address.id === selectedAddress
   );
 
   return (
-    <div className="rounded-md border bg-white p-6 shadow-sm">
+    <section className="rounded-2xl border border-(--color-border) p-5 sm:p-6 lg:sticky lg:top-8">
+        <h2 className="mb-5 text-xl text-center font-semibold tracking-tight sm:text-2xl">
+          Delivery Address
+        </h2>
 
-      <div className="mb-5 flex items-center gap-2">
-          <MapPinned size={20} />
+      {currentAddress && (
+        <div className="rounded-xl border border-(--color-border) p-4">
+          <p className="font-semibold">
+            {currentAddress.label}
+          </p>
 
-          <h2 className="text-xl font-semibold">
-              Delivery Address
-          </h2>
-      </div>
+          <p className="mt-1 text-sm leading-6 text-(--color-text-muted)">
+            {currentAddress.address_text}
+          </p>
+        </div>
+      )}
 
-              {currentAddress && (
-                <div className="rounded-md border border-black bg-gray-50 p-4">
+      {!currentAddress ? (
+        <div className="rounded-xl border border-dashed border-(--color-border) p-6 text-center">
+          <p className="text-sm leading-6 text-(--color-text-muted)">
+            You don't have any saved delivery
+            addresses.
+          </p>
 
-                  <p className="text-lg font-semibold">
-                    {currentAddress.label}
-                  </p>
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/addresses")
+            }
+            className="mt-5 inline-flex items-center justify-center rounded-full border border-(--color-border) px-5 py-2.5 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)"
+          >
+            Manage Addresses
+          </button>
+        </div>
+      ) : (
+        <>
+          {addresses.length > 1 && (
+            <>
+              <button
+                type="button"
+                aria-expanded={showAddresses}
+                onClick={onToggleAddresses}
+                className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-(--color-text-muted) transition-opacity hover:opacity-60"
+              >
+                {showAddresses ? (
+                  <>
+                    Hide Addresses
+                    <ChevronUp
+                      size={16}
+                      aria-hidden="true"
+                    />
+                  </>
+                ) : (
+                  <>
+                    Change Address
+                    <ChevronDown
+                      size={16}
+                      aria-hidden="true"
+                    />
+                  </>
+                )}
+              </button>
 
-                  <p className="mt-1 text-sm text-gray-600">
-                    {currentAddress.address_text}
-                  </p>
-
-                </div>
-              )}
-
-              {!currentAddress ? (
-                <div className="mt-5 rounded-md border border-dashed p-6 text-center">
-                  <p className="text-gray-600">
-                    You don't have any saved delivery addresses.
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/addresses")}
-                    className="mt-4 rounded-md bg-black px-4 py-2 text-white transition hover:bg-gray-800"
-                  >
-                    Manage Addresses
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {addresses.length > 1 && (
-                    <>
+              {showAddresses && (
+                <div className="mt-5 space-y-3">
+                  {addresses
+                    .filter(
+                      (address) =>
+                        address.id !==
+                        selectedAddress
+                    )
+                    .map((address) => (
                       <button
+                        key={address.id}
                         type="button"
-                        aria-expanded={showAddresses}
-                        onClick={onToggleAddresses}
-                        className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-black"
+                        onClick={() =>
+                          onSelectAddress(
+                            address.id
+                          )
+                        }
+                        className="block w-full rounded-xl border border-(--color-border) p-4 text-left transition-colors hover:bg-(--color-surface-muted)"
                       >
-                        {showAddresses ? (
-                          <>
-                            Hide Addresses
-                            <ChevronUp size={16} />
-                          </>
-                        ) : (
-                          <>
-                            Change Address
-                            <ChevronDown size={16} />
-                          </>
-                        )}
+                        <p className="font-semibold">
+                          {address.label}
+                        </p>
+
+                        <p className="mt-1 text-sm leading-6 text-(--color-text-muted)">
+                          {address.address_text}
+                        </p>
                       </button>
-
-                      {showAddresses && (
-                        <div className="mt-5 space-y-3">
-                          {addresses
-                            .filter(
-                              (address) =>
-                                address.id !==
-                                selectedAddress
-                            )
-                            .map((address) => (
-                              <button
-                                key={address.id}
-                                type="button"
-                                onClick={() => onSelectAddress(address.id)}
-                                className="block w-full rounded-md border p-4 text-left transition hover:bg-gray-50"
-                              >
-                                <p className="font-semibold">
-                                  {address.label}
-                                </p>
-
-                                <p className="mt-1 text-sm leading-6 text-gray-600">
-                                  {address.address_text}
-                                </p>
-                              </button>
-                            ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </>
+                    ))}
+                </div>
               )}
-    </div>
+            </>
+          )}
+        </>
+      )}
+    </section>
   );
 }

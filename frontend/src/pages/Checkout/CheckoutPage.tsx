@@ -9,15 +9,15 @@ import { useAuth } from "../../context/AuthContext";
 
 import type { Address } from "../../types/address";
 import type { Cart } from "../../types/cart";
+
 import {
   DELIVERY_TYPE,
   type DeliveryType,
 } from "../../constants/order";
 
 import { useToast } from "../../context/useToast";
+
 import LoadingState from "../../components/common/LoadingState";
-import PageContainer from "../../components/common/PageContainer";
-import PageHeader from "../../components/common/PageHeader";
 
 import CheckoutSummary from "../../components/orders/CheckoutSummary";
 import CheckoutAddressSelector from "../../components/orders/CheckoutAddressSelector";
@@ -176,7 +176,8 @@ export default function CheckoutPage() {
         await checkoutService.createCheckout(
           deliveryType,
           authenticated &&
-            deliveryType === DELIVERY_TYPE.DELIVERY
+            deliveryType ===
+              DELIVERY_TYPE.DELIVERY
             ? selectedAddress!
             : undefined,
           authenticated
@@ -210,7 +211,6 @@ export default function CheckoutPage() {
 
       window.location.href =
         paymentResponse.data.authorization_url;
-
     } catch (error: unknown) {
       console.error(
         "Checkout/payment error:",
@@ -236,74 +236,133 @@ export default function CheckoutPage() {
     );
   }
 
+  /*
+   * Guest entry state
+   */
   if (!authenticated && !guestStarted) {
     return (
-      <PageContainer>
-        <PageHeader title="Checkout" />
+      <>
+        {/* Page intro */}
+        <section className="border-b border-(--color-border)">
+          <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-20 lg:px-8 lg:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+                Your KAHWƐ Checkout
+              </p>
 
-        <div className="mx-auto max-w-xl rounded-md border p-8 text-center">
-          <h2 className="text-2xl font-semibold">
-            Continue as Guest
-          </h2>
+              <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl xl:text-8xl">
+                Time to checkout your order.
+              </h1>
 
-          <p className="mt-3 text-gray-600">
-            Complete your purchase without creating
-            an account.
-          </p>
-
-          <button
-            onClick={() =>
-              setGuestStarted(true)
-            }
-            className="mt-8 w-full rounded-md bg-black py-3 text-white"
-          >
-            Continue
-          </button>
-
-          <div className="my-8 text-gray-400">
-            OR
+              <p className="mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+                Complete your order and get your favourites on their way.
+              </p>
+            </div>
           </div>
+        </section>
 
-          <button
-            onClick={() =>
-              navigate("/login")
-            }
-            className="w-full rounded-md border py-3"
-          >
-            Log In
-          </button>
-        </div>
-      </PageContainer>
+        {/* Guest choice */}
+        <section>
+          <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-8 lg:py-20">
+            <div className="mx-auto max-w-xl rounded-2xl border border-(--color-border) p-6 sm:p-8">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Continue as Guest
+                </h2>
+
+                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-(--color-text-muted) sm:text-base">
+                  Complete your purchase without
+                  creating an account.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setGuestStarted(true)
+                }
+                className="mt-8 flex w-full items-center justify-center rounded-full border border-(--color-border) px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)"
+              >
+                Continue as Guest
+              </button>
+
+              <div className="my-8 flex items-center gap-4">
+                <div className="h-px flex-1 bg-(--color-border)" />
+
+                <span className="text-xs font-medium uppercase tracking-[0.2em] text-(--color-text-muted)">
+                  Or
+                </span>
+
+                <div className="h-px flex-1 bg-(--color-border)" />
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("/login")
+                }
+                className="flex w-full items-center justify-center rounded-full border border-(--color-border) px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)"
+              >
+                Log In
+              </button>
+            </div>
+          </div>
+        </section>
+      </>
     );
   }
 
+  /*
+   * Expired checkout state
+   */
   if (checkoutExpired) {
     return (
-      <PageContainer>
-        <PageHeader title="Checkout" />
+      <>
+        {/* Page intro */}
+        <section className="border-b border-(--color-border)">
+          <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-20 lg:px-8 lg:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+                Your KAHWƐ Checkout
+              </p>
 
-        <div className="mx-auto max-w-xl rounded-md border p-8 text-center">
-          <h2 className="text-2xl font-semibold">
-            Checkout session expired
-          </h2>
+              <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl xl:text-8xl">
+                Time to checkout your order.
+              </h1>
 
-          <p className="mt-3 text-gray-600">
-            Your checkout session expired because
-            there was no activity for 30 minutes.
-            Please review your cart and continue
-            checkout again.
-          </p>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+                Your checkout session has expired.
+              </p>
+            </div>
+          </div>
+        </section>
 
-          <button
-            onClick={() =>
-              navigate("/cart")
-            }
-            className="mt-8 w-full rounded-md bg-black py-3 text-white"
-          >
-            Return to Cart
-          </button>
-        </div>
-      </PageContainer>
+        {/* Expired state */}
+        <section>
+          <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-8 lg:py-20">
+            <div className="mx-auto max-w-xl rounded-2xl border border-(--color-border) p-6 text-center sm:p-8">
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                Checkout session expired
+              </h2>
+
+              <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-(--color-text-muted) sm:text-base">
+                Your checkout session expired because there was no activity for 30 minutes.
+                Please review your cart and continue to checkout again.
+              </p>
+
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("/cart")
+                }
+                className="mt-8 inline-flex items-center justify-center rounded-full border border-(--color-border) px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)"
+              >
+                Return to Cart
+              </button>
+            </div>
+          </div>
+        </section>
+      </>
     );
   }
 
@@ -312,9 +371,7 @@ export default function CheckoutPage() {
 
   const deliveryFee =
     deliveryType === DELIVERY_TYPE.DELIVERY
-      ? Number(
-          cart?.delivery_fee ?? 0
-        )
+      ? Number(cart?.delivery_fee ?? 0)
       : 0;
 
   const total =
@@ -322,119 +379,146 @@ export default function CheckoutPage() {
     deliveryFee;
 
   return (
-    <PageContainer>
-      <PageHeader title="Checkout" />
+    <>
+      {/* Page intro */}
+      <section className="border-b border-(--color-border)">
+        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-20 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+              Your KAHWƐ Checkout
+            </p>
 
-      {checkoutWarning && (
-        <div className="mb-6 rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-800">
-          Checkout will expire in{" "}
-          {remainingMinutes}{" "}
-          {remainingMinutes === 1
-            ? "minute"
-            : "minutes"}{" "}
-          due to inactivity.
+            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl xl:text-8xl">
+              Time to checkout your order.
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+              Complete your order and get your favourites on their way.
+            </p>
+          </div>
         </div>
-      )}
+      </section>
 
-      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
+      {/* Checkout */}
+      <section>
+        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-8 lg:py-20">
 
-        <div className="space-y-6">
-
-          {authenticated ? (
-            <>
-              <DeliveryMethodSelector
-                deliveryType={deliveryType}
-                onDeliveryTypeChange={
-                  setDeliveryType
-                }
-              />
-
-              {deliveryType ===
-                DELIVERY_TYPE.DELIVERY && (
-                <CheckoutAddressSelector
-                  addresses={addresses}
-                  selectedAddress={
-                    selectedAddress
-                  }
-                  showAddresses={
-                    showAddresses
-                  }
-                  onSelectAddress={(id) => {
-                    setSelectedAddress(id);
-                    setShowAddresses(false);
-                  }}
-                  onToggleAddresses={() =>
-                    setShowAddresses(
-                      (prev) => !prev
-                    )
-                  }
-                />
-              )}
-            </>
-          ) : (
-            <>
-              <GuestContactForm
-                fullName={guestFullName}
-                phone={guestPhone}
-                email={guestEmail}
-                onFullNameChange={
-                  setGuestFullName
-                }
-                onPhoneChange={
-                  setGuestPhone
-                }
-                onEmailChange={
-                  setGuestEmail
-                }
-              />
-
-              <DeliveryMethodSelector
-                deliveryType={deliveryType}
-                onDeliveryTypeChange={
-                  setDeliveryType
-                }
-              />
-
-              {deliveryType ===
-                DELIVERY_TYPE.DELIVERY && (
-                <AddressForm
-                  streetAddress={
-                    streetAddress
-                  }
-                  area={area}
-                  landmark={landmark}
-                  city={city}
-                  region={region}
-                  onStreetAddressChange={
-                    setStreetAddress
-                  }
-                  onAreaChange={
-                    setArea
-                  }
-                  onLandmarkChange={
-                    setLandmark
-                  }
-                  onCityChange={
-                    setCity
-                  }
-                  onRegionChange={
-                    setRegion
-                  }
-                />
-              )}
-            </>
+          {checkoutWarning && (
+            <div className="mb-8 rounded-2xl border border-(--color-border) px-5 py-4 text-sm text-(--color-text-muted)">
+              Checkout will expire in{" "}
+              <span className="font-medium text-(--color-text)">
+                {remainingMinutes}{" "}
+                {remainingMinutes === 1
+                  ? "minute"
+                  : "minutes"}
+              </span>{" "}
+              due to inactivity.
+            </div>
           )}
-        </div>
 
-        <CheckoutSummary
-          cart={cart}
-          deliveryFee={deliveryFee}
-          total={total}
-          deliveryType={deliveryType}
-          placingOrder={placingOrder}
-          onCheckout={handleCheckout}
-        />
-      </div>
-    </PageContainer>
+          <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
+
+            {/* Checkout details */}
+            <div className="space-y-6">
+
+              {authenticated ? (
+                <>
+                  <DeliveryMethodSelector
+                    deliveryType={deliveryType}
+                    onDeliveryTypeChange={
+                      setDeliveryType
+                    }
+                  />
+
+                  {deliveryType ===
+                    DELIVERY_TYPE.DELIVERY && (
+                    <CheckoutAddressSelector
+                      addresses={addresses}
+                      selectedAddress={
+                        selectedAddress
+                      }
+                      showAddresses={
+                        showAddresses
+                      }
+                      onSelectAddress={(id) => {
+                        setSelectedAddress(id);
+                        setShowAddresses(false);
+                      }}
+                      onToggleAddresses={() =>
+                        setShowAddresses(
+                          (prev) => !prev
+                        )
+                      }
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <GuestContactForm
+                    fullName={guestFullName}
+                    phone={guestPhone}
+                    email={guestEmail}
+                    onFullNameChange={
+                      setGuestFullName
+                    }
+                    onPhoneChange={
+                      setGuestPhone
+                    }
+                    onEmailChange={
+                      setGuestEmail
+                    }
+                  />
+
+                  <DeliveryMethodSelector
+                    deliveryType={deliveryType}
+                    onDeliveryTypeChange={
+                      setDeliveryType
+                    }
+                  />
+
+                  {deliveryType ===
+                    DELIVERY_TYPE.DELIVERY && (
+                    <AddressForm
+                      streetAddress={
+                        streetAddress
+                      }
+                      area={area}
+                      landmark={landmark}
+                      city={city}
+                      region={region}
+                      onStreetAddressChange={
+                        setStreetAddress
+                      }
+                      onAreaChange={
+                        setArea
+                      }
+                      onLandmarkChange={
+                        setLandmark
+                      }
+                      onCityChange={
+                        setCity
+                      }
+                      onRegionChange={
+                        setRegion
+                      }
+                    />
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Order summary */}
+            <CheckoutSummary
+              cart={cart}
+              deliveryFee={deliveryFee}
+              total={total}
+              deliveryType={deliveryType}
+              placingOrder={placingOrder}
+              onCheckout={handleCheckout}
+            />
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

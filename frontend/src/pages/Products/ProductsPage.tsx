@@ -88,7 +88,7 @@ export default function ProductsPage() {
         <div className="mx-auto flex min-h-[calc(60vh-4rem)] max-w-7xl items-center px-6 py-20 sm:px-8 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-2xl text-center">
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
-              KAHWƐ Menu
+              Your KAHWƐ Menu
             </p>
 
             <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl xl:text-8xl">
