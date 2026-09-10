@@ -1,22 +1,23 @@
-from decimal import Decimal
 from unittest.mock import patch
 
-from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.test import TestCase
 from requests.exceptions import RequestException
 from rest_framework.test import APITestCase
 
+from apps.cart.models import Cart, CartItem
+from apps.checkout.models import (
+    CheckoutTransaction,
+    CheckoutTransactionItem,
+    StockReservation,
+)
+from apps.checkout.services import CheckoutService
 from apps.common.constants import PICKUP
-
-from apps.checkout.models import CheckoutTransaction
+from apps.orders.models import Order
 from apps.payments.models import Payment
 from apps.payments.services.paystack import PaystackPaymentService
-from apps.cart.models import Cart, CartItem
 from apps.products.models import Category, Product, ProductVariant
-from apps.orders.models import Order
-from apps.checkout.services import CheckoutService
-from apps.checkout.models import CheckoutTransaction, CheckoutTransactionItem, StockReservation
 
 
 class PaystackPaymentVerificationTests(TestCase):
@@ -24,7 +25,7 @@ class PaystackPaymentVerificationTests(TestCase):
     def setUp(self):
         self.checkout = CheckoutTransaction.objects.create(
             status=CheckoutTransaction.STATUS_PENDING,
-            delivery_type="PICKUP",
+            delivery_type=PICKUP,
             subtotal=100,
             delivery_fee=0,
             total_amount=100,
@@ -41,7 +42,9 @@ class PaystackPaymentVerificationTests(TestCase):
 
         self.service = PaystackPaymentService()
 
-    @patch("apps.payments.services.paystack.requests.get")
+    @patch(
+        "apps.payments.services.paystack.paystack_payments.requests.get"
+    )
     def test_successful_verification_marks_payment_paid(
         self,
         mock_get,
@@ -69,7 +72,9 @@ class PaystackPaymentVerificationTests(TestCase):
             Payment.STATUS_SUCCESS,
         )
 
-    @patch("apps.payments.services.paystack.requests.get")
+    @patch(
+        "apps.payments.services.paystack.paystack_payments.requests.get"
+    )
     def test_verification_rejects_amount_mismatch(
         self,
         mock_get,
@@ -97,7 +102,9 @@ class PaystackPaymentVerificationTests(TestCase):
             Payment.STATUS_INITIATED,
         )
 
-    @patch("apps.payments.services.paystack.requests.get")
+    @patch(
+        "apps.payments.services.paystack.paystack_payments.requests.get"
+    )
     def test_verification_rejects_reference_mismatch(
         self,
         mock_get,
@@ -159,7 +166,7 @@ class PaymentFinalisationTests(TestCase):
         self.checkout = CheckoutTransaction.objects.create(
             session_id="test-session",
             status=CheckoutTransaction.STATUS_PAID,
-            delivery_type="PICKUP",
+            delivery_type=PICKUP,
             subtotal=200,
             delivery_fee=0,
             total_amount=200,
@@ -192,7 +199,6 @@ class PaymentFinalisationTests(TestCase):
         )
 
     def test_paid_checkout_creates_order_and_consumes_stock(self):
-
         order = CheckoutService.finalise_checkout(
             self.checkout.id
         )
@@ -242,55 +248,54 @@ class PaymentFinalisationTests(TestCase):
             1,
         )
 
-        def test_finalising_same_checkout_twice_returns_same_order(self):
+    def test_finalising_same_checkout_twice_returns_same_order(self):
+        first_order = CheckoutService.finalise_checkout(
+            self.checkout.id
+        )
 
-            first_order = CheckoutService.finalise_checkout(
+        second_order = CheckoutService.finalise_checkout(
+            self.checkout.id
+        )
+
+        self.assertEqual(
+            first_order.id,
+            second_order.id,
+        )
+
+        self.assertEqual(
+            Order.objects.count(),
+            1,
+        )
+
+        self.variant.refresh_from_db()
+
+        self.assertEqual(
+            self.variant.stock,
+            8,
+        )
+
+    def test_payment_cannot_be_reused_after_order_linked(self):
+        order = CheckoutService.finalise_checkout(
+            self.checkout.id
+        )
+
+        self.payment.refresh_from_db()
+
+        self.assertEqual(
+            self.payment.order_id,
+            order.id,
+        )
+
+        with self.assertRaises(ValueError):
+            CheckoutService.finalise_checkout(
                 self.checkout.id
             )
 
-            second_order = CheckoutService.finalise_checkout(
-                self.checkout.id
-            )
+        self.assertEqual(
+            Order.objects.count(),
+            1,
+        )
 
-            self.assertEqual(
-                first_order.id,
-                second_order.id,
-            )
-
-            self.assertEqual(
-                Order.objects.count(),
-                1,
-            )
-
-            self.variant.refresh_from_db()
-
-            self.assertEqual(
-                self.variant.stock,
-                8,
-            )
-
-        def test_payment_cannot_be_reused_after_order_linked(self):
-
-            order = CheckoutService.finalise_checkout(
-                self.checkout.id
-            )
-
-            self.payment.refresh_from_db()
-
-            self.assertEqual(
-                self.payment.order_id,
-                order.id,
-            )
-
-            with self.assertRaises(ValueError):
-                CheckoutService.finalise_checkout(
-                    self.checkout.id
-                )
-
-            self.assertEqual(
-                Order.objects.count(),
-                1,
-            )
 
 class CheckoutFailureTests(TestCase):
 
@@ -335,7 +340,6 @@ class CheckoutFailureTests(TestCase):
         )
 
     def test_failed_checkout_releases_reservation(self):
-
         self.assertEqual(
             StockReservation.objects.filter(
                 checkout=self.checkout,
@@ -373,6 +377,7 @@ class CheckoutFailureTests(TestCase):
             self.variant.stock,
             10,
         )
+
 
 class PaystackInitialisationFailureTests(TestCase):
 
@@ -418,7 +423,9 @@ class PaystackInitialisationFailureTests(TestCase):
 
         self.service = PaystackPaymentService()
 
-    @patch("apps.payments.services.paystack.requests.post")
+    @patch(
+        "apps.payments.services.paystack.paystack_payments.requests.post"
+    )
     def test_paystack_rejected_initialisation_fails_checkout(
         self,
         mock_post,
@@ -465,7 +472,9 @@ class PaystackInitialisationFailureTests(TestCase):
             10,
         )
 
-    @patch("apps.payments.services.paystack.requests.post")
+    @patch(
+        "apps.payments.services.paystack.paystack_payments.requests.post"
+    )
     def test_paystack_connection_failure_fails_checkout(
         self,
         mock_post,
@@ -509,6 +518,7 @@ class PaystackInitialisationFailureTests(TestCase):
             self.variant.stock,
             10,
         )
+
 
 class PaymentIdempotencyTests(TestCase):
 
@@ -568,7 +578,6 @@ class PaymentIdempotencyTests(TestCase):
         self.service = PaystackPaymentService()
 
     def test_mark_as_paid_is_idempotent(self):
-
         first_order = self.service.mark_as_paid(
             self.payment.reference
         )
@@ -610,7 +619,6 @@ class PaymentIdempotencyTests(TestCase):
         )
 
     def test_failed_payment_cannot_overwrite_successful_payment(self):
-
         order = self.service.mark_as_paid(
             self.payment.reference
         )
@@ -648,6 +656,7 @@ class PaymentIdempotencyTests(TestCase):
             1,
         )
 
+
 class PaymentRefundTests(APITestCase):
 
     def setUp(self):
@@ -673,7 +682,7 @@ class PaymentRefundTests(APITestCase):
         )
 
     @patch(
-        "apps.payments.services.paystack.requests.post"
+        "apps.payments.services.paystack.paystack_payments.requests.post"
     )
     def test_admin_can_initiate_refund(
         self,
@@ -720,7 +729,6 @@ class PaymentRefundTests(APITestCase):
         )
 
     def test_cannot_refund_failed_payment(self):
-
         self.payment.status = Payment.STATUS_FAILED
         self.payment.save()
 
@@ -735,7 +743,6 @@ class PaymentRefundTests(APITestCase):
         )
 
     def test_cannot_refund_more_than_payment(self):
-
         response = self.client.post(
             f"/api/payments/admin/"
             f"{self.payment.id}/refund/",

@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 
 from .models import Payment
-from .services.payment_service import PaymentService
+from .services.factory import PaymentServiceFactory
 
 from apps.common.models import AuditLog
 from apps.common.services import record_admin_action
@@ -111,9 +111,12 @@ class AdminPaymentRefundView(APIView):
                 )
 
         try:
-            result = PaymentService.refund(
+            payment_service = PaymentServiceFactory.get_service()
+
+            result = payment_service.refund(
                 payment,
                 amount=amount,
+                is_cancellation_refund=True,
             )
 
         except ValidationError as error:

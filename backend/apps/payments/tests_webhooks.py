@@ -1,11 +1,10 @@
 import hashlib
 import hmac
 import json
+from unittest.mock import patch
 
 from django.conf import settings
 from django.test import TestCase, override_settings
-from django.urls import reverse
-from unittest.mock import patch
 
 
 @override_settings(
@@ -23,11 +22,11 @@ class PaystackWebhookTests(TestCase):
         ).hexdigest()
 
     @patch(
-        "apps.payments.webhooks.PaymentService.webhook"
+        "apps.payments.webhooks.PaymentServiceFactory.get_service"
     )
     def test_valid_signature_is_accepted(
         self,
-        mock_webhook,
+        mock_get_service,
     ):
         payload = {
             "event": "charge.success",
@@ -35,6 +34,8 @@ class PaystackWebhookTests(TestCase):
                 "reference": "TEST-REFERENCE",
             },
         }
+
+        mock_service = mock_get_service.return_value
 
         body = json.dumps(payload).encode()
 
@@ -52,16 +53,18 @@ class PaystackWebhookTests(TestCase):
             200,
         )
 
-        mock_webhook.assert_called_once_with(
+        mock_get_service.assert_called_once_with()
+
+        mock_service.webhook.assert_called_once_with(
             payload
         )
 
     @patch(
-        "apps.payments.webhooks.PaymentService.webhook"
+        "apps.payments.webhooks.PaymentServiceFactory.get_service"
     )
     def test_invalid_signature_is_rejected(
         self,
-        mock_webhook,
+        mock_get_service,
     ):
         payload = {
             "event": "charge.success",
@@ -84,14 +87,14 @@ class PaystackWebhookTests(TestCase):
             401,
         )
 
-        mock_webhook.assert_not_called()
+        mock_get_service.assert_not_called()
 
     @patch(
-        "apps.payments.webhooks.PaymentService.webhook"
+        "apps.payments.webhooks.PaymentServiceFactory.get_service"
     )
     def test_missing_signature_is_rejected(
         self,
-        mock_webhook,
+        mock_get_service,
     ):
         payload = {
             "event": "charge.success",
@@ -113,14 +116,14 @@ class PaystackWebhookTests(TestCase):
             401,
         )
 
-        mock_webhook.assert_not_called()
+        mock_get_service.assert_not_called()
 
     @patch(
-        "apps.payments.webhooks.PaymentService.webhook"
+        "apps.payments.webhooks.PaymentServiceFactory.get_service"
     )
     def test_malformed_json_returns_bad_request(
         self,
-        mock_webhook,
+        mock_get_service,
     ):
         body = b"not-valid-json"
 
@@ -142,4 +145,4 @@ class PaystackWebhookTests(TestCase):
             400,
         )
 
-        mock_webhook.assert_not_called()
+        mock_get_service.assert_not_called()

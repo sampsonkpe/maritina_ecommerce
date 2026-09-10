@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 
 from django.utils import timezone
 from apps.checkout.models import CheckoutTransaction
-from apps.payments.services.payment_service import PaymentService
+from .services.factory import PaymentServiceFactory
 
 
 class InitializePaymentView(APIView):
@@ -107,11 +107,11 @@ class InitializePaymentView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            response = (
-                PaymentService.initialize_payment(
-                    checkout=checkout,
-                    email=email,
-                )
+            payment_service = PaymentServiceFactory.get_service()
+
+            response = payment_service.initialize_payment(
+                checkout=checkout,
+                email=email,
             )
 
             return Response(
@@ -138,7 +138,9 @@ class VerifyPaymentView(APIView):
 
     def get(self, request, reference):
 
-        response = PaymentService.verify_payment(
+        payment_service = PaymentServiceFactory.get_service()
+
+        response = payment_service.verify_payment(
             reference
         )
 

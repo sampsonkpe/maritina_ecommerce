@@ -1,12 +1,12 @@
-import json
 import hashlib
 import hmac
+import json
 
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from .services.payment_service import PaymentService
+from .services.factory import PaymentServiceFactory
 
 
 @csrf_exempt
@@ -14,7 +14,9 @@ def paystack_webhook(request):
     if request.method != "POST":
         return HttpResponse(status=405)
 
-    signature = request.headers.get("x-paystack-signature")
+    signature = request.headers.get(
+        "x-paystack-signature"
+    )
 
     expected_signature = hmac.new(
         settings.PAYSTACK_SECRET_KEY.encode(),
@@ -31,7 +33,11 @@ def paystack_webhook(request):
     try:
         payload = json.loads(request.body)
 
-        PaymentService.webhook(payload)
+        payment_service = (
+            PaymentServiceFactory.get_service()
+        )
+
+        payment_service.webhook(payload)
 
         return HttpResponse(status=200)
 

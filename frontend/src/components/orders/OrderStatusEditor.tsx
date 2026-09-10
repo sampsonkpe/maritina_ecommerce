@@ -34,9 +34,33 @@ export default function OrderStatusEditor({
       order.status as keyof typeof ORDER_STATUS_TRANSITIONS
     ] ?? [];
 
+  const isPaid =
+    order.payment_status === "PAID";
+
   const availableStatuses = [
     order.status,
     ...nextStatuses.filter((status) => {
+      /*
+       * Fulfilment may only begin after payment.
+       *
+       * This mirrors the backend protection in
+       * OrderService.update_order_status().
+       */
+      const requiresPayment =
+        status === ORDER_STATUS.CONFIRMED ||
+        status === ORDER_STATUS.PREPARING ||
+        status === ORDER_STATUS.OUT_FOR_DELIVERY ||
+        status === ORDER_STATUS.READY_FOR_PICKUP ||
+        status === ORDER_STATUS.DELIVERED ||
+        status === ORDER_STATUS.PICKED_UP;
+
+      if (requiresPayment && !isPaid) {
+        return false;
+      }
+
+      /*
+       * Delivery-specific statuses.
+       */
       if (
         status === ORDER_STATUS.OUT_FOR_DELIVERY ||
         status === ORDER_STATUS.DELIVERED
@@ -44,6 +68,9 @@ export default function OrderStatusEditor({
         return order.delivery_type === "DELIVERY";
       }
 
+      /*
+       * Pickup-specific statuses.
+       */
       if (
         status === ORDER_STATUS.READY_FOR_PICKUP ||
         status === ORDER_STATUS.PICKED_UP
@@ -84,17 +111,18 @@ export default function OrderStatusEditor({
         Order Status
       </h3>
 
-      {/* Fulfilment controls */}
       <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
         <select
           value={selectedStatus}
-          onChange={(e) =>
-            onStatusChange(e.target.value)
+          onChange={(event) =>
+            onStatusChange(event.target.value)
           }
           disabled={updating || cancelling}
+          aria-label="Order status"
           className="
             rounded-2xl
-            border border-(--color-border)
+            border
+            border-(--color-border)
             bg-(--color-surface)
             px-4
             py-3
@@ -132,7 +160,14 @@ export default function OrderStatusEditor({
         </Button>
       </div>
 
-      {/* Cancellation */}
+      {!isPaid &&
+        order.status === ORDER_STATUS.PENDING && (
+          <p className="mt-4 text-center text-sm text-(--color-text-muted)">
+            This order must be paid before fulfilment
+            can begin.
+          </p>
+        )}
+
       {canCancel && (
         <div className="mt-6 border-t border-(--color-border) pt-5 text-center">
           <Button
@@ -148,7 +183,8 @@ export default function OrderStatusEditor({
           </Button>
 
           <p className="mt-2 text-sm text-(--color-text-muted)">
-            Paid orders will be refunded before cancellation.
+            Paid orders are refunded before cancellation
+            is completed.
           </p>
         </div>
       )}

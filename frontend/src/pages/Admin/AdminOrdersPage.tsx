@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { orderService } from "../../services/orderService";
 import type { Order } from "../../types/order";
@@ -23,49 +20,46 @@ import AdminOrderFilters from "../../components/orders/AdminOrderFilters";
 import AdminOrderDetails from "../../components/orders/AdminOrderDetails";
 import OrderFooter from "../../components/orders/OrderFooter";
 
-
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const [expandedOrders, setExpandedOrders] =
-    useState<number[]>([]);
+  const [expandedOrders, setExpandedOrders] = useState<number[]>([]);
+  const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
 
-  const [collapsedSections, setCollapsedSections] =
-    useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<
+    Record<number, Order["status"]>
+  >({});
 
-  const [selectedStatuses, setSelectedStatuses] =
-    useState<Record<number, Order["status"]>>({});
+  const [updatingOrders, setUpdatingOrders] = useState<number[]>([]);
+  const [cancellingOrders, setCancellingOrders] = useState<number[]>([]);
 
-  const [updatingOrders, setUpdatingOrders] =
-    useState<number[]>([]);
-
-  const [cancellingOrders, setCancellingOrders] =
-    useState<number[]>([]);
-
-  const [statusFilter, setStatusFilter] =
-    useState("");
-
-  const [deliveryTypeFilter, setDeliveryTypeFilter] =
-    useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [deliveryTypeFilter, setDeliveryTypeFilter] = useState("");
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [debouncedSearch, setDebouncedSearch] =
-    useState(search);
-
-
+  /*
+   * Debounce search input so we don't request the API
+   * on every keystroke.
+   */
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(search);
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
     }, 500);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      window.clearTimeout(timeout);
+    };
   }, [search]);
 
-
+  /*
+   * Load orders whenever the filters/search change.
+   */
   useEffect(() => {
     let cancelled = false;
 
@@ -75,12 +69,11 @@ export default function AdminOrdersPage() {
       setMessage("");
 
       try {
-        const data =
-          await orderService.getAdminOrders({
-            status: statusFilter,
-            deliveryType: deliveryTypeFilter,
-            search: debouncedSearch,
-          });
+        const data = await orderService.getAdminOrders({
+          status: statusFilter,
+          deliveryType: deliveryTypeFilter,
+          search: debouncedSearch,
+        });
 
         if (cancelled) {
           return;
@@ -94,12 +87,10 @@ export default function AdminOrdersPage() {
         > = {};
 
         data.forEach((order) => {
-          initialStatuses[order.id] =
-            order.status;
+          initialStatuses[order.id] = order.status;
         });
 
         setSelectedStatuses(initialStatuses);
-
       } catch (error) {
         if (cancelled) {
           return;
@@ -110,7 +101,6 @@ export default function AdminOrdersPage() {
         setError(
           "Failed to load orders. Please try again."
         );
-
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -129,54 +119,45 @@ export default function AdminOrdersPage() {
     debouncedSearch,
   ]);
 
-
   const toggleOrder = (orderId: number) => {
     setExpandedOrders((current) =>
       current.includes(orderId)
-        ? current.filter(
-            (id) => id !== orderId
-          )
+        ? current.filter((id) => id !== orderId)
         : [...current, orderId]
     );
   };
 
-
   const toggleSection = (section: string) => {
     setCollapsedSections((current) =>
       current.includes(section)
-        ? current.filter(
-            (item) => item !== section
-          )
+        ? current.filter((item) => item !== section)
         : [...current, section]
     );
   };
 
-
-  const handleUpdateStatus = async (
-    orderId: number
-  ) => {
+  const handleUpdateStatus = async (orderId: number) => {
     setError("");
     setMessage("");
-
-    const newStatus =
-      selectedStatuses[orderId];
 
     const currentOrder = orders.find(
       (order) => order.id === orderId
     );
 
-    if (!currentOrder || !newStatus) {
+    if (!currentOrder) {
       return;
     }
 
-    if (currentOrder.status === newStatus) {
+    const newStatus = selectedStatuses[orderId];
+
+    if (!newStatus || currentOrder.status === newStatus) {
       return;
     }
 
-    setUpdatingOrders((current) => [
-      ...current,
-      orderId,
-    ]);
+    setUpdatingOrders((current) =>
+      current.includes(orderId)
+        ? current
+        : [...current, orderId]
+    );
 
     try {
       await orderService.updateOrderStatus(
@@ -195,30 +176,37 @@ export default function AdminOrdersPage() {
         )
       );
 
+      setSelectedStatuses((current) => ({
+        ...current,
+        [orderId]: newStatus,
+      }));
+
       setMessage(
         `Order #${orderId} status updated.`
       );
-
     } catch (error) {
       console.error(error);
+
+      /*
+       * The backend rejected the transition.
+       * Restore the dropdown to the actual order status.
+       */
+      setSelectedStatuses((current) => ({
+        ...current,
+        [orderId]: currentOrder.status,
+      }));
 
       setError(
         "Failed to update order status."
       );
-
     } finally {
       setUpdatingOrders((current) =>
-        current.filter(
-          (id) => id !== orderId
-        )
+        current.filter((id) => id !== orderId)
       );
     }
   };
 
-
-  const handleCancelOrder = async (
-    orderId: number
-  ) => {
+  const handleCancelOrder = async (orderId: number) => {
     const currentOrder = orders.find(
       (order) => order.id === orderId
     );
@@ -238,10 +226,11 @@ export default function AdminOrdersPage() {
     setError("");
     setMessage("");
 
-    setCancellingOrders((current) => [
-      ...current,
-      orderId,
-    ]);
+    setCancellingOrders((current) =>
+      current.includes(orderId)
+        ? current
+        : [...current, orderId]
+    );
 
     try {
       const result =
@@ -250,17 +239,13 @@ export default function AdminOrdersPage() {
         );
 
       /*
-       * IMPORTANT:
+       * Unpaid orders are cancelled immediately.
        *
-       * Do not automatically set the order to
-       * CANCELLED here.
-       *
-       * For a paid order, the backend may only have
-       * initiated the refund. The order remains in
-       * its current status until Paystack confirms
-       * the refund as processed.
+       * Paid orders are different:
+       * cancellation starts the refund workflow, but
+       * the order remains in its current status until
+       * Paystack confirms the refund as processed.
        */
-
       if (
         result.status ===
         ORDER_STATUS.CANCELLED
@@ -290,7 +275,6 @@ export default function AdminOrdersPage() {
         setMessage(
           `Order #${orderId} cancelled successfully.`
         );
-
       } else {
         setMessage(
           `Refund initiated for Order #${orderId}. ` +
@@ -298,30 +282,24 @@ export default function AdminOrdersPage() {
           `the refund is successfully processed.`
         );
       }
-
     } catch (error) {
       console.error(error);
 
       setError(
         "Failed to cancel order."
       );
-
     } finally {
       setCancellingOrders((current) =>
-        current.filter(
-          (id) => id !== orderId
-        )
+        current.filter((id) => id !== orderId)
       );
     }
   };
-
 
   const activeExcludedStatuses: OrderStatus[] = [
     ORDER_STATUS.DELIVERED,
     ORDER_STATUS.PICKED_UP,
     ORDER_STATUS.CANCELLED,
   ];
-
 
   const activeOrders = orders.filter(
     (order) =>
@@ -330,43 +308,28 @@ export default function AdminOrdersPage() {
       )
   );
 
-
   const fulfilledOrders = orders.filter(
     (order) =>
-      order.status ===
-        ORDER_STATUS.DELIVERED ||
-      order.status ===
-        ORDER_STATUS.PICKED_UP
+      order.status === ORDER_STATUS.DELIVERED ||
+      order.status === ORDER_STATUS.PICKED_UP
   );
-
 
   const cancelledOrders = orders.filter(
     (order) =>
-      order.status ===
-      ORDER_STATUS.CANCELLED
+      order.status === ORDER_STATUS.CANCELLED
   );
-
 
   const renderOrders = (
     ordersToRender: Order[]
   ) => (
     <div className="space-y-5">
       {ordersToRender.map((order) => {
-        const expanded =
-          expandedOrders.includes(
-            order.id
-          );
-
-        const canCancel =
-          order.status ===
-            ORDER_STATUS.PENDING ||
-          order.status ===
-            ORDER_STATUS.CONFIRMED;
+        const expanded = expandedOrders.includes(
+          order.id
+        );
 
         const cancelling =
-          cancellingOrders.includes(
-            order.id
-          );
+          cancellingOrders.includes(order.id);
 
         return (
           <article
@@ -389,55 +352,12 @@ export default function AdminOrdersPage() {
               }
             />
 
-            {canCancel && (
-              <div
-                className="
-                  mt-5
-                  flex
-                  items-center
-                  justify-end
-                  border-t
-                  border-(--color-border)
-                  pt-5
-                "
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleCancelOrder(
-                      order.id
-                    )
-                  }
-                  disabled={cancelling}
-                  className="
-                    rounded-xl
-                    border
-                    border-red-500/30
-                    px-4
-                    py-2
-                    text-sm
-                    font-medium
-                    text-red-600
-                    transition
-                    hover:bg-red-500/5
-                    disabled:cursor-not-allowed
-                    disabled:opacity-50
-                  "
-                >
-                  {cancelling
-                    ? "Processing..."
-                    : "Cancel Order"}
-                </button>
-              </div>
-            )}
-
             {expanded && (
               <AdminOrderDetails
                 order={order}
                 selectedStatus={
-                  selectedStatuses[
-                    order.id
-                  ] ?? order.status
+                  selectedStatuses[order.id] ??
+                  order.status
                 }
                 updating={updatingOrders.includes(
                   order.id
@@ -447,18 +367,14 @@ export default function AdminOrdersPage() {
                   handleCancelOrder(order.id)
                 }
                 onStatusChange={(status) =>
-                  setSelectedStatuses(
-                    (current) => ({
-                      ...current,
-                      [order.id]:
-                        status as Order["status"],
-                    })
-                  )
+                  setSelectedStatuses((current) => ({
+                    ...current,
+                    [order.id]:
+                      status as Order["status"],
+                  }))
                 }
                 onUpdate={() =>
-                  handleUpdateStatus(
-                    order.id
-                  )
+                  handleUpdateStatus(order.id)
                 }
               />
             )}
@@ -473,7 +389,6 @@ export default function AdminOrdersPage() {
       })}
     </div>
   );
-
 
   const renderSection = (
     key: string,
@@ -491,9 +406,7 @@ export default function AdminOrdersPage() {
       <section>
         <button
           type="button"
-          onClick={() =>
-            toggleSection(key)
-          }
+          onClick={() => toggleSection(key)}
           aria-expanded={!collapsed}
           className="
             flex
@@ -539,24 +452,18 @@ export default function AdminOrdersPage() {
 
         {!collapsed && (
           <div className="mt-6">
-            {renderOrders(
-              ordersToRender
-            )}
+            {renderOrders(ordersToRender)}
           </div>
         )}
       </section>
     );
   };
 
-
   if (loading) {
     return (
-      <LoadingState
-        message="Loading orders..."
-      />
+      <LoadingState message="Loading orders..." />
     );
   }
-
 
   return (
     <PageContainer>
@@ -580,6 +487,7 @@ export default function AdminOrdersPage() {
             py-3
             text-sm
           "
+          role="status"
         >
           {message}
         </div>
@@ -588,13 +496,9 @@ export default function AdminOrdersPage() {
       <AdminOrderFilters
         search={search}
         statusFilter={statusFilter}
-        deliveryTypeFilter={
-          deliveryTypeFilter
-        }
+        deliveryTypeFilter={deliveryTypeFilter}
         onSearchChange={setSearch}
-        onStatusChange={
-          setStatusFilter
-        }
+        onStatusChange={setStatusFilter}
         onDeliveryTypeChange={
           setDeliveryTypeFilter
         }
@@ -606,9 +510,7 @@ export default function AdminOrdersPage() {
       />
 
       {orders.length === 0 ? (
-        <EmptyState
-          title="No orders found."
-        />
+        <EmptyState title="No orders found." />
       ) : (
         <div className="space-y-12">
           {renderSection(

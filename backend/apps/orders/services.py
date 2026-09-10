@@ -387,32 +387,17 @@ class OrderService:
         # -------------------------------------------------
 
         if order.payment_status != PAYMENT_PAID:
-            old_status = order.status
-
-            order.status = STATUS_CANCELLED
-
-            order.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
-                ]
-            )
-
-            OrderStatusHistory.objects.create(
-                order=order,
-                old_status=old_status,
-                new_status=STATUS_CANCELLED,
+            return OrderService._cancel_unpaid_order(
+                order,
                 updated_by=user,
             )
-
-            return order
 
         # -------------------------------------------------
         # Paid order -> refund required
         # -------------------------------------------------
 
         from apps.payments.models import Payment, Refund
-        from apps.payments.services import PaymentService
+        from apps.payments.services.factory import PaymentServiceFactory
 
         payment = (
             Payment.objects
@@ -489,7 +474,9 @@ class OrderService:
         # Initiate refund
         # -------------------------------------------------
 
-        PaymentService.refund(
+        payment_service = PaymentServiceFactory.get_service()
+
+        payment_service.refund(
             payment=payment,
             amount=payment.amount - payment.refunded_amount,
             is_cancellation_refund=True,
@@ -542,32 +529,17 @@ class OrderService:
         # -------------------------------------------------
 
         if order.payment_status != PAYMENT_PAID:
-            old_status = order.status
-
-            order.status = STATUS_CANCELLED
-
-            order.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
-                ]
-            )
-
-            OrderStatusHistory.objects.create(
-                order=order,
-                old_status=old_status,
-                new_status=STATUS_CANCELLED,
+            return OrderService._cancel_unpaid_order(
+                order,
                 updated_by=updated_by,
             )
-
-            return order
 
         # -------------------------------------------------
         # Paid order -> refund
         # -------------------------------------------------
 
         from apps.payments.models import Payment, Refund
-        from apps.payments.services import PaymentService
+        from apps.payments.services.factory import PaymentServiceFactory
 
         payment = (
             Payment.objects
@@ -644,13 +616,47 @@ class OrderService:
         # Initiate refund
         # -------------------------------------------------
 
-        PaymentService.refund(
+        payment_service = PaymentServiceFactory.get_service()
+
+        payment_service.refund(
             payment=payment,
             amount=payment.amount - payment.refunded_amount,
             is_cancellation_refund=True,
         )
 
         order.refresh_from_db()
+
+        return order
+
+    @staticmethod
+    def _cancel_unpaid_order(
+        order,
+        *,
+        updated_by,
+    ):
+        """
+        Cancel an unpaid order immediately.
+
+        The caller must already hold the order lock.
+        """
+
+        old_status = order.status
+
+        order.status = STATUS_CANCELLED
+
+        order.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            old_status=old_status,
+            new_status=STATUS_CANCELLED,
+            updated_by=updated_by,
+        )
 
         return order
 
