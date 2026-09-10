@@ -107,7 +107,7 @@ export default function CartPage() {
             </h1>
 
             <p className="mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
-              Review your order and proceed to checkout.
+              Review your cart and proceed to checkout.
             </p>
           </div>
         </div>

@@ -1,30 +1,37 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  ArrowRight,
+} from "lucide-react";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import { paymentService } from "../../services/paymentService";
 
 import LoadingState from "../../components/common/LoadingState";
-import PageContainer from "../../components/common/PageContainer";
 
-import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 
 export default function PaymentReturnPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams] =
+    useSearchParams();
+
   const navigate = useNavigate();
 
-  const { user } = useAuth();
   const { refreshCart } = useCart();
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
     const verify = async () => {
-      const reference = searchParams.get("reference");
+      const reference =
+        searchParams.get("reference");
 
       if (!reference) {
         setError(
-          "No payment reference was provided."
+          "No payment reference was provided. Kindly contact Support if you were charged."
         );
 
         return;
@@ -36,16 +43,19 @@ export default function PaymentReturnPage() {
             reference
           );
 
-        if (response.data.status !== true) {
+        if (
+          response.data.status !== true
+        ) {
           setError(
             response.data.message ||
-            "We couldn't confirm your payment."
+              "We couldn't confirm your payment. Kindly contact Support if you were charged."
           );
 
           return;
         }
 
-        const order = response.order;
+        const order =
+          response.order;
 
         if (!order) {
           setError(
@@ -59,26 +69,12 @@ export default function PaymentReturnPage() {
         // the cart that the backend has just cleared.
         await refreshCart();
 
-        const firstName =
-          user?.full_name
-              ?.trim()
-              .split(/\s+/)[0]
-          || order.guest_full_name
-              ?.trim()
-              .split(/\s+/)[0]
-          || "Customer";
-
         navigate(
           `/order-success/${order.id}`,
           {
             replace: true,
-            state: {
-              order,
-              firstName,
-            },
           }
         );
-
       } catch (error) {
         console.error(
           "Payment verification failed:",
@@ -86,8 +82,7 @@ export default function PaymentReturnPage() {
         );
 
         setError(
-          "We couldn't verify your payment. "
-          + "If you were charged, please contact Support."
+          "We couldn't verify your payment. If you were charged, please contact Support."
         );
       }
     };
@@ -97,32 +92,49 @@ export default function PaymentReturnPage() {
     navigate,
     refreshCart,
     searchParams,
-    user,
   ]);
 
   if (error) {
     return (
-      <PageContainer>
-        <div className="mx-auto max-w-xl py-16 text-center">
-          <h1 className="text-2xl font-semibold">
-            Payment verification failed
-          </h1>
+      <>
+        {/* Page intro */}
+        <section className="border-b border-(--color-border)">
+          <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-20 lg:px-8 lg:py-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="mb-3 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+                Payment verification
+              </p>
 
-          <p className="mt-3 text-gray-600">
-            {error}
-          </p>
+              <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+                We couldn't confirm your payment.
+              </h1>
 
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/orders")
-            }
-            className="mt-8 rounded-md bg-black px-6 py-3 text-white"
-          >
-            View Orders
-          </button>
-        </div>
-      </PageContainer>
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+                {error}
+              </p>
+
+              {/* Action */}
+              <div className="mx-auto mt-8 max-w-2xl">
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/orders")
+                  }
+                  className="group inline-flex items-center justify-center gap-2 rounded-full border border-(--color-border) bg-(--color-text) px-6 py-3 text-sm font-medium text-(--color-background) transition-opacity hover:opacity-85"
+                >
+                  View Orders
+
+                  <ArrowRight
+                    size={17}
+                    aria-hidden="true"
+                    className="transition-transform duration-300 group-hover:translate-x-1"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </>
     );
   }
 

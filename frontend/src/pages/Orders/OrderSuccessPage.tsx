@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import {
+  ArrowRight,
+} from "lucide-react";
+import {
   Link,
   useNavigate,
   useParams,
@@ -9,18 +12,19 @@ import { orderService } from "../../services/orderService";
 
 import type { Order } from "../../types/order";
 
-import LoadingState from "../../components/common/LoadingState";
-import PageContainer from "../../components/common/PageContainer";
-
 import { useAuth } from "../../context/AuthContext";
 
+import { formatCurrency } from "../../utils/currency";
 import { formatDate } from "../../utils/date";
+
+import LoadingState from "../../components/common/LoadingState";
 
 export default function OrderSuccessPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
 
-  const { user } = useAuth();
+  const { user, authenticated } =
+    useAuth();
 
   const [order, setOrder] =
     useState<Order | null>(null);
@@ -50,7 +54,6 @@ export default function OrderSuccessPage() {
           );
 
         setOrder(data);
-
       } catch (error) {
         console.error(
           "Failed to load order:",
@@ -78,198 +81,229 @@ export default function OrderSuccessPage() {
 
   if (error || !order) {
     return (
-      <PageContainer>
-        <div className="mx-auto max-w-xl py-16 text-center">
+      <>
+        {/* Page intro */}
+        <section className="border-b border-(--color-border)">
+          <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-20 lg:px-8 lg:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="mb-3 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+                Your Order Confirmation
+              </p>
 
-          <h1 className="text-2xl font-semibold">
-            Order confirmation unavailable
-          </h1>
+              <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+                Something went wrong.
+              </h1>
 
-          <p className="mt-3 text-gray-600">
-            {error ||
-              "We couldn't find this order."}
-          </p>
+              <p className="mt-3 text-base leading-7 text-(--color-text-muted) sm:text-lg">
+                {error ||
+                  "We couldn't find this order."}
+              </p>
+            </div>
+          </div>
+        </section>
 
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/orders")
-            }
-            className="
-              mt-8
-              rounded-md
-              bg-black
-              px-6
-              py-3
-              text-white
-            "
-          >
-            View Orders
-          </button>
+        {/* Error action */}
+        <section>
+          <div
+            className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-8 lg:py-20">
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("/orders")
+                }
+                className="group inline-flex items-center gap-2 rounded-full border border-(--color-border) px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)">
+                View Orders
 
-        </div>
-      </PageContainer>
+                <ArrowRight
+                  size={17}
+                  aria-hidden="true"
+                  className="transition-transform duration-300 group-hover:translate-x-1"/>
+              </button>
+            </div>
+          </div>
+        </section>
+      </>
     );
   }
 
   const firstName =
     user?.full_name
       ?.trim()
-      .split(/\s+/)[0]
-    || order.guest_full_name
+      .split(/\s+/)[0] ||
+    order.guest_full_name
       ?.trim()
-      .split(/\s+/)[0]
-    || "Customer";
+      .split(/\s+/)[0] ||
+    "Customer";
 
   const isDelivery =
     order.delivery_type === "DELIVERY";
 
   return (
-    <PageContainer>
-      <div className="mx-auto max-w-xl py-16">
+    <>
+      {/* Page intro */}
+      <section className="border-b border-(--color-border)">
+        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-20 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-3xl text-center">
 
-        {/* Header */}
+            {/* Success indicator */}
+            <p className="mb-3 text-sm font-medium uppercase tracking-[0.3em] text-(--color-text-muted)">
+              Your Order Confirmation
+            </p>
 
-        <div className="text-center">
+            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+              Order placed successfully!
+            </h1>
 
-          <h1 className="text-3xl font-semibold">
-            Order placed successfully.
-          </h1>
-
-          <p className="mt-3 text-gray-600">
-            Thank you,{" "}
-            <b>{firstName}</b>. Your order
-            has been received.
-          </p>
-
+            <p
+              className=" mx-auto mt-3 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
+              Thank you,{" "}
+              <span className="font-medium text-(--color-text)">
+                {firstName}
+              </span>
+              . Your order has been received.
+            </p>
+          </div>
         </div>
+      </section>
 
-        {/* Order Summary */}
+      {/* Order confirmation */}
+      <section>
+        <div
+          className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-2xl">
 
-        <div className="mt-8 rounded-lg border p-6">
+            {/* Order details */}
+            <div
+              className="rounded-3xl border border-(--color-border) p-6 sm:p-8">
+              <div className="mb-2">
+                <p className="text-sm text-center font-medium uppercase tracking-[0.2em] text-(--color-text-muted)">
+                  Order Details
+                </p>
 
-          {/* Order Number */}
+                <p className="mt-2 text-2xl text-center font-semibold tracking-tight">
+                  Order #{order.id}
+                </p>
+              </div>
 
-          <div className="flex items-center justify-between gap-6">
-            <span className="text-gray-500">
-              Order Number :
-            </span>
+              <div className="divide-y divide-(--color-border)">
 
-            <span className="font-medium">
-              #{order.id}
-            </span>
-          </div>
+                {/* Order type */}
+                <div
+                  className="flex items-center justify-between gap-6 py-4">
+                  <span className="text-sm text-(--color-text-muted)">
+                    Order Type
+                  </span>
 
-          {/* Order Type */}
+                  <span className="text-sm font-medium">
+                    {isDelivery
+                      ? "Delivery"
+                      : "Pickup"}
+                  </span>
+                </div>
 
-          <div className="mt-5 flex items-center justify-between gap-6">
+                {/* Payment */}
+                <div
+                  className="flex items-center justify-between gap-6 py-4">
+                  <span className="text-sm text-(--color-text-muted)">
+                    Payment Method
+                  </span>
 
-            <span className="text-gray-500">
-              Order Type :
-            </span>
+                  <span className="text-sm font-medium">
+                    {order.payment_method ||
+                      "Paystack"}
+                  </span>
+                </div>
 
-            <span className="font-medium">
-              {isDelivery
-                ? "Delivery"
-                : "Pickup"}
-            </span>
+                {/* Total */}
+                <div
+                  className="
+                    flex items-center justify-between gap-6 py-4">
+                  <span className="text-sm text-(--color-text-muted)">
+                    Total Amount
+                  </span>
 
-          </div>
+                  <span className="text-lg font-semibold">
+                    {formatCurrency(
+                      order.total_amount
+                    )}
+                  </span>
+                </div>
 
-          {/* Payment Method */}
+                {/* Date */}
+                <div
+                  className="flex items-start justify-between gap-6 py-4">
+                  <span className="text-sm text-(--color-text-muted)">
+                    Order Placed
+                  </span>
 
-          <div className="mt-5 flex items-center justify-between gap-6">
+                  <time
+                    dateTime={
+                      order.created_at
+                    }
+                    className="text-right text-sm font-medium">
+                    {formatDate(
+                      order.created_at
+                    )}
+                  </time>
+                </div>
 
-            <span className="text-gray-500">
-              Payment Method :
-            </span>
+              </div>
+            </div>
 
-            <span className="font-medium">
-              {order.payment_method ||
-                "Paystack"}
-            </span>
+            {/* Delivery information */}
+            {isDelivery &&
+              order.address_text && (
+                <div
+                  className="mt-4 rounded-3xl border border-(--color-border) p-6 sm:p-8">
+                  <p className="text-sm font-medium uppercase tracking-[0.2em] text-(--color-text-muted)">
+                    Delivery Address
+                  </p>
 
-          </div>
-
-          {/* Total */}
-
-          <div className="mt-5 flex items-center justify-between gap-6">
-
-            <span className="text-gray-500">
-              Total Amount :
-            </span>
-
-            <span className="text-lg font-semibold">
-              GH₵
-              {Number(
-                order.total_amount
-              ).toFixed(2)}
-            </span>
-
-          </div>
-
-          {/* Date / Time */}
-
-          <div className="mt-5 flex items-center justify-between gap-6">
-
-            <span className="text-gray-500">
-              Order Placed on :
-            </span>
-
-            <time
-              dateTime={order.created_at}
-              className="font-medium text-right"
-            >
-              {formatDate(
-                order.created_at
+                  <p className="mt-3 text-base leading-7">
+                    {order.address_text}
+                  </p>
+                </div>
               )}
-            </time>
+
+            {/* Actions */}
+            <div
+              className={`mt-8 grid gap-3
+                ${
+                  authenticated
+                    ? "sm:grid-cols-2"
+                    : ""
+                }
+              `}
+            >
+              <Link
+                to="/products"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-(--color-border) bg-(--color-text) px-6 py-3 text-sm font-medium text-(--color-background) transition-opacity hover:opacity-85">
+                Continue Shopping
+
+                <ArrowRight
+                  size={17}
+                  aria-hidden="true"
+                  className="transition-transform duration-300 group-hover:translate-x-1"/>
+              </Link>
+
+              {authenticated && (
+                <Link
+                  to="/orders"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-(--color-border) px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)">
+                  View Orders
+                </Link>
+              )}
+            </div>
+
+            {/* Message */}
+            <p className="mt-8 text-center text-sm leading-6 text-(--color-text-muted)">
+              We'll keep you updated as your order progresses.
+            </p>
 
           </div>
-
         </div>
-
-        {/* Message */}
-
-        <p className="mt-6 text-center text-sm text-gray-500">
-          We'll keep you updated as your
-          order progresses.
-        </p>
-
-        {/* Actions */}
-
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
-
-          <Link
-            to="/products"
-            className="
-              rounded-md
-              bg-black
-              px-6
-              py-3
-              text-center
-              text-white
-            "
-          >
-            Continue Shopping
-          </Link>
-
-          <Link
-            to="/orders"
-            className="
-              rounded-md
-              border
-              px-6
-              py-3
-              text-center
-            "
-          >
-            View Orders
-          </Link>
-
-        </div>
-
-      </div>
-    </PageContainer>
+      </section>
+    </>
   );
 }
