@@ -12,6 +12,7 @@ export const ORDER_STATUS = {
 export type OrderStatus =
   (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
 
+
 export const PAYMENT_STATUS = {
   PENDING: "PENDING",
   PAID: "PAID",
@@ -22,6 +23,7 @@ export const PAYMENT_STATUS = {
 export type PaymentStatus =
   (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
 
+
 export const DELIVERY_TYPE = {
   DELIVERY: "DELIVERY",
   PICKUP: "PICKUP",
@@ -29,6 +31,7 @@ export const DELIVERY_TYPE = {
 
 export type DeliveryType =
   (typeof DELIVERY_TYPE)[keyof typeof DELIVERY_TYPE];
+
 
 export const ORDER_STATUS_OPTIONS = [
   {
@@ -59,26 +62,21 @@ export const ORDER_STATUS_OPTIONS = [
     value: ORDER_STATUS.PICKED_UP,
     label: "Picked Up",
   },
-  {
-    value: ORDER_STATUS.CANCELLED,
-    label: "Cancelled",
-  },
 ];
+
 
 export const ORDER_STATUS_TRANSITIONS = {
   PENDING: [
-    ORDER_STATUS.CANCELLED,
+    ORDER_STATUS.CONFIRMED,
   ],
 
   CONFIRMED: [
     ORDER_STATUS.PREPARING,
-    ORDER_STATUS.READY_FOR_PICKUP,
-    ORDER_STATUS.CANCELLED,
   ],
 
   PREPARING: [
     ORDER_STATUS.OUT_FOR_DELIVERY,
-    ORDER_STATUS.CANCELLED,
+    ORDER_STATUS.READY_FOR_PICKUP,
   ],
 
   OUT_FOR_DELIVERY: [
@@ -90,7 +88,7 @@ export const ORDER_STATUS_TRANSITIONS = {
   ],
 
   DELIVERED: [],
-  
+
   PICKED_UP: [],
 
   CANCELLED: [],

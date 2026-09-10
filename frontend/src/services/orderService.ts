@@ -1,11 +1,9 @@
 import api from "../api/axios";
-
 import type { Order } from "../types/order";
 import type {
   CreateOrderResponse,
   OrderStatusResponse,
 } from "../types/api";
-
 import type { DeliveryType } from "../constants/order";
 
 export const orderService = {
@@ -67,9 +65,12 @@ export const orderService = {
       "/orders/admin/all/",
       {
         params: {
-          status: filters?.status || undefined,
+          status:
+            filters?.status || undefined,
+
           delivery_type:
             filters?.deliveryType || undefined,
+
           search:
             filters?.search || undefined,
         },
@@ -88,6 +89,34 @@ export const orderService = {
       {
         status,
       }
+    );
+
+    return response.data;
+  },
+
+  async cancelOrder(
+    orderId: number
+  ): Promise<{
+    message: string;
+    status: Order["status"];
+    payment_status: string;
+  }> {
+    const response = await api.post(
+      `/orders/cancel/${orderId}/`
+    );
+
+    return response.data;
+  },
+
+  async cancelAdminOrder(
+    orderId: number
+  ): Promise<{
+    message: string;
+    status: Order["status"];
+    payment_status: string;
+  }> {
+    const response = await api.post(
+      `/orders/admin/cancel/${orderId}/`
     );
 
     return response.data;

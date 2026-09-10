@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 import { orderService } from "../../services/orderService";
 
 import type { Order } from "../../types/order";
 
 import PageContainer from "../../components/common/PageContainer";
+import PageHeader from "../../components/common/PageHeader";
 import LoadingState from "../../components/common/LoadingState";
 import Alert from "../../components/common/Alert";
+import SectionTitle from "../../components/common/SectionTitle";
+import Button from "../../components/common/Button";
 
 import OrderItemsList from "../../components/orders/OrderItemsList";
 import OrderSummary from "../../components/orders/OrderSummary";
@@ -28,6 +32,8 @@ export default function OrderTrackingPage() {
     useState("");
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadOrder = async () => {
       if (!orderId) {
         setError("Order not found.");
@@ -35,25 +41,50 @@ export default function OrderTrackingPage() {
         return;
       }
 
+      const parsedOrderId = Number(orderId);
+
+      if (!Number.isInteger(parsedOrderId)) {
+        setError("Order not found.");
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+
       try {
         const data =
           await orderService.getOrder(
-            Number(orderId)
+            parsedOrderId
           );
+
+        if (cancelled) {
+          return;
+        }
 
         setOrder(data);
       } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
         console.error(error);
 
         setError(
           "Failed to load order."
         );
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     loadOrder();
+
+    return () => {
+      cancelled = true;
+    };
   }, [orderId]);
 
   if (loading) {
@@ -67,111 +98,74 @@ export default function OrderTrackingPage() {
   if (error || !order) {
     return (
       <PageContainer>
-        <Alert
-          message={
-            error || "Order not found."
-          }
-        />
+        <div className="mx-auto max-w-3xl">
+          <Alert
+            message={
+              error || "Order not found."
+            }
+          />
 
-        <Link
-          to="/orders"
-          className="
-            mt-6
-            inline-block
-            text-sm
-            font-medium
-            underline
-            underline-offset-4
-          "
-        >
-          Back to Orders
-        </Link>
+          <Button
+            to="/orders"
+            variant="secondary"
+            rounded="full"
+            className="mb-6 inline-flex items-center gap-2"
+          >
+            <ArrowLeft
+              size={16}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+            Back to Orders
+          </Button>
+        </div>
       </PageContainer>
     );
   }
 
   return (
     <PageContainer>
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-3xl">
         {/* Back */}
-        <Link
+        <Button
           to="/orders"
-          className="
-            mb-8
-            inline-flex
-            items-center
-            text-sm
-            text-(--color-muted)
-            transition-colors
-            hover:text-(--color-text)
-          "
+          variant="secondary"
+          rounded="full"
+          className="mb-6 inline-flex items-center gap-2"
         >
-            Back to Orders
-        </Link>
+          <ArrowLeft
+            size={16}
+            strokeWidth={1.8}
+            aria-hidden="true"
+          />
+          Back to Orders
+        </Button>
 
-        {/* Header */}
-        <div className="mb-8">
-          <div
-            className="
-              flex
-              flex-col
-              gap-3
-              sm:flex-row
-              sm:items-end
-              sm:justify-between
-            "
-          >
-            <div>
-              <p
-                className="
-                  text-sm
-                  text-(--color-muted)
-                "
-              >
-                {order.delivery_type_display}
-              </p>
-
-              <h1
-                className="
-                  mt-1
-                  text-3xl
-                  font-semibold
-                  tracking-tight
-                  text-(--color-text)
-                "
-              >
-                Order #{order.id}
-              </h1>
-            </div>
-
-          </div>
-        </div>
+        {/* Page Header */}
+        <PageHeader
+          title={`Order #${order.id}`}
+        />
 
         {/* Tracking */}
-        <div className="mt-8">
-            <OrderTracking order={order} />
-        </div>
+        <section>
+          <OrderTracking order={order} />
+        </section>
 
         {/* Items */}
         <section className="mt-10">
-          <h2
-            className="
-              mb-4
-              text-lg
-              font-medium
-              text-(--color-text)
-            "
-          >
+          <SectionTitle>
             Items
-          </h2>
+          </SectionTitle>
 
           <div
             className="
-              rounded-md
+              mt-4
+              rounded-3xl
               border
               border-(--color-border)
               bg-(--color-surface)
               p-5
+              sm:p-6
             "
           >
             <OrderItemsList
@@ -182,97 +176,86 @@ export default function OrderTrackingPage() {
 
         {/* Summary */}
         <section className="mt-8">
-          <OrderSummary
-            subtotal={order.subtotal}
-            deliveryFee={order.delivery_fee}
-            total={order.total_amount}
-            refundedAmount={order.refunded_amount}
-            refundStatus={order.refund_status}
-          />
+          <SectionTitle>
+            Order Summary
+          </SectionTitle>
+
+          <div className="mt-4">
+            <OrderSummary
+              subtotal={order.subtotal}
+              deliveryFee={order.delivery_fee}
+              total={order.total_amount}
+              refundedAmount={
+                order.refunded_amount
+              }
+              refundStatus={
+                order.refund_status
+              }
+            />
+          </div>
         </section>
 
-        {/* Delivery / pickup information */}
-          <section
+        {/* Fulfilment */}
+        <section className="mt-8">
+          <SectionTitle>
+            {order.delivery_type === "DELIVERY"
+              ? "Delivery Status"
+              : "Pickup Status"}
+          </SectionTitle>
+
+          <div
             className="
-              mt-8
-              rounded-md
+              mt-4
+              rounded-3xl
               border
               border-(--color-border)
               bg-(--color-surface)
               p-5
+              sm:p-6
             "
           >
-            <h2
-              className="
-                text-lg
-                font-medium
-                text-(--color-text)
-              "
-            >
-              {order.delivery_type === "DELIVERY"
-                ? "Delivery"
-                : "Pickup"}
-            </h2>
-
-            {order.delivery_type === "DELIVERY" && (
+            {order.delivery_type === "DELIVERY" ? (
               <>
-                <p
-                  className="
-                    mt-3
-                    text-sm
-                    text-(--color-text-muted)
-                  "
-                >
-                  {order.status === "PENDING"
-                    ? "Your order is being processed."
-                    : order.status === "CONFIRMED"
-                      ? "Your order has been confirmed and will be prepared shortly."
-                      : order.status === "PREPARING"
-                        ? "Your order is being prepared."
-                        : order.status === "OUT_FOR_DELIVERY"
-                          ? "Your order is on its way to you."
-                          : order.status === "DELIVERED"
-                            ? "Your order has been delivered to:"
-                            : order.status === "CANCELLED"
-                              ? "Your order has been cancelled."
-                              : "Your order is being processed."}
-                </p>
-
                 {order.address_text && (
-                  <div>
-                    <p
-                      className="
-                        mt-2
-                        text-sm
-                        font-semibold
-                        text-(--color-text-muted)
-                      "
-                    >
+                  <p
+                    className="
+                      text-sm
+                      text-(--color-text-muted)
+                    "
+                  >
+                    {order.status === "DELIVERED"
+                      ? "Delivered to: "
+                      : "Delivery to: "}
+
+                    <span className="font-medium text-(--color-text)">
                       {order.address_text}
-                    </p>
-                  </div>
+                    </span>
+                  </p>
+                )}
+
+                {!order.address_text && (
+                  <p
+                    className="
+                      mt-3
+                      text-sm
+                      text-(--color-text-muted)
+                    "
+                  >
+                    Delivery address unavailable.
+                  </p>
                 )}
               </>
-            )}
-
-            {order.delivery_type === "PICKUP" && (
-              <p
-                className="
-                  mt-3
-                  text-sm
-                  text-(--color-text-muted)
-                "
-              >
-                {order.status === "READY_FOR_PICKUP"
-                  ? "Your order is ready for pickup."
-                  : order.status === "PICKED_UP"
-                    ? "Your order has been picked up."
-                    : order.status === "CANCELLED"
-                      ? "Your order has been cancelled."
-                      : 'Your order will be ready for collection once it reaches "Ready for Pickup".'}
+            ) : (
+              <p className="text-sm text-(--color-text-muted)">
+                Your order will be ready for
+                collection once it reaches
+                <span className="font-medium text-(--color-text)"> Ready for Pickup
+                  </span>
+                .
               </p>
             )}
-          </section>
+          </div>
+        </section>
       </div>
     </PageContainer>
   );

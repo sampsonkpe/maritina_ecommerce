@@ -4,7 +4,6 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework import status
 
 from .models import Order
-
 from .serializers import OrderSerializer
 from .services import OrderService
 
@@ -17,7 +16,9 @@ class AdminOrdersView(APIView):
 
         orders = OrderService.list_admin_orders(
             status_filter=request.query_params.get("status"),
-            delivery_filter=request.query_params.get("delivery_type"),
+            delivery_filter=request.query_params.get(
+                "delivery_type"
+            ),
             search=request.query_params.get("search"),
         )
 
@@ -50,12 +51,20 @@ class UpdateOrderStatusView(APIView):
                 }
             )
 
-        except ValueError as e:
+        except Order.DoesNotExist:
 
             return Response(
-                {"error": str(e)},
+                {"error": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except ValueError as error:
+
+            return Response(
+                {"error": str(error)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
 
 class AdminCancelOrderView(APIView):
 
@@ -70,10 +79,35 @@ class AdminCancelOrderView(APIView):
                 updated_by=request.user,
             )
 
+            # A paid order may still be waiting for Paystack
+            # to process its refund.
+            if order.status == "CANCELLED":
+
+                return Response(
+                    {
+                        "message": (
+                            "Order cancelled successfully."
+                        ),
+                        "status": order.status,
+                        "payment_status": (
+                            order.payment_status
+                        ),
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
             return Response(
                 {
-                    "message": "Order cancelled successfully.",
+                    "message": (
+                        "Refund initiated. "
+                        "The order will be cancelled "
+                        "once the refund is successfully "
+                        "processed."
+                    ),
                     "status": order.status,
+                    "payment_status": (
+                        order.payment_status
+                    ),
                 },
                 status=status.HTTP_200_OK,
             )

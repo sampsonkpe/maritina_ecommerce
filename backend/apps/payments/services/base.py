@@ -16,9 +16,18 @@ class BasePaymentService(ABC):
         pass
 
     @abstractmethod
-    def mark_as_paid(self, reference):
+    def mark_as_paid(self, reference, transaction_data=None):
         pass
 
     @abstractmethod
-    def refund(self, payment, amount=None):
+    def mark_as_failed(self, reference):
+        pass
+
+    @abstractmethod
+    def refund(
+        self,
+        payment,
+        amount=None,
+        is_cancellation_refund=False,
+    ):
         pass

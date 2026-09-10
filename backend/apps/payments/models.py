@@ -154,6 +154,12 @@ class Refund(models.Model):
         default=STATUS_PENDING,
     )
 
+    # True when this refund was specifically created
+    # because the associated order is being cancelled.
+    is_cancellation_refund = models.BooleanField(
+        default=False,
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
     )

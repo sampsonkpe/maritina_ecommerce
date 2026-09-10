@@ -23,8 +23,13 @@ class PaymentService:
         )
 
     @staticmethod
-    def refund(payment, amount=None):
+    def refund(
+        payment,
+        amount=None,
+        is_cancellation_refund=False,
+    ):
         return PaymentServiceFactory.get_service().refund(
             payment,
-            amount
+            amount,
+            is_cancellation_refund=is_cancellation_refund,
         )

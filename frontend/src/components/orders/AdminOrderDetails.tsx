@@ -10,27 +10,34 @@ interface AdminOrderDetailsProps {
   order: Order;
   selectedStatus: string;
   updating: boolean;
+  cancelling: boolean;
   onStatusChange: (status: string) => void;
   onUpdate: () => void;
+  onCancel: () => void;
 }
 
 export default function AdminOrderDetails({
   order,
   selectedStatus,
   updating,
+  cancelling,
   onStatusChange,
   onUpdate,
+  onCancel,
 }: AdminOrderDetailsProps) {
   return (
     <div className="mt-6 border-t border-(--color-border) pt-6">
       {/* Delivery Address */}
       {order.address_text && (
-        <p className="text-(--color-text-muted)">
-          To{" "}
-          <span className="text-(--color-text)">
+        <div>
+          <SectionTitle>
+            Delivery Address
+          </SectionTitle>
+
+          <p className="mt-2 text-(--color-text-muted)">
             {order.address_text}
-          </span>
-        </p>
+          </p>
+        </div>
       )}
 
       {/* Items */}
@@ -52,15 +59,15 @@ export default function AdminOrderDetails({
       />
 
       {/* Status */}
-      <div className="mt-8">
-        <OrderStatusEditor
-          order={order}
-          selectedStatus={selectedStatus}
-          updating={updating}
-          onStatusChange={onStatusChange}
-          onUpdate={onUpdate}
-        />
-      </div>
+      <OrderStatusEditor
+        order={order}
+        selectedStatus={selectedStatus}
+        updating={updating}
+        cancelling={cancelling}
+        onStatusChange={onStatusChange}
+        onUpdate={onUpdate}
+        onCancel={onCancel}
+      />
     </div>
   );
 }

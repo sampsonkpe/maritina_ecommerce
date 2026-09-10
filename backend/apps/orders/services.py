@@ -23,6 +23,7 @@ from apps.common.constants import (
     STATUS_PICKED_UP,
     STATUS_CANCELLED,
     PAYMENT_PAID,
+    PAYMENT_REFUNDED,
     ORDER_STATUS_TRANSITIONS,
 )
 
@@ -349,11 +350,17 @@ class OrderService:
         """
         Cancel an order belonging to the authenticated customer.
 
-        Customer cancellation is only permitted while the order
-        has not entered fulfilment.
+        Unpaid orders are cancelled immediately.
 
-        Paid orders cannot be cancelled through this method
-        until the refund workflow is available.
+        Paid orders follow the refund workflow:
+
+            Cancel
+            -> initiate refund
+            -> wait for successful refund
+            -> mark order CANCELLED
+
+        A paid order is therefore NOT marked CANCELLED merely
+        because the refund was initiated.
         """
 
         order = (
@@ -375,29 +382,120 @@ class OrderService:
                 "This order can no longer be cancelled."
             )
 
-        if order.payment_status == PAYMENT_PAID:
-            raise ValueError(
-                "Paid orders require a refund before they "
-                "can be cancelled."
+        # -------------------------------------------------
+        # Unpaid order
+        # -------------------------------------------------
+
+        if order.payment_status != PAYMENT_PAID:
+            old_status = order.status
+
+            order.status = STATUS_CANCELLED
+
+            order.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
             )
 
-        old_status = order.status
+            OrderStatusHistory.objects.create(
+                order=order,
+                old_status=old_status,
+                new_status=STATUS_CANCELLED,
+                updated_by=user,
+            )
 
-        order.status = STATUS_CANCELLED
+            return order
 
-        order.save(
-            update_fields=[
-                "status",
-                "updated_at",
-            ]
+        # -------------------------------------------------
+        # Paid order -> refund required
+        # -------------------------------------------------
+
+        from apps.payments.models import Payment, Refund
+        from apps.payments.services import PaymentService
+
+        payment = (
+            Payment.objects
+            .select_for_update()
+            .filter(
+                order=order,
+                status__in=[
+                    Payment.STATUS_SUCCESS,
+                    Payment.STATUS_REFUND_PENDING,
+                    Payment.STATUS_REFUND_FAILED,
+                    Payment.STATUS_REFUNDED,
+                ],
+            )
+            .order_by("-created_at")
+            .first()
         )
 
-        OrderStatusHistory.objects.create(
-            order=order,
-            old_status=old_status,
-            new_status=STATUS_CANCELLED,
-            updated_by=user,
+        if payment is None:
+            raise ValueError(
+                "No refundable payment was found for this order."
+            )
+
+        # -------------------------------------------------
+        # Already completely refunded
+        # -------------------------------------------------
+
+        if payment.status == Payment.STATUS_REFUNDED:
+            order.payment_status = PAYMENT_REFUNDED
+
+            old_status = order.status
+
+            order.status = STATUS_CANCELLED
+
+            order.save(
+                update_fields=[
+                    "status",
+                    "payment_status",
+                    "updated_at",
+                ]
+            )
+
+            OrderStatusHistory.objects.create(
+                order=order,
+                old_status=old_status,
+                new_status=STATUS_CANCELLED,
+                updated_by=user,
+            )
+
+            return order
+
+        # -------------------------------------------------
+        # Refund already in progress
+        # -------------------------------------------------
+
+        existing_cancellation_refund = (
+            Refund.objects
+            .filter(
+                payment=payment,
+                is_cancellation_refund=True,
+                status__in=[
+                    Refund.STATUS_PENDING,
+                    Refund.STATUS_PROCESSING,
+                    Refund.STATUS_NEEDS_ATTENTION,
+                ],
+            )
+            .order_by("-created_at")
+            .first()
         )
+
+        if existing_cancellation_refund:
+            return order
+
+        # -------------------------------------------------
+        # Initiate refund
+        # -------------------------------------------------
+
+        PaymentService.refund(
+            payment=payment,
+            amount=payment.amount - payment.refunded_amount,
+            is_cancellation_refund=True,
+        )
+
+        order.refresh_from_db()
 
         return order
 
@@ -411,8 +509,15 @@ class OrderService:
         """
         Cancel an order from the admin interface.
 
-        Paid orders cannot be cancelled until the refund
-        workflow is available.
+        Unpaid orders are cancelled immediately.
+
+        Paid orders initiate a refund. The order remains in
+        its current fulfilment status until the refund is
+        successfully processed by Paystack.
+
+        Once Paystack confirms the refund as processed,
+        the payment becomes REFUNDED and the order becomes
+        CANCELLED.
         """
 
         order = (
@@ -432,29 +537,120 @@ class OrderService:
                 "This order can no longer be cancelled."
             )
 
-        if order.payment_status == PAYMENT_PAID:
-            raise ValueError(
-                "Paid orders require a refund before they "
-                "can be cancelled."
+        # -------------------------------------------------
+        # Unpaid order
+        # -------------------------------------------------
+
+        if order.payment_status != PAYMENT_PAID:
+            old_status = order.status
+
+            order.status = STATUS_CANCELLED
+
+            order.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
             )
 
-        old_status = order.status
+            OrderStatusHistory.objects.create(
+                order=order,
+                old_status=old_status,
+                new_status=STATUS_CANCELLED,
+                updated_by=updated_by,
+            )
 
-        order.status = STATUS_CANCELLED
+            return order
 
-        order.save(
-            update_fields=[
-                "status",
-                "updated_at",
-            ]
+        # -------------------------------------------------
+        # Paid order -> refund
+        # -------------------------------------------------
+
+        from apps.payments.models import Payment, Refund
+        from apps.payments.services import PaymentService
+
+        payment = (
+            Payment.objects
+            .select_for_update()
+            .filter(
+                order=order,
+                status__in=[
+                    Payment.STATUS_SUCCESS,
+                    Payment.STATUS_REFUND_PENDING,
+                    Payment.STATUS_REFUND_FAILED,
+                    Payment.STATUS_REFUNDED,
+                ],
+            )
+            .order_by("-created_at")
+            .first()
         )
 
-        OrderStatusHistory.objects.create(
-            order=order,
-            old_status=old_status,
-            new_status=STATUS_CANCELLED,
-            updated_by=updated_by,
+        if payment is None:
+            raise ValueError(
+                "No refundable payment was found for this order."
+            )
+
+        # -------------------------------------------------
+        # Already refunded
+        # -------------------------------------------------
+
+        if payment.status == Payment.STATUS_REFUNDED:
+            order.payment_status = PAYMENT_REFUNDED
+
+            old_status = order.status
+
+            order.status = STATUS_CANCELLED
+
+            order.save(
+                update_fields=[
+                    "status",
+                    "payment_status",
+                    "updated_at",
+                ]
+            )
+
+            OrderStatusHistory.objects.create(
+                order=order,
+                old_status=old_status,
+                new_status=STATUS_CANCELLED,
+                updated_by=updated_by,
+            )
+
+            return order
+
+        # -------------------------------------------------
+        # Refund already in progress
+        # -------------------------------------------------
+
+        existing_cancellation_refund = (
+            Refund.objects
+            .filter(
+                payment=payment,
+                is_cancellation_refund=True,
+                status__in=[
+                    Refund.STATUS_PENDING,
+                    Refund.STATUS_PROCESSING,
+                    Refund.STATUS_NEEDS_ATTENTION,
+                ],
+            )
+            .order_by("-created_at")
+            .first()
         )
+
+        if existing_cancellation_refund:
+            return order
+
+        # -------------------------------------------------
+        # Initiate refund
+        # -------------------------------------------------
+
+        PaymentService.refund(
+            payment=payment,
+            amount=payment.amount - payment.refunded_amount,
+            is_cancellation_refund=True,
+        )
+
+        order.refresh_from_db()
 
         return order
 

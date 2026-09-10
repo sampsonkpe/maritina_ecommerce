@@ -900,10 +900,13 @@ class PaystackPaymentService(BasePaymentService):
         )
 
     @staticmethod
-    def _sync_payment_refund_state(payment):
+    def _sync_payment_refund_state(self, payment):
         """
         Synchronise the aggregate refund fields on Payment
         from the individual Refund records.
+
+        If a cancellation refund has been fully processed,
+        the associated order is cancelled only at this point.
         """
 
         processed_total = (
@@ -938,6 +941,7 @@ class PaystackPaymentService(BasePaymentService):
         )
 
         payment.refunded_amount = processed_total
+
         payment.refund_reference = (
             latest_refund.refund_reference
             if latest_refund
@@ -952,10 +956,9 @@ class PaystackPaymentService(BasePaymentService):
 
         if processed_total >= payment.amount:
             payment.status = Payment.STATUS_REFUNDED
-            payment.refunded_at = (
-                payment.refunded_at
-                or timezone.now()
-            )
+
+            if payment.refunded_at is None:
+                payment.refunded_at = timezone.now()
 
             update_fields.extend([
                 "status",
@@ -967,10 +970,7 @@ class PaystackPaymentService(BasePaymentService):
 
             update_fields.append("status")
 
-        elif payment.refunded_amount > 0:
-            # We have successfully processed at least one
-            # partial refund and there are currently no
-            # pending refunds.
+        elif processed_total > 0:
             payment.status = Payment.STATUS_SUCCESS
 
             update_fields.append("status")
@@ -987,6 +987,91 @@ class PaystackPaymentService(BasePaymentService):
 
         payment.save(
             update_fields=update_fields
+        )
+
+        # -------------------------------------------------
+        # Complete cancellation only after the refund
+        # has actually been processed.
+        # -------------------------------------------------
+
+        if processed_total >= payment.amount:
+            cancellation_refund_exists = (
+                payment.refunds
+                .filter(
+                    is_cancellation_refund=True,
+                    status=Refund.STATUS_PROCESSED,
+                )
+                .exists()
+            )
+
+            if cancellation_refund_exists:
+                self._complete_order_cancellation(
+                    payment
+                )
+
+    @staticmethod
+    def _complete_order_cancellation(payment):
+        """
+        Mark the associated order as CANCELLED after a
+        cancellation refund has been fully processed.
+
+        This method is intentionally idempotent.
+        """
+
+        if not payment.order_id:
+            return
+
+        from apps.common.constants import (
+            STATUS_CANCELLED,
+            PAYMENT_REFUNDED,
+        )
+        from apps.orders.models import OrderStatusHistory
+
+        order = (
+            payment.order.__class__.objects
+            .select_for_update()
+            .get(pk=payment.order_id)
+        )
+
+        # Keep payment state synchronised with the order.
+        if order.payment_status != PAYMENT_REFUNDED:
+            order.payment_status = PAYMENT_REFUNDED
+
+        # If the order has already been cancelled, there is
+        # nothing else to do.
+        if order.status == STATUS_CANCELLED:
+            order.save(
+                update_fields=[
+                    "payment_status",
+                    "updated_at",
+                ]
+            )
+            return
+
+        old_status = order.status
+
+        order.status = STATUS_CANCELLED
+
+        order.save(
+            update_fields=[
+                "status",
+                "payment_status",
+                "updated_at",
+            ]
+        )
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            old_status=old_status,
+            new_status=STATUS_CANCELLED,
+            updated_by=None,
+        )
+
+        logger.info(
+            "Order #%s cancelled after successful refund "
+            "for payment %s.",
+            order.id,
+            payment.reference,
         )
 
     @staticmethod
@@ -1072,7 +1157,7 @@ class PaystackPaymentService(BasePaymentService):
         return None
 
     @transaction.atomic
-    def refund(self, payment, amount=None):
+    def refund(self, payment, amount=None, is_cancellation_refund=False):
         """
         Initiate a Paystack refund.
 
@@ -1092,6 +1177,7 @@ class PaystackPaymentService(BasePaymentService):
         if payment.status not in {
             Payment.STATUS_SUCCESS,
             Payment.STATUS_REFUND_PENDING,
+            Payment.STATUS_REFUND_FAILED,
         }:
             raise ValidationError(
                 "Only successful payments can be refunded."
@@ -1252,6 +1338,7 @@ class PaystackPaymentService(BasePaymentService):
             transaction_reference=payment.reference,
             amount=amount,
             status=refund_status,
+            is_cancellation_refund=is_cancellation_refund,
         )
 
         if (

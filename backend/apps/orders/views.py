@@ -73,31 +73,60 @@ class ClaimGuestOrdersView(APIView):
             )
 
 class CancelOrderView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, order_id):
+
         try:
             order = OrderService.cancel_order(
                 order_id=order_id,
                 user=request.user,
             )
 
-            serializer = OrderSerializer(order)
+            if order.status == "CANCELLED":
+                return Response(
+                    {
+                        "message": (
+                            "Order cancelled successfully."
+                        ),
+                        "status": order.status,
+                        "payment_status": (
+                            order.payment_status
+                        ),
+                    },
+                    status=status.HTTP_200_OK,
+                )
 
             return Response(
-                serializer.data,
+                {
+                    "message": (
+                        "Refund initiated. "
+                        "The order will be cancelled "
+                        "once the refund is successfully "
+                        "processed."
+                    ),
+                    "status": order.status,
+                    "payment_status": (
+                        order.payment_status
+                    ),
+                },
                 status=status.HTTP_200_OK,
             )
 
         except Order.DoesNotExist:
             return Response(
-                {"error": "Order not found."},
+                {
+                    "error": "Order not found."
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         except ValueError as error:
             return Response(
-                {"error": str(error)},
+                {
+                    "error": str(error)
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

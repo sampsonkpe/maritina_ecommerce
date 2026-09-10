@@ -2,6 +2,7 @@ import type {
   ButtonHTMLAttributes,
   ReactNode,
 } from "react";
+import { Link } from "react-router-dom";
 
 interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,6 +15,7 @@ interface ButtonProps
     | "md"
     | "2xl"
     | "full";
+  to?: string;
 }
 
 export default function Button({
@@ -22,6 +24,7 @@ export default function Button({
   rounded = "md",
   className = "",
   type = "button",
+  to,
   ...props
 }: ButtonProps) {
   const baseClasses =
@@ -44,15 +47,28 @@ export default function Button({
       "bg-green-700 px-4 py-2 text-sm text-white hover:bg-green-800",
   };
 
+  const classes = `
+    ${baseClasses}
+    ${roundedClasses[rounded]}
+    ${variantClasses[variant]}
+    ${className}
+  `;
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className={classes}
+      >
+        {children}
+      </Link>
+    );
+  }
+
   return (
     <button
       type={type}
-      className={`
-        ${baseClasses}
-        ${roundedClasses[rounded]}
-        ${variantClasses[variant]}
-        ${className}
-      `}
+      className={classes}
       {...props}
     >
       {children}
