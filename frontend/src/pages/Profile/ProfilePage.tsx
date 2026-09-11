@@ -33,15 +33,17 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-12">
-        <p className="text-sm text-gray-500">Loading profile...</p>
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+        <p className="text-sm text-(--color-text-muted)">
+          Loading profile...
+        </p>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-12">
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         <p className="text-sm text-red-600">
           Unable to load your profile.
         </p>
@@ -53,34 +55,60 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+      {/* Page Header */}
+      <header className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-(--color-text)">
           Profile
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Welcome back, <b>{firstName}</b>.
+
+        <p className="mt-1 text-sm text-(--color-text-muted)">
+          Welcome back,{" "}
+          <span className="font-medium text-(--color-text)">
+            {firstName}
+          </span>
+          .
         </p>
-      </div>
+      </header>
 
       {/* Personal Information */}
       <section className="mb-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.08em] text-(--color-text-muted)">
             Personal Information
           </h2>
 
           <Link
             to="/profile/edit"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-900 hover:underline"
+            className="
+              inline-flex
+              items-center
+              gap-1.5
+              rounded-lg
+              px-2
+              py-1.5
+              text-sm
+              font-medium
+              text-(--color-text)
+              transition
+              hover:bg-(--color-surface-muted)
+            "
           >
-            <Pencil size={15} />
+            <Pencil size={15} strokeWidth={1.8} />
             Edit
           </Link>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <div className="grid gap-5 sm:grid-cols-2">
+        <div
+          className="
+            rounded-2xl
+            border
+            border-(--color-border)
+            bg-(--color-surface)
+            p-5
+            sm:p-6
+          "
+        >
+          <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
             <ProfileItem
               label="Full Name"
               value={profile.full_name}
@@ -104,8 +132,11 @@ export default function ProfilePage() {
             <ProfileItem
               label="Email Status"
               value={
-                profile.email_verified ? "Verified" : "Not verified"
+                profile.email_verified
+                  ? "Verified"
+                  : "Not verified"
               }
+              status={profile.email_verified}
             />
           </div>
         </div>
@@ -113,28 +144,36 @@ export default function ProfilePage() {
 
       {/* Account */}
       <section className="mb-8">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-(--color-text-muted)">
           Account
         </h2>
 
-        <div className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
+        <div
+          className="
+            overflow-hidden
+            rounded-2xl
+            border
+            border-(--color-border)
+            bg-(--color-surface)
+          "
+        >
           <ProfileLink
             to="/orders"
-            icon={<Package size={19} />}
+            icon={<Package size={19} strokeWidth={1.8} />}
             title="Orders"
             description="View and track your orders"
           />
 
           <ProfileLink
             to="/favourites"
-            icon={<Heart size={19} />}
+            icon={<Heart size={19} strokeWidth={1.8} />}
             title="Favourites"
             description="View your saved products"
           />
 
           <ProfileLink
             to="/addresses"
-            icon={<MapPin size={19} />}
+            icon={<MapPin size={19} strokeWidth={1.8} />}
             title="Addresses"
             description="Manage your delivery addresses"
           />
@@ -143,14 +182,22 @@ export default function ProfilePage() {
 
       {/* Security */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-(--color-text-muted)">
           Security
         </h2>
 
-        <div className="rounded-xl border border-gray-200 bg-white">
+        <div
+          className="
+            overflow-hidden
+            rounded-2xl
+            border
+            border-(--color-border)
+            bg-(--color-surface)
+          "
+        >
           <ProfileLink
             to="/profile/change-password"
-            icon={<KeyRound size={19} />}
+            icon={<KeyRound size={19} strokeWidth={1.8} />}
             title="Change Password"
             description="Update your account password"
           />
@@ -163,16 +210,38 @@ export default function ProfilePage() {
 function ProfileItem({
   label,
   value,
+  status,
 }: {
   label: string;
   value: string;
+  status?: boolean;
 }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted)">
         {label}
       </p>
-      <p className="mt-1 text-sm text-gray-900">{value}</p>
+
+      {status !== undefined ? (
+        <div className="mt-1.5 flex items-center gap-2">
+          <span
+            className={`
+              h-1.5
+              w-1.5
+              rounded-full
+              ${status ? "bg-green-500" : "bg-(--color-text-muted)"}
+            `}
+          />
+
+          <p className="text-sm text-(--color-text)">
+            {value}
+          </p>
+        </div>
+      ) : (
+        <p className="mt-1.5 text-sm text-(--color-text)">
+          {value}
+        </p>
+      )}
     </div>
   );
 }
@@ -191,18 +260,59 @@ function ProfileLink({
   return (
     <Link
       to={to}
-      className="flex items-center gap-4 px-5 py-4 transition hover:bg-gray-50"
+      className="
+        group
+        flex
+        items-center
+        gap-4
+        px-5
+        py-4
+        transition
+        hover:bg-(--color-surface-muted)
+        sm:px-6
+      "
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
+      <div
+        className="
+          flex
+          h-10
+          w-10
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          border
+          border-(--color-border)
+          bg-(--color-surface-muted)
+          text-(--color-text-muted)
+          transition
+          group-hover:text-(--color-text)
+        "
+      >
         {icon}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-gray-900">{title}</p>
-        <p className="mt-0.5 text-xs text-gray-500">{description}</p>
+        <p className="text-sm font-medium text-(--color-text)">
+          {title}
+        </p>
+
+        <p className="mt-0.5 text-xs text-(--color-text-muted)">
+          {description}
+        </p>
       </div>
 
-      <ChevronRight size={18} className="shrink-0 text-gray-400" />
+      <ChevronRight
+        size={18}
+        strokeWidth={1.8}
+        className="
+          shrink-0
+          text-(--color-text-muted)
+          transition
+          group-hover:translate-x-0.5
+          group-hover:text-(--color-text)
+        "
+      />
     </Link>
   );
 }

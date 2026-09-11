@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
 import { authService } from "../../services/authService";
 import type { Profile } from "../../services/authService";
+import Button from "../../components/common/Button";
 
 interface FormData {
   full_name: string;
@@ -48,9 +49,7 @@ export default function ProfileEditPage() {
     loadProfile();
   }, []);
 
-  function handleChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
 
     setFormData((current) => ({
@@ -78,7 +77,12 @@ export default function ProfileEditPage() {
         phone: formData.phone.trim() || null,
       });
 
-      navigate("/profile", { replace: true });
+      navigate("/profile", {
+        replace: true,
+        state: {
+          profileUpdated: true,
+        },
+      });
     } catch (error: unknown) {
       console.error("Failed to update profile:", error);
 
@@ -97,11 +101,11 @@ export default function ProfileEditPage() {
           .flat()
           .filter((value): value is string => typeof value === "string");
 
-        if (messages.length > 0) {
-          setError(messages.join(" "));
-        } else {
-          setError("Unable to update your profile.");
-        }
+        setError(
+          messages.length > 0
+            ? messages.join(" ")
+            : "Unable to update your profile."
+        );
       } else {
         setError("Unable to update your profile.");
       }
@@ -112,50 +116,74 @@ export default function ProfileEditPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <p className="text-sm text-gray-500">Loading profile...</p>
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <p className="text-sm text-(--color-text-muted)">
+          Loading profile...
+        </p>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <p className="text-sm text-red-600">
-          {error ?? "Unable to load your profile."}
-        </p>
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-6">
+          <p className="text-sm text-red-500">
+            {error ?? "Unable to load your profile."}
+          </p>
 
-        <Link
-          to="/profile"
-          className="mt-4 inline-flex text-sm font-medium text-gray-900 hover:underline"
-        >
-          Back to Profile
-        </Link>
+          <Link
+            to="/profile"
+            className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-(--color-text) transition-opacity hover:opacity-70"
+          >
+            <ArrowLeft size={16} />
+            Back to Profile
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link
-        to="/profile"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-      >
-        <ArrowLeft size={17} />
-        Back to Profile
-      </Link>
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      {/* Back */}
+      <Button
+            to="/profile"
+            variant="secondary"
+            rounded="full"
+            className="mb-6 inline-flex items-center gap-2"
+          >
+            <ArrowLeft
+              size={16}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+            Back to Profile
+          </Button>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+      {/* Header */}
+      <div className="mt-7 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight text-(--color-text)">
           Edit Profile
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+
+        <p className="mt-1 text-sm text-(--color-text-muted)">
           Update your personal information.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="mt-8">
+        <div
+          className="
+            rounded-3xl
+            border
+            border-(--color-border)
+            bg-(--color-surface)
+            p-5
+            sm:p-6
+          "
+        >
           <div className="space-y-5">
             <FormField
               label="Full Name"
@@ -180,10 +208,19 @@ export default function ProfileEditPage() {
               type="tel"
             />
 
+            {/* Email */}
             <div>
               <label
                 htmlFor="email"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
+                className="
+                  mb-2
+                  block
+                  text-xs
+                  font-semibold
+                  uppercase
+                  tracking-wide
+                  text-(--color-text-muted)
+                "
               >
                 Email
               </label>
@@ -193,28 +230,73 @@ export default function ProfileEditPage() {
                 type="email"
                 value={profile.email ?? ""}
                 disabled
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-500 outline-none"
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-(--color-border)
+                  bg-(--color-background)
+                  px-3.5
+                  py-3
+                  text-sm
+                  text-(--color-text-muted)
+                  outline-none
+                "
               />
 
-              <p className="mt-1.5 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-(--color-text-muted)">
                 Email changes require a separate verification process.
               </p>
             </div>
 
+            {/* Error */}
             {error && (
               <div
                 role="alert"
-                className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+                className="
+                  rounded-xl
+                  border
+                  border-red-500/20
+                  bg-red-500/5
+                  px-4
+                  py-3
+                  text-sm
+                  text-red-500
+                "
               >
                 {error}
               </div>
             )}
           </div>
 
-          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          {/* Actions */}
+          <div
+            className="
+              mt-8
+              flex
+              flex-col-reverse
+              gap-3
+              sm:flex-row
+              sm:justify-center
+            "
+          >
             <Link
               to="/profile"
-              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              className="
+                inline-flex
+                min-h-11
+                items-center
+                justify-center
+                rounded-xl
+                border
+                border-(--color-border)
+                px-5
+                text-sm
+                font-medium
+                text-(--color-text)
+                transition
+                hover:bg-(--color-background)
+              "
             >
               Cancel
             </Link>
@@ -222,9 +304,31 @@ export default function ProfileEditPage() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="
+                inline-flex
+                min-h-11
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                bg-(--color-text)
+                px-5
+                text-sm
+                font-semibold
+                text-(--color-background)
+                transition
+                hover:opacity-85
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? (
+                "Saving..."
+              ) : (
+                <>
+                  Save Changes
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -244,7 +348,7 @@ function FormField({
   label: string;
   name: string;
   value: string;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   type?: string;
   required?: boolean;
 }) {
@@ -252,7 +356,15 @@ function FormField({
     <div>
       <label
         htmlFor={name}
-        className="mb-1.5 block text-sm font-medium text-gray-700"
+        className="
+          mb-2
+          block
+          text-xs
+          font-semibold
+          uppercase
+          tracking-wide
+          text-(--color-text-muted)
+        "
       >
         {label}
       </label>
@@ -264,7 +376,21 @@ function FormField({
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+        className="
+          w-full
+          rounded-xl
+          border
+          border-(--color-border)
+          bg-(--color-background)
+          px-3.5
+          py-3
+          text-sm
+          text-(--color-text)
+          outline-none
+          transition
+          placeholder:text-(--color-text-muted)
+          focus:border-(--color-text-muted)
+        "
       />
     </div>
   );

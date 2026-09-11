@@ -1,9 +1,10 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 import { authService } from "../../services/authService";
+import Button from "../../components/common/Button";
 
 interface FormData {
   current_password: string;
@@ -15,7 +16,9 @@ type PasswordFieldProps = {
   label: string;
   name: keyof FormData;
   value: string;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  show: boolean;
+  onToggle: () => void;
 };
 
 export default function ChangePasswordPage() {
@@ -36,9 +39,7 @@ export default function ChangePasswordPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function handleChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
 
     setFormData((current) => ({
@@ -54,12 +55,15 @@ export default function ChangePasswordPage() {
     }));
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError(null);
+
+    if (formData.new_password.length < 6) {
+      setError("Your new password must be at least 6 characters long.");
+      return;
+    }
 
     if (formData.new_password !== formData.confirm_password) {
       setError("New passwords do not match.");
@@ -67,7 +71,9 @@ export default function ChangePasswordPage() {
     }
 
     if (formData.current_password === formData.new_password) {
-      setError("Your new password must be different from your current password.");
+      setError(
+        "Your new password must be different from your current password."
+      );
       return;
     }
 
@@ -97,11 +103,11 @@ export default function ChangePasswordPage() {
               typeof value === "string"
           );
 
-        if (messages.length > 0) {
-          setError(messages.join(" "));
-        } else {
-          setError("Unable to change your password.");
-        }
+        setError(
+          messages.length > 0
+            ? messages.join(" ")
+            : "Unable to change your password."
+        );
       } else {
         setError("Unable to change your password.");
       }
@@ -111,27 +117,45 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link
-        to="/profile"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-      >
-        <ArrowLeft size={17} />
-        Back to Profile
-      </Link>
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      {/* Back */}
+      <Button
+            to="/profile"
+            variant="secondary"
+            rounded="full"
+            className="mb-6 inline-flex items-center gap-2"
+          >
+            <ArrowLeft
+              size={16}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+            Back to Profile
+          </Button>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+      {/* Header */}
+      <div className="mt-7 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight text-(--color-text)">
           Change Password
         </h1>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-(--color-text-muted)">
           Update your password to keep your account secure.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="mt-8">
+        <div
+          className="
+            rounded-3xl
+            border
+            border-(--color-border)
+            bg-(--color-surface)
+            p-5
+            sm:p-6
+          "
+        >
           <div className="space-y-5">
             <PasswordField
               label="Current Password"
@@ -160,24 +184,62 @@ export default function ChangePasswordPage() {
               onToggle={() => togglePassword("confirm")}
             />
 
-            <p className="text-xs text-gray-500">
-              Your password must be at least 6 characters long.
-            </p>
+            <div className="flex items-start gap-2 pt-1">
+              <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-(--color-text-muted)" />
 
+              <p className="text-xs leading-5 text-(--color-text-muted)">
+                Your password must be at least 6 characters long.
+              </p>
+            </div>
+
+            {/* Error */}
             {error && (
               <div
                 role="alert"
-                className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+                className="
+                  rounded-xl
+                  border
+                  border-red-500/20
+                  bg-red-500/5
+                  px-4
+                  py-3
+                  text-sm
+                  text-red-500
+                "
               >
                 {error}
               </div>
             )}
           </div>
 
-          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          {/* Actions */}
+          <div
+            className="
+              mt-8
+              flex
+              flex-col-reverse
+              gap-3
+              sm:flex-row
+              sm:justify-center
+            "
+          >
             <Link
               to="/profile"
-              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              className="
+                inline-flex
+                min-h-11
+                items-center
+                justify-center
+                rounded-xl
+                border
+                border-(--color-border)
+                px-5
+                text-sm
+                font-medium
+                text-(--color-text)
+                transition
+                hover:bg-(--color-background)
+              "
             >
               Cancel
             </Link>
@@ -185,9 +247,31 @@ export default function ChangePasswordPage() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="
+                inline-flex
+                min-h-11
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                bg-(--color-text)
+                px-5
+                text-sm
+                font-semibold
+                text-(--color-background)
+                transition
+                hover:opacity-85
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
             >
-              {saving ? "Updating..." : "Update Password"}
+              {saving ? (
+                "Updating..."
+              ) : (
+                <>
+                  Update Password
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -203,15 +287,20 @@ function PasswordField({
   onChange,
   show,
   onToggle,
-}: PasswordFieldProps & {
-  show: boolean;
-  onToggle: () => void;
-}) {
+}: PasswordFieldProps) {
   return (
     <div>
       <label
         htmlFor={name}
-        className="mb-1.5 block text-sm font-medium text-gray-700"
+        className="
+          mb-2
+          block
+          text-xs
+          font-semibold
+          uppercase
+          tracking-wide
+          text-(--color-text-muted)
+        "
       >
         {label}
       </label>
@@ -229,16 +318,41 @@ function PasswordField({
               ? "current-password"
               : "new-password"
           }
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+          className="
+            w-full
+            rounded-xl
+            border
+            border-(--color-border)
+            bg-(--color-background)
+            px-3.5
+            py-3
+            pr-12
+            text-sm
+            text-(--color-text)
+            outline-none
+            transition
+            focus:border-(--color-text-muted)
+          "
         />
 
         <button
           type="button"
           onClick={onToggle}
           aria-label={show ? `Hide ${label}` : `Show ${label}`}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-700"
+          className="
+            absolute
+            right-3
+            top-1/2
+            -translate-y-1/2
+            rounded-lg
+            p-1
+            text-(--color-text-muted)
+            transition
+            hover:bg-(--color-surface)
+            hover:text-(--color-text)
+          "
         >
-          {show ? <EyeOff size={18} /> : <Eye size={18} />}
+          {show ? <EyeOff size={17} /> : <Eye size={17} />}
         </button>
       </div>
     </div>
