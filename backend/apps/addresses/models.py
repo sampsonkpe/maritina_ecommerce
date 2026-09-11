@@ -4,7 +4,7 @@ from django.conf import settings
 
 class Address(models.Model):
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="addresses")
 
     label = models.CharField(max_length=50)  # e.g. Home, Work
     address_text = models.TextField()

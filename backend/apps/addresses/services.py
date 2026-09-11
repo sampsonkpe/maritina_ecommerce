@@ -18,13 +18,13 @@ class AddressService:
 
     @staticmethod
     def create_address(user, data):
-        has_addresses = Address.objects.filter(
+        is_first_address = not Address.objects.filter(
             user=user
         ).exists()
 
         return Address.objects.create(
             user=user,
-            is_default=not has_addresses,
+            is_default=is_first_address,
             **data,
         )
 
@@ -43,7 +43,10 @@ class AddressService:
         for field, value in data.items():
             setattr(address, field, value)
 
-        address.save()
+        if data:
+            address.save(
+                update_fields=list(data.keys())
+            )
 
         return address
 
@@ -74,9 +77,12 @@ class AddressService:
         Address.objects.filter(
             user=user,
             is_default=True,
-        ).update(is_default=False)
+        ).update(
+            is_default=False
+        )
 
         address.is_default = True
+
         address.save(
             update_fields=["is_default"]
         )

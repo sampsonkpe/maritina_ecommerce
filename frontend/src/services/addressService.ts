@@ -8,7 +8,7 @@ interface DefaultAddressResponse {
 
 export const addressService = {
   async getAddresses(): Promise<Address[]> {
-    const response = await api.get(
+    const response = await api.get<Address[]>(
       "/addresses/"
     );
 
@@ -19,7 +19,7 @@ export const addressService = {
     label: string,
     addressText: string
   ): Promise<Address> {
-    const response = await api.post(
+    const response = await api.post<Address>(
       "/addresses/",
       {
         label,
@@ -37,7 +37,7 @@ export const addressService = {
       address_text?: string;
     }
   ): Promise<Address> {
-    const response = await api.put(
+    const response = await api.put<Address>(
       `/addresses/${id}/`,
       data
     );
@@ -48,17 +48,16 @@ export const addressService = {
   async deleteAddress(
     id: number
   ): Promise<void> {
-    await api.delete(
-      `/addresses/${id}/`
-    );
+    await api.delete(`/addresses/${id}/`);
   },
 
   async setDefaultAddress(
     id: number
   ): Promise<DefaultAddressResponse> {
-    const response = await api.post(
-      `/addresses/${id}/set-default/`
-    );
+    const response =
+      await api.post<DefaultAddressResponse>(
+        `/addresses/${id}/set-default/`
+      );
 
     return response.data;
   },

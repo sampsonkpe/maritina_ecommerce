@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
-from .models import Address
 from .serializers import AddressSerializer
 from .services import AddressService
 
@@ -21,7 +20,10 @@ class AddressListCreateView(APIView):
             many=True,
         )
 
-        return Response(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
     def post(self, request):
         serializer = AddressSerializer(
@@ -63,7 +65,8 @@ class AddressDetailView(APIView):
         )
 
         return Response(
-            AddressSerializer(address).data
+            AddressSerializer(address).data,
+            status=status.HTTP_200_OK,
         )
 
     def delete(self, request, pk):
@@ -86,6 +89,9 @@ class SetDefaultAddressView(APIView):
             pk,
         )
 
-        return Response({
-            "message": "Default address updated"
-        })
+        return Response(
+            {
+                "message": "Default address updated"
+            },
+            status=status.HTTP_200_OK,
+        )
