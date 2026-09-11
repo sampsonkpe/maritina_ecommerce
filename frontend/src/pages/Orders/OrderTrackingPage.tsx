@@ -216,20 +216,21 @@ export default function OrderTrackingPage() {
           >
             {order.delivery_type === "DELIVERY" ? (
               <>
-                {order.address_text && (
-                  <p
-                    className="
-                      text-sm
-                      text-(--color-text-muted)
-                    "
-                  >
+                {order.address_text ? (
+                  <p className="text-sm text-(--color-text-muted)">
                     {order.status === "DELIVERED"
-                      ? "Delivered to: "
-                      : "Delivery to: "}
+                      ? "Your order has been delivered to: "
+                      : "Your order is currently being processed for delivery. Delivery to: "}
 
                     <span className="font-medium text-(--color-text)">
                       {order.address_text}
                     </span>
+                  </p>
+                ) : (
+                  <p className="text-sm text-(--color-text-muted)">
+                    {order.status === "DELIVERED"
+                      ? "Your order has been delivered."
+                      : "Your order is currently being processed for delivery."}
                   </p>
                 )}
 
@@ -247,11 +248,18 @@ export default function OrderTrackingPage() {
               </>
             ) : (
               <p className="text-sm text-(--color-text-muted)">
-                Your order will be ready for
-                collection once it reaches
-                <span className="font-medium text-(--color-text)"> Ready for Pickup
-                  </span>
-                .
+                {order.status === "PICKED_UP" ? (
+                  "Your order has been picked up."
+                ) : (
+                  <>
+                    Your order will be ready for collection once it
+                    reaches{" "}
+                    <span className="font-medium text-(--color-text)">
+                      Ready for Pickup
+                    </span>
+                    .
+                  </>
+                )}
               </p>
             )}
           </div>
