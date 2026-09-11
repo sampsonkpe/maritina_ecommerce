@@ -100,11 +100,13 @@ export default function FavouriteButton({
         inline-flex
         h-11
         w-11
+        shrink-0
         items-center
         justify-center
-        rounded-md
+        rounded-full
         border
         border-(--color-border)
+        bg-(--color-background)
         text-(--color-text)
         transition-opacity
         hover:opacity-60
@@ -113,13 +115,14 @@ export default function FavouriteButton({
       "
     >
       <Heart
-        size={20}
+        size={19}
         strokeWidth={1.8}
         fill={
           favourited
             ? "currentColor"
             : "none"
         }
+        aria-hidden="true"
       />
     </button>
   );

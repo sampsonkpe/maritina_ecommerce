@@ -18,11 +18,31 @@ class FavouriteVariantSerializer(
         read_only=True,
     )
 
-    product_image = serializers.URLField(
-        source="product.image",
-        read_only=True,
-        allow_null=True,
-    )
+    product_image = serializers.SerializerMethodField()
+
+    def get_product_image(self, obj):
+        primary_image = (
+            obj.product.images
+            .filter(is_primary=True)
+            .first()
+        )
+
+        if primary_image and primary_image.image:
+            return primary_image.image
+
+        first_image = (
+            obj.product.images
+            .order_by("id")
+            .first()
+        )
+
+        if first_image and first_image.image:
+            return first_image.image
+
+        if obj.product.image:
+            return obj.product.image
+
+        return None
 
     class Meta:
         model = ProductVariant

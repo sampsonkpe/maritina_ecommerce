@@ -1,11 +1,13 @@
 import { useState } from "react";
+import { Heart, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Heart } from "lucide-react";
+
+import { useCart } from "../../context/CartContext";
+import { favouriteService } from "../../services/favouriteService";
+
+import OptimizedImage from "../common/OptimizedImage";
 
 import type { FavouriteItem } from "../../types/favourite";
-
-import { favouriteService } from "../../services/favouriteService";
-import { useCart } from "../../context/CartContext";
 
 interface FavouriteCardProps {
   item: FavouriteItem;
@@ -23,7 +25,9 @@ export default function FavouriteCard({
   const [removing, setRemoving] = useState(false);
 
   const handleRemove = async () => {
-    if (removing) return;
+    if (removing) {
+      return;
+    }
 
     setRemoving(true);
 
@@ -52,10 +56,7 @@ export default function FavouriteCard({
     setAdding(true);
 
     try {
-      await addToCart(
-        item.variant.id,
-        1
-      );
+      await addToCart(item.variant.id, 1);
 
       setAdded(true);
 
@@ -72,114 +73,144 @@ export default function FavouriteCard({
   return (
     <article
       className="
+        group
+        relative
         flex
-        gap-5
-        rounded-md
+        h-full
+        flex-col
+        overflow-hidden
+        rounded-4xl
         border
         border-(--color-border)
-        p-5
+        bg-(--color-background)
       "
     >
+      {/* Product image */}
       <Link
         to={`/products/${item.variant.product_id}`}
         className="
-          flex
-          h-32
-          w-32
+          relative
+          aspect-square
           shrink-0
-          items-center
-          justify-center
           overflow-hidden
-          rounded-md
-          border
-          border-(--color-border)
+          bg-(--color-surface-muted)
         "
       >
         {item.variant.product_image ? (
-          <img
+          <OptimizedImage
             src={item.variant.product_image}
             alt={item.variant.product_name}
-            className="h-full w-full object-cover"
+            className="
+              h-full
+              w-full
+              object-cover
+              transition-transform
+              duration-700
+              ease-out
+              group-hover:scale-[1.04]
+            "
           />
         ) : (
-          <span className="text-sm text-(--color-text-muted)">
-            No image
-          </span>
+          <div className="flex h-full items-center justify-center">
+            <span className="text-sm text-(--color-text-muted)">
+              No image available
+            </span>
+          </div>
         )}
       </Link>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <Link
-              to={`/products/${item.variant.product_id}`}
-              className="
-                block
-                font-semibold
-                hover:opacity-60
-              "
-            >
-              {item.variant.product_name}
-            </Link>
+      {/* Remove from favourites */}
+      <button
+        type="button"
+        onClick={handleRemove}
+        disabled={removing}
+        aria-label={`Remove ${item.variant.product_name} ${item.variant.name} from Favourites`}
+        title="Remove from Favourites"
+        className="
+          absolute
+          right-5
+          top-5
+          inline-flex
+          h-11
+          w-11
+          items-center
+          justify-center
+          rounded-full
+          border
+          border-(--color-border)
+          bg-(--color-background)
+          text-(--color-text)
+          transition-opacity
+          hover:opacity-60
+          disabled:cursor-not-allowed
+          disabled:opacity-40
+        "
+      >
+        <Heart
+          size={19}
+          strokeWidth={1.8}
+          fill="currentColor"
+          aria-hidden="true"
+        />
+      </button>
 
-            <p className="mt-2 text-sm text-(--color-text-muted)">
-              {item.variant.name}
-            </p>
+      {/* Product information */}
+      <div
+        className="
+          flex
+          flex-1
+          flex-col
+          items-center
+          p-6
+          text-center
+          sm:p-7
+        "
+      >
+        <Link
+          to={`/products/${item.variant.product_id}`}
+          className="
+            text-base
+            font-semibold
+            tracking-tight
+            transition-opacity
+            hover:opacity-60
+            sm:text-lg
+          "
+        >
+          {item.variant.product_name}
+        </Link>
 
-            <p className="mt-2 font-semibold">
-              GHS {item.variant.price}
-            </p>
-          </div>
+        <p className="mt-1 text-sm text-(--color-text-muted)">
+          {item.variant.name}
+        </p>
 
-          <button
-            type="button"
-            onClick={handleRemove}
-            disabled={removing}
-            aria-label={`Remove ${item.variant.product_name} ${item.variant.name} from Favourites`}
-            title="Remove from Favourites"
-            className="
-              inline-flex
-              h-10
-              w-10
-              shrink-0
-              items-center
-              justify-center
-              rounded-md
-              border
-              border-(--color-border)
-              text-(--color-text)
-              transition-opacity
-              hover:opacity-60
-              disabled:cursor-not-allowed
-              disabled:opacity-40
-            "
-          >
-            <Heart
-              size={19}
-              strokeWidth={1.8}
-              fill="currentColor"
-            />
-          </button>
-        </div>
+        <p className="mt-5 text-sm font-semibold">
+          GHS {item.variant.price}
+        </p>
 
-        <div className="mt-auto pt-5">
+        {/* Cart action */}
+        <div className="mt-5 flex w-full justify-center">
           {item.variant.is_available ? (
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={adding || added}
               className="
+                group
                 inline-flex
-                rounded-md
-                bg-(--color-text)
-                px-5
-                py-2.5
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-(--color-border)
+                px-6
+                py-3
                 text-sm
-                text-(--color-background)
-                transition-opacity
-                hover:opacity-80
-                disabled:cursor-default
-                disabled:opacity-70
+                font-medium
+                transition-colors
+                hover:bg-(--color-surface-muted)
+                disabled:cursor-not-allowed
+                disabled:opacity-40
               "
             >
               {added
@@ -187,6 +218,18 @@ export default function FavouriteCard({
                 : adding
                   ? "Adding..."
                   : "Add to Cart"}
+
+              {!adding && !added && (
+                <ArrowRight
+                  size={17}
+                  aria-hidden="true"
+                  className="
+                    transition-transform
+                    duration-300
+                    group-hover:translate-x-1
+                  "
+                />
+              )}
             </button>
           ) : (
             <button
@@ -195,12 +238,15 @@ export default function FavouriteCard({
               className="
                 inline-flex
                 cursor-not-allowed
-                rounded-md
+                items-center
+                justify-center
+                rounded-full
                 border
                 border-(--color-border)
-                px-5
-                py-2.5
+                px-6
+                py-3
                 text-sm
+                font-medium
                 text-(--color-text-muted)
               "
             >

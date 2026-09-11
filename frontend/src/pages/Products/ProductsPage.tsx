@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 
 import { productService } from "../../services/productService";
 import ProductCard from "../../components/products/ProductCard";
@@ -24,9 +23,10 @@ export default function ProductsPage() {
 
   const categoryParam = searchParams.get("category");
 
-  const selectedCategory = categoryParam
-    ? Number(categoryParam)
-    : null;
+  const selectedCategory =
+    categoryParam && !Number.isNaN(Number(categoryParam))
+      ? Number(categoryParam)
+      : null;
 
   useEffect(() => {
     const loadData = async () => {
@@ -171,31 +171,29 @@ export default function ProductsPage() {
       {/* Products */}
       <section>
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
-          <div className="mb-12 flex items-end justify-between gap-6">
-            <div>
-              <p className="mb-3 text-sm font-medium uppercase tracking-[0.25em] text-(--color-text-muted)">
-                {selectedCategoryName
-                  ? `Category ${String(
-                      CATEGORY_NUMBERS[
-                        selectedCategoryName
-                      ] ??
-                        selectedCategory
-                    ).padStart(2, "0")}`
-                  : "The Menu"}
-              </p>
+          <div className="mb-12">
+            <p className="mb-3 text-sm font-medium uppercase tracking-[0.25em] text-(--color-text-muted)">
+              {selectedCategoryName
+                ? `Category ${String(
+                    CATEGORY_NUMBERS[selectedCategoryName] ??
+                      selectedCategory
+                  ).padStart(2, "0")}`
+                : "The Menu"}
+            </p>
 
-              <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="min-w-0 text-4xl font-semibold leading-none tracking-tight sm:text-5xl lg:text-6xl">
                 {selectedCategoryName ??
                   "Explore the menu."}
               </h2>
-            </div>
 
-            <span className="hidden text-sm text-(--color-text-muted) sm:block">
-              {filteredProducts.length}{" "}
-              {filteredProducts.length === 1
-                ? "item"
-                : "items"}
-            </span>
+              <span className="shrink-0 whitespace-nowrap text-sm text-(--color-text-muted)">
+                {filteredProducts.length}{" "}
+                {filteredProducts.length === 1
+                  ? "item"
+                  : "items"}
+              </span>
+            </div>
           </div>
 
           {filteredProducts.length > 0 ? (
@@ -217,22 +215,6 @@ export default function ProductsPage() {
                 We don't have any products in this category
                 at the moment.
               </p>
-
-              <button
-                type="button"
-                onClick={() =>
-                  handleCategoryChange(null)
-                }
-                className="group mt-7 inline-flex items-center gap-2 text-sm font-medium"
-              >
-                View everything
-
-                <ArrowRight
-                  size={17}
-                  aria-hidden="true"
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                />
-              </button>
             </div>
           )}
         </div>
