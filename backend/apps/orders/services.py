@@ -417,7 +417,7 @@ class OrderService:
 
         if payment is None:
             raise ValueError(
-                "No refundable payment was found for this order."
+                "Paid orders require a refund before they can be cancelled."
             )
 
         # -------------------------------------------------

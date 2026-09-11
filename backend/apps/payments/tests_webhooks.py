@@ -1,7 +1,7 @@
 import hashlib
 import hmac
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.conf import settings
 from django.test import TestCase, override_settings
@@ -35,7 +35,9 @@ class PaystackWebhookTests(TestCase):
             },
         }
 
-        mock_service = mock_get_service.return_value
+        mock_service = Mock()
+
+        mock_get_service.return_value = mock_service
 
         body = json.dumps(payload).encode()
 
@@ -73,6 +75,10 @@ class PaystackWebhookTests(TestCase):
             },
         }
 
+        mock_service = Mock()
+
+        mock_get_service.return_value = mock_service
+
         body = json.dumps(payload).encode()
 
         response = self.client.post(
@@ -89,6 +95,8 @@ class PaystackWebhookTests(TestCase):
 
         mock_get_service.assert_not_called()
 
+        mock_service.webhook.assert_not_called()
+
     @patch(
         "apps.payments.webhooks.PaymentServiceFactory.get_service"
     )
@@ -102,6 +110,10 @@ class PaystackWebhookTests(TestCase):
                 "reference": "TEST-REFERENCE",
             },
         }
+
+        mock_service = Mock()
+
+        mock_get_service.return_value = mock_service
 
         body = json.dumps(payload).encode()
 
@@ -118,6 +130,8 @@ class PaystackWebhookTests(TestCase):
 
         mock_get_service.assert_not_called()
 
+        mock_service.webhook.assert_not_called()
+
     @patch(
         "apps.payments.webhooks.PaymentServiceFactory.get_service"
     )
@@ -133,6 +147,10 @@ class PaystackWebhookTests(TestCase):
             hashlib.sha512,
         ).hexdigest()
 
+        mock_service = Mock()
+
+        mock_get_service.return_value = mock_service
+
         response = self.client.post(
             "/api/payments/webhook/",
             data=body,
@@ -146,3 +164,5 @@ class PaystackWebhookTests(TestCase):
         )
 
         mock_get_service.assert_not_called()
+
+        mock_service.webhook.assert_not_called()

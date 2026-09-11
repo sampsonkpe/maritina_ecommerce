@@ -17,7 +17,11 @@ from apps.common.constants import PICKUP
 from apps.orders.models import Order
 from apps.payments.models import Payment
 from apps.payments.services.paystack import PaystackPaymentService
-from apps.products.models import Category, Product, ProductVariant
+from apps.products.models import (
+    Category,
+    Product,
+    ProductVariant,
+)
 
 
 class PaystackPaymentVerificationTests(TestCase):
@@ -43,7 +47,7 @@ class PaystackPaymentVerificationTests(TestCase):
         self.service = PaystackPaymentService()
 
     @patch(
-        "apps.payments.services.paystack.paystack_payments.requests.get"
+        "apps.payments.services.paystack.paystack_client.requests.get"
     )
     def test_successful_verification_marks_payment_paid(
         self,
@@ -57,6 +61,7 @@ class PaystackPaymentVerificationTests(TestCase):
                 "amount": 10000,
             },
         }
+
         mock_get.return_value.raise_for_status.return_value = None
 
         response = self.service.verify_payment(
@@ -73,7 +78,7 @@ class PaystackPaymentVerificationTests(TestCase):
         )
 
     @patch(
-        "apps.payments.services.paystack.paystack_payments.requests.get"
+        "apps.payments.services.paystack.paystack_client.requests.get"
     )
     def test_verification_rejects_amount_mismatch(
         self,
@@ -87,6 +92,7 @@ class PaystackPaymentVerificationTests(TestCase):
                 "amount": 9999,
             },
         }
+
         mock_get.return_value.raise_for_status.return_value = None
 
         response = self.service.verify_payment(
@@ -103,7 +109,7 @@ class PaystackPaymentVerificationTests(TestCase):
         )
 
     @patch(
-        "apps.payments.services.paystack.paystack_payments.requests.get"
+        "apps.payments.services.paystack.paystack_client.requests.get"
     )
     def test_verification_rejects_reference_mismatch(
         self,
@@ -117,6 +123,7 @@ class PaystackPaymentVerificationTests(TestCase):
                 "amount": 10000,
             },
         }
+
         mock_get.return_value.raise_for_status.return_value = None
 
         response = self.service.verify_payment(
@@ -275,7 +282,7 @@ class PaymentFinalisationTests(TestCase):
         )
 
     def test_payment_cannot_be_reused_after_order_linked(self):
-        order = CheckoutService.finalise_checkout(
+        first_order = CheckoutService.finalise_checkout(
             self.checkout.id
         )
 
@@ -283,13 +290,24 @@ class PaymentFinalisationTests(TestCase):
 
         self.assertEqual(
             self.payment.order_id,
-            order.id,
+            first_order.id,
         )
 
-        with self.assertRaises(ValueError):
-            CheckoutService.finalise_checkout(
-                self.checkout.id
-            )
+        second_order = CheckoutService.finalise_checkout(
+            self.checkout.id
+        )
+
+        self.assertEqual(
+            second_order.id,
+            first_order.id,
+        )
+
+        self.payment.refresh_from_db()
+
+        self.assertEqual(
+            self.payment.order_id,
+            first_order.id,
+        )
 
         self.assertEqual(
             Order.objects.count(),
@@ -424,16 +442,19 @@ class PaystackInitialisationFailureTests(TestCase):
         self.service = PaystackPaymentService()
 
     @patch(
-        "apps.payments.services.paystack.paystack_payments.requests.post"
+        "apps.payments.services.paystack.paystack_client.requests.post"
     )
     def test_paystack_rejected_initialisation_fails_checkout(
         self,
         mock_post,
     ):
         mock_post.return_value.status_code = 200
+
         mock_post.return_value.json.return_value = {
             "status": False,
-            "message": "Unable to initialise transaction.",
+            "message": (
+                "Unable to initialise transaction."
+            ),
         }
 
         with self.assertRaises(ValidationError):
@@ -473,7 +494,7 @@ class PaystackInitialisationFailureTests(TestCase):
         )
 
     @patch(
-        "apps.payments.services.paystack.paystack_payments.requests.post"
+        "apps.payments.services.paystack.paystack_client.requests.post"
     )
     def test_paystack_connection_failure_fails_checkout(
         self,
@@ -682,14 +703,16 @@ class PaymentRefundTests(APITestCase):
         )
 
     @patch(
-        "apps.payments.services.paystack.paystack_payments.requests.post"
+        "apps.payments.services.paystack.paystack_client.requests.post"
     )
     def test_admin_can_initiate_refund(
         self,
         mock_post,
     ):
         mock_post.return_value.status_code = 200
+
         mock_post.return_value.raise_for_status.return_value = None
+
         mock_post.return_value.json.return_value = {
             "status": True,
             "message": "Refund initiated",
@@ -730,6 +753,7 @@ class PaymentRefundTests(APITestCase):
 
     def test_cannot_refund_failed_payment(self):
         self.payment.status = Payment.STATUS_FAILED
+
         self.payment.save()
 
         response = self.client.post(
