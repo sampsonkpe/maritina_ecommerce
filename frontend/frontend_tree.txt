@@ -26,6 +26,8 @@
 │       ├── ripe-plantain-chips.png
 │       ├── sausages-02.png
 │       ├── sausages.png
+│       ├── sobolo-02.png
+│       ├── sobolo.png
 │       └── suya.png
 ├── src
 │   ├── api
@@ -140,7 +142,8 @@
 │   │   ├── orderService.ts
 │   │   ├── paymentService.ts
 │   │   ├── productService.ts
-│   │   └── reviewService.ts
+│   │   ├── reviewService.ts
+│   │   └── siteContentService.ts
 │   ├── types
 │   │   ├── address.ts
 │   │   ├── api.ts
@@ -150,6 +153,7 @@
 │   │   ├── order.ts
 │   │   ├── product.ts
 │   │   ├── review.ts
+│   │   ├── siteContent.ts
 │   │   └── user.ts
 │   └── utils
 │       ├── auth.ts
@@ -161,4 +165,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-34 directories, 128 files
+34 directories, 132 files

@@ -7,14 +7,8 @@ import { Link } from "react-router-dom";
 interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  variant?:
-    | "primary"
-    | "secondary"
-    | "success";
-  rounded?:
-    | "md"
-    | "2xl"
-    | "full";
+  variant?: "primary" | "secondary" | "tertiary";
+  rounded?: "md" | "2xl" | "full";
   to?: string;
 }
 
@@ -27,24 +21,55 @@ export default function Button({
   to,
   ...props
 }: ButtonProps) {
-  const baseClasses =
-    "font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
+  const baseClasses = `
+    inline-flex
+    min-h-11
+    items-center
+    justify-center
+    gap-2
+    px-5
+    py-2.5
+    text-sm
+    font-medium
+    leading-none
+    transition-colors
+    duration-200
+    ease-out
+    focus-visible:outline-none
+    focus-visible:ring-2
+    focus-visible:ring-(--color-accent)
+    focus-visible:ring-offset-2
+    focus-visible:ring-offset-(--color-background)
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+  `;
 
   const roundedClasses = {
-    md: "rounded-md",
-    "2xl": "rounded-2xl",
-    full: "rounded-full",
+    md: "rounded-(--radius-md)",
+    "2xl": "rounded-(--radius-xl)",
+    full: "rounded-(--radius-full)",
   };
 
   const variantClasses = {
-    primary:
-      "bg-[var(--color-text)] px-5 py-3 text-[var(--color-background)] hover:opacity-85",
+    primary: `
+      bg-(--color-accent)
+      text-(--color-accent-foreground)
+      hover:bg-(--color-accent-hover)
+    `,
 
-    secondary:
-      "border border-[var(--color-border)] bg-transparent px-5 py-3 text-[var(--color-text)] hover:bg-[var(--color-surface-muted)]",
+    secondary: `
+      border
+      border-(--color-border)
+      bg-transparent
+      text-(--color-text)
+      hover:bg-(--color-surface-muted)
+    `,
 
-    success:
-      "bg-green-700 px-4 py-2 text-sm text-white hover:bg-green-800",
+    tertiary: `
+      bg-transparent
+      text-(--color-text)
+      hover:bg-(--color-surface-muted)
+    `,
   };
 
   const classes = `
