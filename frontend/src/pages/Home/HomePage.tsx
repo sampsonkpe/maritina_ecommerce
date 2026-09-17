@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import ReviewBand from "../../components/reviews/ReviewBand";
 import ProductCard from "../../components/products/ProductCard";
 import LoadingState from "../../components/common/LoadingState";
+import OptimizedImage from "../../components/common/OptimizedImage";
 
 import { productService } from "../../services/productService";
 import type { Product } from "../../types/product";
@@ -121,7 +122,7 @@ export default function HomePage() {
 
           <div className="relative flex items-center justify-center">
             <div className="relative h-105 w-80 overflow-hidden rounded-4xl border border-(--color-border) sm:h-110 sm:w-84 lg:h-130 lg:w-110">
-              <img
+              <OptimizedImage
                 src="/images/kahwe-hero.png"
                 alt="Ghanaian snacks and local beverage"
                 className="h-full w-full object-cover object-[70%_center]"
@@ -157,7 +158,7 @@ export default function HomePage() {
                 className="group relative flex min-h-105 flex-col justify-between overflow-hidden rounded-3xl"
               >
                 {category.image && (
-                  <img
+                  <OptimizedImage
                     src={category.image}
                     alt={category.name}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -241,7 +242,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
           <div className="grid overflow-hidden rounded-4xl border border-(--color-border) lg:grid-cols-2">
             <div className="min-h-105 overflow-hidden sm:min-h-125 lg:min-h-145">
-              <img
+              <OptimizedImage
                 src="/images/kahwe-team.png"
                 alt="The KAHWƐ by Maritina Foods team"
                 className="h-full w-full object-cover"
