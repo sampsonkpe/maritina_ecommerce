@@ -4,6 +4,7 @@ import {
 } from "../../constants/order";
 
 import Button from "../common/Button";
+import Select from "../common/Select";
 
 interface AdminOrderFiltersProps {
   search: string;
@@ -51,26 +52,14 @@ export default function AdminOrderFilters({
       />
 
       {/* Status */}
-      <select
+      <Select
         aria-label="Filter by order status"
         value={statusFilter}
         onChange={(e) =>
           onStatusChange(e.target.value)
         }
-        className="
-          rounded-2xl
-          border
-          border-(--color-border)
-          bg-(--color-surface)
-          px-4
-          py-3
-          text-sm
-          outline-none
-        "
       >
-        <option value="">
-          All Statuses
-        </option>
+        <option value="">All Statuses</option>
 
         {ORDER_STATUS_OPTIONS.map((status) => (
           <option
@@ -80,29 +69,17 @@ export default function AdminOrderFilters({
             {status.label}
           </option>
         ))}
-      </select>
+      </Select>
 
       {/* Delivery Type */}
-      <select
+      <Select
         aria-label="Filter by delivery type"
         value={deliveryTypeFilter}
         onChange={(e) =>
           onDeliveryTypeChange(e.target.value)
         }
-        className="
-          rounded-2xl
-          border
-          border-(--color-border)
-          bg-(--color-surface)
-          px-4
-          py-3
-          text-sm
-          outline-none
-        "
       >
-        <option value="">
-          All Delivery Types
-        </option>
+        <option value="">All Delivery Types</option>
 
         <option value={DELIVERY_TYPE.DELIVERY}>
           Delivery
@@ -111,7 +88,7 @@ export default function AdminOrderFilters({
         <option value={DELIVERY_TYPE.PICKUP}>
           Pickup
         </option>
-      </select>
+      </Select>
 
       {/* Clear */}
       <Button

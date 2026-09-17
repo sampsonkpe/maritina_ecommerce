@@ -1,10 +1,15 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 import { authService } from "../../services/authService";
 import Button from "../../components/common/Button";
+import Input from "../../components/common/Input";
 
 interface FormData {
   current_password: string;
@@ -48,29 +53,41 @@ export default function ChangePasswordPage() {
     }));
   }
 
-  function togglePassword(field: "current" | "new" | "confirm") {
+  function togglePassword(
+    field: "current" | "new" | "confirm"
+  ) {
     setShowPasswords((current) => ({
       ...current,
       [field]: !current[field],
     }));
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
     setError(null);
 
     if (formData.new_password.length < 6) {
-      setError("Your new password must be at least 6 characters long.");
+      setError(
+        "Your new password must be at least 6 characters long."
+      );
       return;
     }
 
-    if (formData.new_password !== formData.confirm_password) {
+    if (
+      formData.new_password !==
+      formData.confirm_password
+    ) {
       setError("New passwords do not match.");
       return;
     }
 
-    if (formData.current_password === formData.new_password) {
+    if (
+      formData.current_password ===
+      formData.new_password
+    ) {
       setError(
         "Your new password must be different from your current password."
       );
@@ -89,13 +106,23 @@ export default function ChangePasswordPage() {
         },
       });
     } catch (error: unknown) {
-      console.error("Failed to change password:", error);
+      console.error(
+        "Failed to change password:",
+        error
+      );
 
       const responseData = (
-        error as { response?: { data?: unknown } }
+        error as {
+          response?: {
+            data?: unknown;
+          };
+        }
       ).response?.data;
 
-      if (responseData && typeof responseData === "object") {
+      if (
+        responseData &&
+        typeof responseData === "object"
+      ) {
         const messages = Object.values(responseData)
           .flat()
           .filter(
@@ -109,7 +136,9 @@ export default function ChangePasswordPage() {
             : "Unable to change your password."
         );
       } else {
-        setError("Unable to change your password.");
+        setError(
+          "Unable to change your password."
+        );
       }
     } finally {
       setSaving(false);
@@ -120,18 +149,18 @@ export default function ChangePasswordPage() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       {/* Back */}
       <Button
-            to="/profile"
-            variant="secondary"
-            rounded="full"
-            className="mb-6 inline-flex items-center gap-2"
-          >
-            <ArrowLeft
-              size={16}
-              strokeWidth={1.8}
-              aria-hidden="true"
-            />
-            Back to Profile
-          </Button>
+        to="/profile"
+        variant="secondary"
+        rounded="full"
+        className="mb-6 inline-flex items-center gap-2"
+      >
+        <ArrowLeft
+          size={16}
+          strokeWidth={1.8}
+          aria-hidden="true"
+        />
+        Back to Profile
+      </Button>
 
       {/* Header */}
       <div className="mt-7 text-center">
@@ -140,7 +169,8 @@ export default function ChangePasswordPage() {
         </h1>
 
         <p className="mt-1 text-sm text-(--color-text-muted)">
-          Update your password to keep your account secure.
+          Update your password to keep your account
+          secure.
         </p>
       </div>
 
@@ -163,7 +193,9 @@ export default function ChangePasswordPage() {
               value={formData.current_password}
               onChange={handleChange}
               show={showPasswords.current}
-              onToggle={() => togglePassword("current")}
+              onToggle={() =>
+                togglePassword("current")
+              }
             />
 
             <PasswordField
@@ -172,7 +204,9 @@ export default function ChangePasswordPage() {
               value={formData.new_password}
               onChange={handleChange}
               show={showPasswords.new}
-              onToggle={() => togglePassword("new")}
+              onToggle={() =>
+                togglePassword("new")
+              }
             />
 
             <PasswordField
@@ -181,14 +215,26 @@ export default function ChangePasswordPage() {
               value={formData.confirm_password}
               onChange={handleChange}
               show={showPasswords.confirm}
-              onToggle={() => togglePassword("confirm")}
+              onToggle={() =>
+                togglePassword("confirm")
+              }
             />
 
             <div className="flex items-start gap-2 pt-1">
-              <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-(--color-text-muted)" />
+              <div
+                className="
+                  mt-1
+                  h-1.5
+                  w-1.5
+                  shrink-0
+                  rounded-full
+                  bg-(--color-text-muted)
+                "
+              />
 
               <p className="text-xs leading-5 text-(--color-text-muted)">
-                Your password must be at least 6 characters long.
+                Your password must be at least 6
+                characters long.
               </p>
             </div>
 
@@ -197,14 +243,14 @@ export default function ChangePasswordPage() {
               <div
                 role="alert"
                 className="
-                  rounded-xl
+                  rounded-(--radius-md)
                   border
-                  border-red-500/20
-                  bg-red-500/5
+                  border-(--color-error)
+                  bg-(--color-error-surface)
                   px-4
                   py-3
                   text-sm
-                  text-red-500
+                  text-(--color-error)
                 "
               >
                 {error}
@@ -230,15 +276,16 @@ export default function ChangePasswordPage() {
                 min-h-11
                 items-center
                 justify-center
-                rounded-xl
+                rounded-(--radius-md)
                 border
                 border-(--color-border)
                 px-5
                 text-sm
                 font-medium
                 text-(--color-text)
-                transition
-                hover:bg-(--color-background)
+                transition-colors
+                duration-200
+                hover:bg-(--color-surface-muted)
               "
             >
               Cancel
@@ -253,25 +300,27 @@ export default function ChangePasswordPage() {
                 items-center
                 justify-center
                 gap-2
-                rounded-xl
-                bg-(--color-text)
+                rounded-(--radius-md)
+                bg-(--color-accent)
                 px-5
                 text-sm
                 font-semibold
-                text-(--color-background)
-                transition
-                hover:opacity-85
+                text-(--color-accent-foreground)
+                transition-colors
+                duration-200
+                hover:bg-(--color-accent-hover)
                 disabled:cursor-not-allowed
                 disabled:opacity-50
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-(--color-accent)
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-(--color-background)
               "
             >
-              {saving ? (
-                "Updating..."
-              ) : (
-                <>
-                  Update Password
-                </>
-              )}
+              {saving
+                ? "Updating..."
+                : "Update Password"}
             </button>
           </div>
         </div>
@@ -289,72 +338,59 @@ function PasswordField({
   onToggle,
 }: PasswordFieldProps) {
   return (
-    <div>
-      <label
-        htmlFor={name}
+    <div className="relative">
+      <Input
+        label={label}
+        id={name}
+        name={name}
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={onChange}
+        required
+        autoComplete={
+          name === "current_password"
+            ? "current-password"
+            : "new-password"
+        }
+        className="pr-12"
+      />
+
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={
+          show
+            ? `Hide ${label}`
+            : `Show ${label}`
+        }
         className="
-          mb-2
-          block
-          text-xs
-          font-semibold
-          uppercase
-          tracking-wide
+          absolute
+          right-3
+          top-[2.125rem]
+          rounded-lg
+          p-1
           text-(--color-text-muted)
+          transition-colors
+          duration-200
+          hover:bg-(--color-surface-muted)
+          hover:text-(--color-text)
+          focus-visible:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-(--color-accent)
         "
       >
-        {label}
-      </label>
-
-      <div className="relative">
-        <input
-          id={name}
-          name={name}
-          type={show ? "text" : "password"}
-          value={value}
-          onChange={onChange}
-          required
-          autoComplete={
-            name === "current_password"
-              ? "current-password"
-              : "new-password"
-          }
-          className="
-            w-full
-            rounded-xl
-            border
-            border-(--color-border)
-            bg-(--color-background)
-            px-3.5
-            py-3
-            pr-12
-            text-sm
-            text-(--color-text)
-            outline-none
-            transition
-            focus:border-(--color-text-muted)
-          "
-        />
-
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label={show ? `Hide ${label}` : `Show ${label}`}
-          className="
-            absolute
-            right-3
-            top-1/2
-            -translate-y-1/2
-            rounded-lg
-            p-1
-            text-(--color-text-muted)
-            transition
-            hover:bg-(--color-surface)
-            hover:text-(--color-text)
-          "
-        >
-          {show ? <EyeOff size={17} /> : <Eye size={17} />}
-        </button>
-      </div>
+        {show ? (
+          <EyeOff
+            size={17}
+            aria-hidden="true"
+          />
+        ) : (
+          <Eye
+            size={17}
+            aria-hidden="true"
+          />
+        )}
+      </button>
     </div>
   );
 }

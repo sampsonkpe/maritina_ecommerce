@@ -11,6 +11,8 @@ import type { ProductVariant } from "../../types/product";
 import { reviewService } from "../../services/reviewService";
 
 import Alert from "../common/Alert";
+import Textarea from "../common/Textarea";
+import Select from "../common/Select";
 
 interface ReviewFormProps {
   productId: number;
@@ -184,20 +186,8 @@ export default function ReviewForm({
         {/* Variant */}
         {variants.length > 1 && (
           <div>
-            <label
-              htmlFor="review-variant"
-              className="
-                block
-                text-sm
-                font-semibold
-                uppercase
-                tracking-[0.15em]
-              "
-            >
-              Variant
-            </label>
-
-            <select
+            <Select
+              label="Variant"
               id="review-variant"
               value={variantId}
               onChange={(event) =>
@@ -207,20 +197,6 @@ export default function ReviewForm({
                     : ""
                 )
               }
-              className="
-                mt-3
-                h-12
-                w-full
-                rounded-xl
-                border
-                border-(--color-border)
-                bg-(--color-background)
-                px-4
-                text-sm
-                outline-none
-                transition-colors
-                focus:border-(--color-text)
-              "
             >
               <option value="">
                 Select a variant
@@ -234,7 +210,7 @@ export default function ReviewForm({
                   {variant.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         )}
 
@@ -309,45 +285,18 @@ export default function ReviewForm({
       </div>
 
       {/* Review */}
-      <div className="mt-8">
-        <label
-          htmlFor="review-comment"
-          className="
-            block
-            text-sm
-            font-semibold
-            uppercase
-            tracking-[0.15em]
-          "
-        >
-          Your review
-        </label>
-
-        <textarea
-          id="review-comment"
-          value={comment}
-          onChange={(event) =>
-            setComment(event.target.value)
-          }
-          rows={5}
-          placeholder="Tell us what you think..."
-          className="
-            mt-3
-            w-full
-            resize-none
-            rounded-xl
-            border
-            border-(--color-border)
-            bg-(--color-background)
-            px-4
-            py-3
-            text-base
-            outline-none
-            transition-colors
-            focus:border-(--color-text)
-          "
-        />
-      </div>
+        <div className="mt-8">
+          <Textarea
+            label="Your Review"
+            id="review-comment"
+            value={comment}
+            onChange={(event) =>
+              setComment(event.target.value)
+            }
+            rows={5}
+            placeholder="Tell us what you think..."
+          />
+        </div>
 
       {/* Submit */}
       <div className="mt-8 flex justify-center">

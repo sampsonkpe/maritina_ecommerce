@@ -14,6 +14,8 @@ import type { Address } from "../../types/address";
 import LoadingState from "../../components/common/LoadingState";
 import EmptyState from "../../components/common/EmptyState";
 import Alert from "../../components/common/Alert";
+import Input from "../../components/common/Input";
+import Textarea from "../../components/common/Textarea";
 
 export default function AddressesPage() {
   const [addresses, setAddresses] =
@@ -323,79 +325,32 @@ export default function AddressesPage() {
                 <div className="space-y-5">
 
                   <div>
-                    <label
-                      htmlFor="address-label"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Label
-                    </label>
-
-                    <input
+                    <Input
+                      label="Label"
                       id="address-label"
                       type="text"
                       placeholder="Home, Work, etc."
                       value={label}
                       onChange={(e) =>
-                        setLabel(
-                          e.target.value
-                        )
+                        setLabel(e.target.value)
                       }
                       required
                       disabled={submitting}
-                      className="
-                        w-full
-                        rounded-2xl
-                        border
-                        border-(--color-border)
-                        bg-(--color-background)
-                        px-4
-                        py-3
-                        text-sm
-                        outline-none
-                        transition
-                        focus:border-(--color-text)
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                      "
                     />
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="address-text"
-                      className="mb-2 block text-sm font-medium"
-                    >
-                      Address
-                    </label>
-
-                    <textarea
+                    <Textarea
+                      label="Address"
                       id="address-text"
                       placeholder="Enter your delivery address"
                       value={addressText}
                       onChange={(e) =>
-                        setAddressText(
-                          e.target.value
-                        )
+                        setAddressText(e.target.value)
                       }
                       required
                       disabled={submitting}
                       rows={4}
-                      className="
-                        w-full
-                        resize-y
-                        rounded-2xl
-                        border
-                        border-(--color-border)
-                        bg-(--color-background)
-                        px-4
-                        py-3
-                        text-sm
-                        outline-none
-                        transition
-                        focus:border-(--color-text)
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                      "
                     />
                   </div>
 

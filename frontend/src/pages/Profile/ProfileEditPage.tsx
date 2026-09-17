@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { authService } from "../../services/authService";
 import type { Profile } from "../../services/authService";
 import Button from "../../components/common/Button";
+import Input from "../../components/common/Input";
 
 interface FormData {
   full_name: string;
@@ -99,7 +100,10 @@ export default function ProfileEditPage() {
       if (responseData && typeof responseData === "object") {
         const messages = Object.values(responseData)
           .flat()
-          .filter((value): value is string => typeof value === "string");
+          .filter(
+            (value): value is string =>
+              typeof value === "string"
+          );
 
         setError(
           messages.length > 0
@@ -128,15 +132,28 @@ export default function ProfileEditPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-6">
-          <p className="text-sm text-red-500">
+          <p className="text-sm text-(--color-error)">
             {error ?? "Unable to load your profile."}
           </p>
 
           <Link
             to="/profile"
-            className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-(--color-text) transition-opacity hover:opacity-70"
+            className="
+              mt-5
+              inline-flex
+              items-center
+              gap-2
+              text-sm
+              font-medium
+              text-(--color-text)
+              transition-opacity
+              hover:opacity-70
+            "
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft
+              size={16}
+              aria-hidden="true"
+            />
             Back to Profile
           </Link>
         </div>
@@ -148,18 +165,18 @@ export default function ProfileEditPage() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       {/* Back */}
       <Button
-            to="/profile"
-            variant="secondary"
-            rounded="full"
-            className="mb-6 inline-flex items-center gap-2"
-          >
-            <ArrowLeft
-              size={16}
-              strokeWidth={1.8}
-              aria-hidden="true"
-            />
-            Back to Profile
-          </Button>
+        to="/profile"
+        variant="secondary"
+        rounded="full"
+        className="mb-6 inline-flex items-center gap-2"
+      >
+        <ArrowLeft
+          size={16}
+          strokeWidth={1.8}
+          aria-hidden="true"
+        />
+        Back to Profile
+      </Button>
 
       {/* Header */}
       <div className="mt-7 text-center">
@@ -185,67 +202,43 @@ export default function ProfileEditPage() {
           "
         >
           <div className="space-y-5">
-            <FormField
+            <Input
               label="Full Name"
               name="full_name"
+              type="text"
               value={formData.full_name}
               onChange={handleChange}
               required
             />
 
-            <FormField
+            <Input
               label="Username"
               name="username"
+              type="text"
               value={formData.username}
               onChange={handleChange}
             />
 
-            <FormField
+            <Input
               label="Phone"
               name="phone"
+              type="tel"
               value={formData.phone}
               onChange={handleChange}
-              type="tel"
             />
 
-            {/* Email */}
             <div>
-              <label
-                htmlFor="email"
-                className="
-                  mb-2
-                  block
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-(--color-text-muted)
-                "
-              >
-                Email
-              </label>
-
-              <input
+              <Input
+                label="Email"
                 id="email"
                 type="email"
                 value={profile.email ?? ""}
                 disabled
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-(--color-border)
-                  bg-(--color-background)
-                  px-3.5
-                  py-3
-                  text-sm
-                  text-(--color-text-muted)
-                  outline-none
-                "
               />
 
               <p className="mt-2 text-xs text-(--color-text-muted)">
-                Email changes require a separate verification process.
+                Email changes require a separate verification
+                process.
               </p>
             </div>
 
@@ -254,14 +247,14 @@ export default function ProfileEditPage() {
               <div
                 role="alert"
                 className="
-                  rounded-xl
+                  rounded-(--radius-md)
                   border
-                  border-red-500/20
-                  bg-red-500/5
+                  border-(--color-error)
+                  bg-(--color-error-surface)
                   px-4
                   py-3
                   text-sm
-                  text-red-500
+                  text-(--color-error)
                 "
               >
                 {error}
@@ -287,15 +280,16 @@ export default function ProfileEditPage() {
                 min-h-11
                 items-center
                 justify-center
-                rounded-xl
+                rounded-(--radius-md)
                 border
                 border-(--color-border)
                 px-5
                 text-sm
                 font-medium
                 text-(--color-text)
-                transition
-                hover:bg-(--color-background)
+                transition-colors
+                duration-200
+                hover:bg-(--color-surface-muted)
               "
             >
               Cancel
@@ -310,88 +304,29 @@ export default function ProfileEditPage() {
                 items-center
                 justify-center
                 gap-2
-                rounded-xl
-                bg-(--color-text)
+                rounded-(--radius-md)
+                bg-(--color-accent)
                 px-5
                 text-sm
                 font-semibold
-                text-(--color-background)
-                transition
-                hover:opacity-85
+                text-(--color-accent-foreground)
+                transition-colors
+                duration-200
+                hover:bg-(--color-accent-hover)
                 disabled:cursor-not-allowed
                 disabled:opacity-50
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-(--color-accent)
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-(--color-background)
               "
             >
-              {saving ? (
-                "Saving..."
-              ) : (
-                <>
-                  Save Changes
-                </>
-              )}
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </div>
       </form>
-    </div>
-  );
-}
-
-function FormField({
-  label,
-  name,
-  value,
-  onChange,
-  type = "text",
-  required = false,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  type?: string;
-  required?: boolean;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={name}
-        className="
-          mb-2
-          block
-          text-xs
-          font-semibold
-          uppercase
-          tracking-wide
-          text-(--color-text-muted)
-        "
-      >
-        {label}
-      </label>
-
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        required={required}
-        className="
-          w-full
-          rounded-xl
-          border
-          border-(--color-border)
-          bg-(--color-background)
-          px-3.5
-          py-3
-          text-sm
-          text-(--color-text)
-          outline-none
-          transition
-          placeholder:text-(--color-text-muted)
-          focus:border-(--color-text-muted)
-        "
-      />
     </div>
   );
 }

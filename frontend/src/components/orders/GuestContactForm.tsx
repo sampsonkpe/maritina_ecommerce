@@ -1,3 +1,5 @@
+import Input from "../common/Input";
+
 type GuestContactFormProps = {
   fullName: string;
   email: string;
@@ -16,68 +18,50 @@ export default function GuestContactForm({
   onPhoneChange,
 }: GuestContactFormProps) {
   return (
-    <section className="rounded-md border p-6">
-
+    <section className="rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) p-6">
       <h2 className="text-xl font-semibold">
         Contact Information
       </h2>
 
-      <p className="text-sm text-gray-500">
-        We'll use these details to send order updates and contact you if needed.
+      <p className="mt-2 text-sm text-(--color-text-muted)">
+        We'll use these details to send order updates and
+        contact you if needed.
       </p>
 
       <div className="mt-6 space-y-5">
+        <Input
+          label="Full Name"
+          type="text"
+          value={fullName}
+          onChange={(e) =>
+            onFullNameChange(e.target.value)
+          }
+          placeholder="Enter your full name"
+          required
+        />
 
-        <div>
-          <label className="mb-2 block font-medium">
-            Full Name
-          </label>
+        <Input
+          label="Phone Number"
+          type="tel"
+          value={phone}
+          onChange={(e) =>
+            onPhoneChange(e.target.value)
+          }
+          placeholder="Enter your phone number"
+          required
+        />
 
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) =>
-              onFullNameChange(e.target.value)
-            }
-            className="w-full rounded-md border px-4 py-3"
-            placeholder="Enter your full name"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block font-medium">
-            Phone Number
-          </label>
-
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) =>
-              onPhoneChange(e.target.value)
-            }
-            className="w-full rounded-md border px-4 py-3"
-            placeholder="Enter your phone number"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block font-medium">
-            Email Address
-          </label>
-
-          <input
-            type="email"
-            value={email}
-            onChange={(e) =>
-              onEmailChange(e.target.value)
-            }
-            className="w-full rounded-md border px-4 py-3"
-            placeholder="Enter your email address"
-          />
-        </div>
-
+        <Input
+          label="Email Address"
+          type="email"
+          value={email}
+          onChange={(e) =>
+            onEmailChange(e.target.value)
+          }
+          placeholder="Enter your email address"
+          required
+        />
       </div>
-
     </section>
   );
 }

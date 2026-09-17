@@ -2,6 +2,7 @@ import type { Order } from "../../types/order";
 
 import StatusBadge from "../common/StatusBadge";
 import Button from "../common/Button";
+import Select from "../common/Select";
 
 import {
   ORDER_STATUS,
@@ -112,26 +113,13 @@ export default function OrderStatusEditor({
       </h3>
 
       <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-        <select
+        <Select
           value={selectedStatus}
           onChange={(event) =>
             onStatusChange(event.target.value)
           }
           disabled={updating || cancelling}
           aria-label="Order status"
-          className="
-            rounded-2xl
-            border
-            border-(--color-border)
-            bg-(--color-surface)
-            px-4
-            py-3
-            text-(--color-text)
-            outline-none
-            focus:border-(--color-text-muted)
-            disabled:cursor-not-allowed
-            disabled:opacity-60
-          "
         >
           {availableStatuses.map((status) => (
             <option
@@ -141,7 +129,7 @@ export default function OrderStatusEditor({
               {formatStatus(status)}
             </option>
           ))}
-        </select>
+        </Select>
 
         <Button
           type="button"
