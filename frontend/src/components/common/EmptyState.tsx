@@ -7,11 +7,21 @@ export default function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
+      role="status"
       className="
-        rounded-md
-        border border-dashed border-(--color-border)
+        flex
+        min-h-32
+        items-center
+        justify-center
+        rounded-(--radius-md)
+        border
+        border-dashed
+        border-(--color-border)
+        bg-(--color-surface)
         p-10
-        text-center text-(--color-text-muted)
+        text-center
+        text-sm
+        text-(--color-text-muted)
       "
     >
       {title}
