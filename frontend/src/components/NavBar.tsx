@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-
+import {
+  Link,
+  NavLink,
+  useLocation,
+} from "react-router-dom";
 import {
   Menu,
   X,
@@ -57,7 +60,9 @@ export default function NavBar() {
 
       if (currentScrollY > lastScrollY.current) {
         setHeaderVisible(false);
-      } else if (currentScrollY < lastScrollY.current) {
+      } else if (
+        currentScrollY < lastScrollY.current
+      ) {
         setHeaderVisible(true);
       }
 
@@ -78,6 +83,49 @@ export default function NavBar() {
     };
   }, [isHomePage]);
 
+  const navLinkClasses = ({
+    isActive,
+  }: {
+    isActive: boolean;
+  }) => `
+    whitespace-nowrap
+    rounded-(--radius-sm)
+    px-2
+    py-1.5
+    text-sm
+    text-(--color-text)
+    transition-opacity
+    duration-200
+    hover:opacity-60
+    focus-visible:outline-none
+    focus-visible:ring-2
+    focus-visible:ring-(--color-accent)
+    focus-visible:ring-offset-2
+    focus-visible:ring-offset-(--color-background)
+    ${isActive ? "font-semibold" : ""}
+  `;
+
+  const mobileLinkClasses = ({
+    isActive,
+  }: {
+    isActive: boolean;
+  }) => `
+    border-b
+    border-(--color-border)
+    py-3
+    text-sm
+    text-(--color-text)
+    transition-opacity
+    duration-200
+    hover:opacity-60
+    focus-visible:outline-none
+    focus-visible:ring-2
+    focus-visible:ring-(--color-accent)
+    focus-visible:ring-offset-1
+    focus-visible:ring-offset-(--color-background)
+    ${isActive ? "font-semibold" : ""}
+  `;
+
   return (
     <nav
       className={`
@@ -88,7 +136,6 @@ export default function NavBar() {
         border-(--color-border)
         bg-(--color-background)/45
         backdrop-blur
-        shadow-[0_8px_30px_rgba(0,0,0,0.04)]
         transition-transform
         duration-300
         ease-out
@@ -114,7 +161,7 @@ export default function NavBar() {
             min-h-18
             items-center
             justify-between
-            gap-6
+            gap-4
           "
         >
           {/* Brand */}
@@ -123,11 +170,20 @@ export default function NavBar() {
             onClick={closeMobileMenu}
             className="
               shrink-0
-              text-lg
-              font-bold
+              rounded-(--radius-sm)
+              text-base
+              font-semibold
               tracking-tight
               text-(--color-text)
-              sm:text-xl
+              transition-opacity
+              duration-200
+              hover:opacity-70
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-(--color-accent)
+              focus-visible:ring-offset-2
+              focus-visible:ring-offset-(--color-background)
+              sm:text-lg
             "
           >
             <span className="sm:hidden">
@@ -144,123 +200,81 @@ export default function NavBar() {
             className="
               hidden
               items-center
-              gap-6
+              gap-5
               md:flex
             "
           >
-            <Link
+            <NavLink
               to="/"
-              className="
-                whitespace-nowrap
-                text-sm
-                transition-opacity
-                hover:opacity-60
-              "
+              end
+              className={navLinkClasses}
             >
               Home
-            </Link>
+            </NavLink>
 
-            <Link
+            <NavLink
               to="/products"
-              className="
-                whitespace-nowrap
-                text-sm
-                transition-opacity
-                hover:opacity-60
-              "
+              className={navLinkClasses}
             >
               Products
-            </Link>
+            </NavLink>
 
             {!authenticated ? (
               <>
-                <Link
+                <NavLink
                   to="/cart"
-                  className="
-                    whitespace-nowrap
-                    text-sm
-                    transition-opacity
-                    hover:opacity-60
-                  "
+                  className={navLinkClasses}
                 >
                   Cart
-                  {!loading && ` [${itemCount}]`}
-                </Link>
+                  {!loading &&
+                    ` [${itemCount}]`}
+                </NavLink>
 
-                <Link
+                <NavLink
                   to="/login"
-                  className="
-                    whitespace-nowrap
-                    text-sm
-                    transition-opacity
-                    hover:opacity-60
-                  "
+                  className={navLinkClasses}
                 >
                   Login
-                </Link>
+                </NavLink>
 
-                <Link
+                <NavLink
                   to="/register"
-                  className="
-                    whitespace-nowrap
-                    text-sm
-                    transition-opacity
-                    hover:opacity-60
-                  "
+                  className={navLinkClasses}
                 >
                   Register
-                </Link>
+                </NavLink>
               </>
             ) : user?.is_staff ? (
-              <Link
+              <NavLink
                 to="/admin/orders"
-                className="
-                  whitespace-nowrap
-                  text-sm
-                  transition-opacity
-                  hover:opacity-60
-                "
+                className={navLinkClasses}
               >
                 All Orders
-              </Link>
+              </NavLink>
             ) : (
               <>
-                <Link
+                <NavLink
                   to="/cart"
-                  className="
-                    whitespace-nowrap
-                    text-sm
-                    transition-opacity
-                    hover:opacity-60
-                  "
+                  className={navLinkClasses}
                 >
                   Cart
-                  {!loading && ` [${itemCount}]`}
-                </Link>
+                  {!loading &&
+                    ` [${itemCount}]`}
+                </NavLink>
 
-                <Link
+                <NavLink
                   to="/orders"
-                  className="
-                    whitespace-nowrap
-                    text-sm
-                    transition-opacity
-                    hover:opacity-60
-                  "
+                  className={navLinkClasses}
                 >
                   Orders
-                </Link>
+                </NavLink>
 
-                <Link
+                <NavLink
                   to="/profile"
-                  className="
-                    whitespace-nowrap
-                    text-sm
-                    transition-opacity
-                    hover:opacity-60
-                  "
+                  className={navLinkClasses}
                 >
                   Profile
-                </Link>
+                </NavLink>
               </>
             )}
 
@@ -282,11 +296,17 @@ export default function NavBar() {
             }
             aria-expanded={mobileMenuOpen}
             className="
-              rounded-md
+              rounded-(--radius-sm)
               p-2
               text-(--color-text)
               transition-opacity
+              duration-200
               hover:opacity-60
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-(--color-accent)
+              focus-visible:ring-offset-2
+              focus-visible:ring-offset-(--color-background)
               md:hidden
             "
           >
@@ -319,87 +339,60 @@ export default function NavBar() {
             "
           >
             <div className="flex flex-col">
-              <Link
+              <NavLink
                 to="/"
+                end
                 onClick={closeMobileMenu}
-                className="
-                  border-b
-                  border-(--color-border)
-                  py-3
-                  text-sm
-                "
+                className={mobileLinkClasses}
               >
                 Home
-              </Link>
+              </NavLink>
 
-              <Link
+              <NavLink
                 to="/products"
                 onClick={closeMobileMenu}
-                className="
-                  border-b
-                  border-(--color-border)
-                  py-3
-                  text-sm
-                "
+                className={mobileLinkClasses}
               >
                 Products
-              </Link>
+              </NavLink>
 
               {!authenticated ? (
                 <>
-                  <Link
+                  <NavLink
                     to="/cart"
                     onClick={closeMobileMenu}
-                    className="
-                      border-b
-                      border-(--color-border)
-                      py-3
-                      text-sm
-                    "
+                    className={mobileLinkClasses}
                   >
                     Cart
                     {!loading &&
                       ` [${itemCount}]`}
-                  </Link>
+                  </NavLink>
 
-                  <Link
+                  <NavLink
                     to="/login"
                     onClick={closeMobileMenu}
-                    className="
-                      border-b
-                      border-(--color-border)
-                      py-3
-                      text-sm
-                    "
+                    className={mobileLinkClasses}
                   >
                     Login
-                  </Link>
+                  </NavLink>
 
-                  <Link
+                  <NavLink
                     to="/register"
                     onClick={closeMobileMenu}
-                    className="
-                      py-3
-                      text-sm
-                    "
+                    className={mobileLinkClasses}
                   >
                     Register
-                  </Link>
+                  </NavLink>
                 </>
               ) : user?.is_staff ? (
                 <>
-                  <Link
+                  <NavLink
                     to="/admin/orders"
                     onClick={closeMobileMenu}
-                    className="
-                      border-b
-                      border-(--color-border)
-                      py-3
-                      text-sm
-                    "
+                    className={mobileLinkClasses}
                   >
                     All Orders
-                  </Link>
+                  </NavLink>
 
                   <div className="pt-3">
                     <LogoutButton />
@@ -407,46 +400,31 @@ export default function NavBar() {
                 </>
               ) : (
                 <>
-                  <Link
+                  <NavLink
                     to="/cart"
                     onClick={closeMobileMenu}
-                    className="
-                      border-b
-                      border-(--color-border)
-                      py-3
-                      text-sm
-                    "
+                    className={mobileLinkClasses}
                   >
                     Cart
                     {!loading &&
                       ` [${itemCount}]`}
-                  </Link>
+                  </NavLink>
 
-                  <Link
+                  <NavLink
                     to="/orders"
                     onClick={closeMobileMenu}
-                    className="
-                      border-b
-                      border-(--color-border)
-                      py-3
-                      text-sm
-                    "
+                    className={mobileLinkClasses}
                   >
                     Orders
-                  </Link>
+                  </NavLink>
 
-                  <Link
+                  <NavLink
                     to="/profile"
                     onClick={closeMobileMenu}
-                    className="
-                      border-b
-                      border-(--color-border)
-                      py-3
-                      text-sm
-                    "
+                    className={mobileLinkClasses}
                   >
                     Profile
-                  </Link>
+                  </NavLink>
 
                   <div className="pt-3">
                     <LogoutButton />
