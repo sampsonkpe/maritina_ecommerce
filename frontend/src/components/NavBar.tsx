@@ -8,6 +8,8 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Home02Icon } from "@hugeicons/core-free-icons";
 
 import LogoutButton from "./auth/LogoutButton";
 
@@ -88,6 +90,9 @@ export default function NavBar() {
   }: {
     isActive: boolean;
   }) => `
+    flex
+    items-center
+    gap-2
     whitespace-nowrap
     rounded-(--radius-sm)
     px-2
@@ -209,7 +214,13 @@ export default function NavBar() {
               end
               className={navLinkClasses}
             >
-              Home
+              <HugeiconsIcon
+                icon={Home02Icon}
+                size={20}
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+              <span>Home</span>
             </NavLink>
 
             <NavLink
