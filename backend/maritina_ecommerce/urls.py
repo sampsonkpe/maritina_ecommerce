@@ -29,6 +29,7 @@ urlpatterns = [
     path("api/checkout/", include("apps.checkout.urls")),
     path("api/favourites/", include("apps.favourites.urls")),
     path("api/reviews/", include("apps.reviews.urls")),
+    path("api/site-content/", include("apps.site_content.urls")),
     
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]

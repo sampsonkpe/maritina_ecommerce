@@ -8,8 +8,11 @@ import LoadingState from "../../components/common/LoadingState";
 import OptimizedImage from "../../components/common/OptimizedImage";
 
 import { productService } from "../../services/productService";
+import { siteContentService } from "../../services/siteContentService";
+
 import type { Product } from "../../types/product";
 import type { Category } from "../../types/category";
+import type { SiteImage } from "../../types/siteContent";
 
 const FEATURED_PRODUCT_IDS = {
   fingerFoods: 4,
@@ -21,7 +24,7 @@ const FEATURED_PRODUCT_IDS = {
 const CATEGORY_NUMBERS: Record<string, string> = {
   "Finger Foods": "01",
   "Local Beverages": "02",
-  "Grills": "03",
+  Grills: "03",
 };
 
 export default function HomePage() {
@@ -30,6 +33,9 @@ export default function HomePage() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const [siteImages, setSiteImages] = useState<SiteImage[]>([]);
+  const [loadingSiteImages, setLoadingSiteImages] = useState(true);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -79,6 +85,30 @@ export default function HomePage() {
     loadCategories();
   }, []);
 
+  useEffect(() => {
+    const loadSiteImages = async () => {
+      try {
+        const images = await siteContentService.getSiteImages();
+
+        setSiteImages(images);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingSiteImages(false);
+      }
+    };
+
+    loadSiteImages();
+  }, []);
+
+  const heroImage = siteImages.find(
+    (image) => image.image_type === "HERO"
+  );
+
+  const teamImage = siteImages.find(
+    (image) => image.image_type === "TEAM"
+  );
+
   return (
     <>
       {/* Hero */}
@@ -122,11 +152,14 @@ export default function HomePage() {
 
           <div className="relative flex items-center justify-center">
             <div className="relative h-105 w-80 overflow-hidden rounded-4xl border border-(--color-border) sm:h-110 sm:w-84 lg:h-130 lg:w-110">
-              <OptimizedImage
-                src="/images/kahwe-hero.png"
-                alt="Ghanaian snacks and local beverage"
-                className="h-full w-full object-cover object-[70%_center]"
-              />
+              {!loadingSiteImages && heroImage && (
+                <OptimizedImage
+                  src={heroImage.image}
+                  alt="Ghanaian snacks and local beverage"
+                  priority
+                  className="h-full w-full object-cover object-[70%_center]"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -213,8 +246,9 @@ export default function HomePage() {
             </h2>
 
             <p className="mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
-              From something small to something satisfying, discover a few
-              KAHWƐ favourites made to be enjoyed whenever the craving hits.
+              From something small to something satisfying,
+              discover a few KAHWƐ favourites made to be enjoyed
+              whenever the craving hits.
             </p>
           </div>
 
@@ -242,11 +276,13 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
           <div className="grid overflow-hidden rounded-4xl border border-(--color-border) lg:grid-cols-2">
             <div className="min-h-105 overflow-hidden sm:min-h-125 lg:min-h-145">
-              <OptimizedImage
-                src="/images/kahwe-team.png"
-                alt="The KAHWƐ by Maritina Foods team"
-                className="h-full w-full object-cover"
-              />
+              {!loadingSiteImages && teamImage && (
+                <OptimizedImage
+                  src={teamImage.image}
+                  alt="The KAHWƐ by Maritina Foods team"
+                  className="h-full w-full object-cover"
+                />
+              )}
             </div>
 
             <div className="flex flex-col items-center justify-center p-8 text-center sm:p-12 lg:p-16">
@@ -259,15 +295,16 @@ export default function HomePage() {
               </h2>
 
               <p className="mt-6 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
-                KAHWƐ brings together the flavours people know and love, from
-                traditional Ghanaian snacks and refreshing local beverages to
-                freshly prepared grills.
+                KAHWƐ brings together the flavours people know
+                and love, from traditional Ghanaian snacks and
+                refreshing local beverages to freshly prepared
+                grills.
               </p>
 
               <p className="mt-5 max-w-xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
-                Proudly brought to you by Maritina Foods, KAHWƐ makes it simple
-                to discover your favourites, order with ease and enjoy them
-                wherever you are.
+                Proudly brought to you by Maritina Foods, KAHWƐ
+                makes it simple to discover your favourites, order
+                with ease and enjoy them wherever you are.
               </p>
             </div>
           </div>
@@ -298,8 +335,8 @@ export default function HomePage() {
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-(--color-text-muted)">
-                Browse our snacks, drinks and grills and choose your
-                favourites.
+                Browse our snacks, drinks and grills and choose
+                your favourites.
               </p>
             </div>
 
@@ -313,8 +350,8 @@ export default function HomePage() {
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-(--color-text-muted)">
-                Add what you want to your cart and complete your order
-                securely.
+                Add what you want to your cart and complete your
+                order securely.
               </p>
             </div>
 
@@ -328,7 +365,8 @@ export default function HomePage() {
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-(--color-text-muted)">
-                We'll prepare your order with care and get it ready for you.
+                We'll prepare your order with care and get it ready
+                for you.
               </p>
             </div>
 
@@ -342,7 +380,8 @@ export default function HomePage() {
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-(--color-text-muted)">
-                Choose delivery or pickup and enjoy your KAHWƐ favourites.
+                Choose delivery or pickup and enjoy your KAHWƐ
+                favourites.
               </p>
             </div>
           </div>
@@ -377,8 +416,8 @@ export default function HomePage() {
             </h2>
 
             <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-(--color-text-muted) sm:text-lg">
-              Discover your favourites, place your order and enjoy KAHWƐ
-              wherever you are.
+              Discover your favourites, place your order and enjoy
+              KAHWƐ wherever you are.
             </p>
 
             <div className="mt-10">

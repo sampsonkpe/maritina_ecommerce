@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'apps.favourites',
     'apps.reviews',
+    'apps.site_content',
 ]
 
 AUTH_USER_MODEL = "users.User"
