@@ -224,21 +224,20 @@ export default function ReviewForm({
         >
           <p
             className="
-              text-sm
+              mb-2
+              block
+              text-xs
               font-semibold
               uppercase
-              tracking-[0.15em]
+              tracking-wide
+              text-(--color-text-muted)
             "
           >
             Rating
           </p>
 
           <div
-            className="
-              mt-3
-              flex
-              gap-1
-            "
+            className="flex gap-1"
             role="radiogroup"
             aria-label="Rating"
           >
@@ -263,18 +262,27 @@ export default function ReviewForm({
                     }
                     className="
                       rounded-sm
+                      p-0.5
+                      text-(--color-text)
                       transition-opacity
+                      duration-200
                       hover:opacity-60
+                      focus-visible:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-(--color-accent)
+                      focus-visible:ring-offset-1
+                      focus-visible:ring-offset-(--color-background)
                     "
                   >
                     <Star
                       size={22}
-                      strokeWidth={1.8}
+                      strokeWidth={1.3}
                       fill={
                         value <= rating
                           ? "currentColor"
                           : "none"
                       }
+                      aria-hidden="true"
                     />
                   </button>
                 );
