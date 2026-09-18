@@ -62,8 +62,6 @@ export function CartProvider({
    * after the cart has already loaded.
    */
   const refreshCart = useCallback(async () => {
-    setLoading(true);
-
     try {
       const data =
         await cartService.getCart();
@@ -71,8 +69,6 @@ export function CartProvider({
       setCart(data);
     } catch {
       setCart(null);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
