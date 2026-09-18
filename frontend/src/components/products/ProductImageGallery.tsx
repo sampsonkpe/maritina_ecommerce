@@ -106,12 +106,10 @@ export default function ProductImageGallery({
             alt={productName}
             priority
             className="
+              block
               h-full
               w-full
               object-cover
-              transition-transform
-              duration-700
-              ease-out
             "
           />
         )}

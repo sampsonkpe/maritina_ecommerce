@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
+import {
+  HugeiconsIcon,
+} from "@hugeicons/react";
+import {
+  MinusSignIcon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
+
 import type {
   Product,
   ProductVariant,
@@ -34,6 +42,8 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState("1");
 
   const [loading, setLoading] = useState(true);
+  const [addingToCart, setAddingToCart] =
+    useState(false);
 
   const [reviewRefreshKey, setReviewRefreshKey] =
     useState(0);
@@ -83,6 +93,10 @@ export default function ProductDetailPage() {
   }, [id]);
 
   const handleAddToCart = async () => {
+    if (addingToCart) {
+      return;
+    }
+
     if (!selectedVariant) {
       setError(
         "Please select a product variant."
@@ -113,6 +127,8 @@ export default function ProductDetailPage() {
       return;
     }
 
+    setAddingToCart(true);
+
     try {
       await addToCart(
         selectedVariant.id,
@@ -123,6 +139,8 @@ export default function ProductDetailPage() {
     } catch (error) {
       console.error(error);
       setError("Failed to add to cart.");
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -134,6 +152,50 @@ export default function ProductDetailPage() {
     }
 
     setSelectedVariant(variant);
+    setError("");
+    setSuccess("");
+  };
+
+  const handleQuantityChange = (
+    value: string
+  ) => {
+    setQuantity(value);
+    setError("");
+    setSuccess("");
+  };
+
+  const decreaseQuantity = () => {
+    const currentQuantity = Number(quantity);
+
+    if (
+      !Number.isInteger(currentQuantity) ||
+      currentQuantity <= 1
+    ) {
+      setQuantity("1");
+      return;
+    }
+
+    setQuantity(
+      String(currentQuantity - 1)
+    );
+    setError("");
+    setSuccess("");
+  };
+
+  const increaseQuantity = () => {
+    const currentQuantity = Number(quantity);
+
+    if (
+      !Number.isInteger(currentQuantity) ||
+      currentQuantity < 1
+    ) {
+      setQuantity("2");
+      return;
+    }
+
+    setQuantity(
+      String(currentQuantity + 1)
+    );
     setError("");
     setSuccess("");
   };
@@ -151,6 +213,11 @@ export default function ProductDetailPage() {
       </div>
     );
   }
+
+  const parsedQuantity = Number(quantity);
+  const canDecrease =
+    Number.isInteger(parsedQuantity) &&
+    parsedQuantity > 1;
 
   return (
     <>
@@ -185,21 +252,21 @@ export default function ProductDetailPage() {
           {/* Product heading */}
           <div
             className="
-              mb-10
+              mb-8
               flex
               items-start
               justify-between
               gap-6
-              lg:mb-12
+              lg:mb-10
             "
           >
             <div>
-
               <h1
                 className="
+                  max-w-3xl
                   text-4xl
                   font-semibold
-                  leading-tight
+                  leading-[1.05]
                   tracking-tight
                   sm:text-5xl
                   lg:text-6xl
@@ -314,12 +381,18 @@ export default function ProductDetailPage() {
                               items-center
                               justify-between
                               gap-4
-                              rounded-2xl
+                              rounded-(--radius-full)
                               border
                               px-5
                               py-4
                               text-left
                               transition-colors
+                              duration-200
+                              focus-visible:outline-none
+                              focus-visible:ring-2
+                              focus-visible:ring-(--color-accent)
+                              focus-visible:ring-offset-2
+                              focus-visible:ring-offset-(--color-background)
                               ${
                                 isSelected
                                   ? "border-(--color-text) bg-(--color-text) text-(--color-background)"
@@ -335,7 +408,9 @@ export default function ProductDetailPage() {
 
                             <span className="shrink-0 text-sm">
                               {isAvailable
-                                ? formatCurrency(variant.price)
+                                ? formatCurrency(
+                                    variant.price
+                                  )
                                 : "Unavailable"}
                             </span>
                           </button>
@@ -361,33 +436,105 @@ export default function ProductDetailPage() {
                   Quantity
                 </label>
 
-                <input
-                  id="product-quantity"
-                  aria-label="Quantity"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={quantity}
-                  onChange={(event) =>
-                    setQuantity(
-                      event.target.value
-                    )
-                  }
+                <div
                   className="
                     mt-3
+                    inline-flex
                     h-12
-                    w-24
-                    rounded-xl
+                    items-center
+                    overflow-hidden
+                    rounded-(--radius-full)
                     border
                     border-(--color-border)
                     bg-(--color-background)
-                    px-4
-                    text-base
-                    outline-none
-                    transition-colors
-                    focus:border-(--color-text)
                   "
-                />
+                >
+                  <button
+                    type="button"
+                    onClick={decreaseQuantity}
+                    disabled={!canDecrease}
+                    aria-label="Decrease quantity"
+                    className="
+                      inline-flex
+                      h-full
+                      w-12
+                      items-center
+                      justify-center
+                      text-(--color-text)
+                      transition-opacity
+                      duration-200
+                      hover:opacity-60
+                      disabled:cursor-not-allowed
+                      disabled:opacity-30
+                      focus-visible:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-inset
+                      focus-visible:ring-(--color-accent)
+                    "
+                  >
+                    <HugeiconsIcon
+                      icon={MinusSignIcon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  <input
+                    id="product-quantity"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={quantity}
+                    onChange={(event) =>
+                      handleQuantityChange(
+                        event.target.value
+                      )
+                    }
+                    aria-label="Quantity"
+                    className="
+                      h-full
+                      w-12
+                      appearance-none
+                      border-0
+                      bg-transparent
+                      p-0
+                      text-center
+                      text-base
+                      outline-none
+                      [&::-webkit-inner-spin-button]:appearance-none
+                      [&::-webkit-outer-spin-button]:appearance-none
+                    "
+                  />
+
+                  <button
+                    type="button"
+                    onClick={increaseQuantity}
+                    aria-label="Increase quantity"
+                    className="
+                      inline-flex
+                      h-full
+                      w-12
+                      items-center
+                      justify-center
+                      text-(--color-text)
+                      transition-opacity
+                      duration-200
+                      hover:opacity-60
+                      focus-visible:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-inset
+                      focus-visible:ring-(--color-accent)
+                    "
+                  >
+                    <HugeiconsIcon
+                      icon={PlusSignIcon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
               </div>
 
               {/* Price and cart */}
@@ -403,13 +550,18 @@ export default function ProductDetailPage() {
                   className="
                     flex
                     flex-wrap
-                    items-center
+                    items-end
                     justify-between
                     gap-5
                   "
                 >
                   <div>
-                    <p className="text-sm text-(--color-text-muted)">
+                    <p
+                      className="
+                        text-sm
+                        text-(--color-text-muted)
+                      "
+                    >
                       Price
                     </p>
 
@@ -418,11 +570,14 @@ export default function ProductDetailPage() {
                         mt-1
                         text-3xl
                         font-semibold
+                        leading-none
                         tracking-tight
                       "
                     >
                       {selectedVariant
-                        ? formatCurrency(selectedVariant.price)
+                        ? formatCurrency(
+                            selectedVariant.price
+                          )
                         : "—"}
                     </p>
                   </div>
@@ -431,6 +586,7 @@ export default function ProductDetailPage() {
                     type="button"
                     onClick={handleAddToCart}
                     disabled={
+                      addingToCart ||
                       !selectedVariant ||
                       !selectedVariant.is_available
                     }
@@ -439,7 +595,7 @@ export default function ProductDetailPage() {
                       inline-flex
                       items-center
                       gap-2
-                      rounded-full
+                      rounded-(--radius-full)
                       border
                       border-(--color-border)
                       px-6
@@ -447,22 +603,32 @@ export default function ProductDetailPage() {
                       text-sm
                       font-medium
                       transition-colors
+                      duration-200
                       hover:bg-(--color-surface-muted)
                       disabled:cursor-not-allowed
                       disabled:opacity-40
+                      focus-visible:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-(--color-accent)
+                      focus-visible:ring-offset-2
+                      focus-visible:ring-offset-(--color-background)
                     "
                   >
-                    Add to Cart
+                    {addingToCart
+                      ? "Adding..."
+                      : "Add to Cart"}
 
-                    <ArrowRight
-                      size={18}
-                      aria-hidden="true"
-                      className="
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-1
-                      "
-                    />
+                    {!addingToCart && (
+                      <ArrowRight
+                        size={18}
+                        aria-hidden="true"
+                        className="
+                          transition-transform
+                          duration-300
+                          group-hover:translate-x-1
+                        "
+                      />
+                    )}
                   </button>
                 </div>
 
@@ -486,12 +652,12 @@ export default function ProductDetailPage() {
                         mt-4
                         text-sm
                         text-(--color-text-muted)
-                      "
-                    >
-                      This variant is currently
-                      unavailable.
-                    </p>
-                  )}
+                    "
+                  >
+                    This variant is currently
+                    unavailable.
+                  </p>
+                )}
               </div>
             </div>
           </div>
