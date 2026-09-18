@@ -27,6 +27,16 @@ import DeliveryMethodSelector from "../../components/orders/DeliveryMethodSelect
 
 import { useCheckoutSession } from "../../hooks/useCheckoutSession";
 
+type CheckoutErrors = {
+  fullName?: string;
+  phone?: string;
+  email?: string;
+  streetAddress?: string;
+  area?: string;
+  city?: string;
+  region?: string;
+};
+
 export default function CheckoutPage() {
   const { authenticated } = useAuth();
 
@@ -79,6 +89,9 @@ export default function CheckoutPage() {
 
   const [placingOrder, setPlacingOrder] =
     useState(false);
+
+  const [errors, setErrors] =
+    useState<CheckoutErrors>({});
 
   const { showToast } = useToast();
 
@@ -142,7 +155,58 @@ export default function CheckoutPage() {
     loadData();
   }, [authenticated, showToast]);
 
-  const handleCheckout = async () => {
+  const validateCheckout = (): boolean => {
+    const nextErrors: CheckoutErrors = {};
+
+    if (!authenticated) {
+      if (!guestFullName.trim()) {
+        nextErrors.fullName =
+          "Please enter your full name.";
+      }
+
+      if (!guestPhone.trim()) {
+        nextErrors.phone =
+          "Please enter your phone number.";
+      }
+
+      if (!guestEmail.trim()) {
+        nextErrors.email =
+          "Please enter your email address.";
+      } else if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+          guestEmail.trim()
+        )
+      ) {
+        nextErrors.email =
+          "Please enter a valid email address.";
+      }
+
+      if (
+        deliveryType ===
+        DELIVERY_TYPE.DELIVERY
+      ) {
+        if (!streetAddress.trim()) {
+          nextErrors.streetAddress =
+            "Please enter your street address.";
+        }
+
+        if (!area.trim()) {
+          nextErrors.area =
+            "Please enter your area / neighbourhood.";
+        }
+
+        if (!city.trim()) {
+          nextErrors.city =
+            "Please enter your city.";
+        }
+
+        if (!region.trim()) {
+          nextErrors.region =
+            "Please enter your region.";
+        }
+      }
+    }
+
     if (
       authenticated &&
       deliveryType === DELIVERY_TYPE.DELIVERY &&
@@ -153,6 +217,16 @@ export default function CheckoutPage() {
         "error"
       );
 
+      return false;
+    }
+
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleCheckout = async () => {
+    if (!validateCheckout()) {
       return;
     }
 
@@ -402,7 +476,6 @@ export default function CheckoutPage() {
       {/* Checkout */}
       <section>
         <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-8 lg:py-20">
-
           {checkoutWarning && (
             <div className="mb-8 rounded-2xl border border-(--color-border) px-5 py-4 text-sm text-(--color-text-muted)">
               Checkout will expire in{" "}
@@ -417,10 +490,8 @@ export default function CheckoutPage() {
           )}
 
           <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
-
             {/* Checkout details */}
             <div className="space-y-6">
-
               {authenticated ? (
                 <>
                   <DeliveryMethodSelector
@@ -458,15 +529,41 @@ export default function CheckoutPage() {
                     fullName={guestFullName}
                     phone={guestPhone}
                     email={guestEmail}
-                    onFullNameChange={
-                      setGuestFullName
-                    }
-                    onPhoneChange={
-                      setGuestPhone
-                    }
-                    onEmailChange={
-                      setGuestEmail
-                    }
+                    errors={{
+                      fullName: errors.fullName,
+                      phone: errors.phone,
+                      email: errors.email,
+                    }}
+                    onFullNameChange={(value) => {
+                      setGuestFullName(value);
+
+                      if (errors.fullName) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          fullName: undefined,
+                        }));
+                      }
+                    }}
+                    onPhoneChange={(value) => {
+                      setGuestPhone(value);
+
+                      if (errors.phone) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          phone: undefined,
+                        }));
+                      }
+                    }}
+                    onEmailChange={(value) => {
+                      setGuestEmail(value);
+
+                      if (errors.email) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          email: undefined,
+                        }));
+                      }
+                    }}
                   />
 
                   <DeliveryMethodSelector
@@ -486,21 +583,61 @@ export default function CheckoutPage() {
                       landmark={landmark}
                       city={city}
                       region={region}
-                      onStreetAddressChange={
-                        setStreetAddress
-                      }
-                      onAreaChange={
-                        setArea
-                      }
+                      errors={{
+                        streetAddress:
+                          errors.streetAddress,
+                        area: errors.area,
+                        city: errors.city,
+                        region: errors.region,
+                      }}
+                      onStreetAddressChange={(
+                        value
+                      ) => {
+                        setStreetAddress(value);
+
+                        if (
+                          errors.streetAddress
+                        ) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            streetAddress:
+                              undefined,
+                          }));
+                        }
+                      }}
+                      onAreaChange={(value) => {
+                        setArea(value);
+
+                        if (errors.area) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            area: undefined,
+                          }));
+                        }
+                      }}
                       onLandmarkChange={
                         setLandmark
                       }
-                      onCityChange={
-                        setCity
-                      }
-                      onRegionChange={
-                        setRegion
-                      }
+                      onCityChange={(value) => {
+                        setCity(value);
+
+                        if (errors.city) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            city: undefined,
+                          }));
+                        }
+                      }}
+                      onRegionChange={(value) => {
+                        setRegion(value);
+
+                        if (errors.region) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            region: undefined,
+                          }));
+                        }
+                      }}
                     />
                   )}
                 </>

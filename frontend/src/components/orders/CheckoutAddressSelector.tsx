@@ -109,7 +109,22 @@ export default function CheckoutAddressSelector({
                             address.id
                           )
                         }
-                        className="block w-full rounded-(--radius-md) border border-(--color-border) p-4 text-left transition-colors hover:bg-(--color-surface-muted)"
+                        className="
+                          block
+                          w-full
+                          rounded-(--radius-md)
+                          border
+                          border-(--color-border)
+                          p-4
+                          text-left
+                          transition-colors
+                          hover:bg-(--color-surface-muted)
+                          focus-visible:outline-none
+                          focus-visible:ring-2
+                          focus-visible:ring-(--color-accent)
+                          focus-visible:ring-offset-2
+                          focus-visible:ring-offset-(--color-background)
+                        "
                       >
                         <p className="font-semibold">
                           {address.label}

@@ -6,7 +6,12 @@ type AddressFormProps = {
   landmark: string;
   city: string;
   region: string;
-
+  errors?: {
+    streetAddress?: string;
+    area?: string;
+    city?: string;
+    region?: string;
+  };
   onStreetAddressChange: (value: string) => void;
   onAreaChange: (value: string) => void;
   onLandmarkChange: (value: string) => void;
@@ -20,6 +25,7 @@ export default function AddressForm({
   landmark,
   city,
   region,
+  errors,
   onStreetAddressChange,
   onAreaChange,
   onLandmarkChange,
@@ -37,29 +43,35 @@ export default function AddressForm({
       </p>
 
       <div className="mt-6 space-y-5">
-        <Input
-          label="Street Address"
-          type="text"
-          value={streetAddress}
-          onChange={(e) =>
-            onStreetAddressChange(e.target.value)
-          }
-          placeholder="Enter your street address"
-          required
-        />
-
-        <Input
-          label="Area / Neighbourhood"
-          type="text"
-          value={area}
-          onChange={(e) =>
-            onAreaChange(e.target.value)
-          }
-          placeholder="Enter your area / neighbourhood"
-          required
-        />
-
+        {/* Primary address */}
         <div className="grid gap-5 sm:grid-cols-2">
+          <Input
+            label="Street Address"
+            type="text"
+            value={streetAddress}
+            onChange={(e) =>
+              onStreetAddressChange(e.target.value)
+            }
+            placeholder="Enter your street address"
+            error={errors?.streetAddress}
+            required
+          />
+
+          <Input
+            label="Area / Neighbourhood"
+            type="text"
+            value={area}
+            onChange={(e) =>
+              onAreaChange(e.target.value)
+            }
+            placeholder="Enter your area / neighbourhood"
+            error={errors?.area}
+            required
+          />
+        </div>
+
+        {/* Location details */}
+        <div className="grid gap-5 sm:grid-cols-3">
           <Input
             label="City"
             type="text"
@@ -67,7 +79,8 @@ export default function AddressForm({
             onChange={(e) =>
               onCityChange(e.target.value)
             }
-            placeholder="Enter your city name"
+            placeholder="Enter your city"
+            error={errors?.city}
             required
           />
 
@@ -79,6 +92,7 @@ export default function AddressForm({
               onRegionChange(e.target.value)
             }
             placeholder="Enter your region"
+            error={errors?.region}
             required
           />
 
@@ -89,7 +103,7 @@ export default function AddressForm({
             onChange={(e) =>
               onLandmarkChange(e.target.value)
             }
-            placeholder="Enter a landmark"
+            placeholder="Enter a nearby landmark (optional)"
           />
         </div>
       </div>

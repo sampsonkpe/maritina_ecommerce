@@ -4,6 +4,11 @@ type GuestContactFormProps = {
   fullName: string;
   email: string;
   phone: string;
+  errors?: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+  };
   onFullNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onPhoneChange: (value: string) => void;
@@ -13,6 +18,7 @@ export default function GuestContactForm({
   fullName,
   email,
   phone,
+  errors,
   onFullNameChange,
   onEmailChange,
   onPhoneChange,
@@ -37,6 +43,7 @@ export default function GuestContactForm({
             onFullNameChange(e.target.value)
           }
           placeholder="Enter your full name"
+          error={errors?.fullName}
           required
         />
 
@@ -48,6 +55,7 @@ export default function GuestContactForm({
             onPhoneChange(e.target.value)
           }
           placeholder="Enter your phone number"
+          error={errors?.phone}
           required
         />
 
@@ -59,6 +67,7 @@ export default function GuestContactForm({
             onEmailChange(e.target.value)
           }
           placeholder="Enter your email address"
+          error={errors?.email}
           required
         />
       </div>
