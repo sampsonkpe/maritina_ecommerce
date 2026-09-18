@@ -135,6 +135,7 @@ export default function FavouriteCard({
           inline-flex
           h-11
           w-11
+          shrink-0
           items-center
           justify-center
           rounded-full
@@ -143,6 +144,7 @@ export default function FavouriteCard({
           bg-(--color-background)
           text-(--color-text)
           transition-opacity
+          duration-200
           hover:opacity-60
           disabled:cursor-not-allowed
           disabled:opacity-40
@@ -154,7 +156,7 @@ export default function FavouriteCard({
         "
       >
         <Heart
-          size={19}
+          size={20}
           strokeWidth={1.8}
           fill="currentColor"
           aria-hidden="true"

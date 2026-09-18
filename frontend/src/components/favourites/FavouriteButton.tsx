@@ -109,13 +109,19 @@ export default function FavouriteButton({
         bg-(--color-background)
         text-(--color-text)
         transition-opacity
+        duration-200
         hover:opacity-60
         disabled:cursor-not-allowed
         disabled:opacity-40
+        focus-visible:outline-none
+        focus-visible:ring-2
+        focus-visible:ring-(--color-accent)
+        focus-visible:ring-offset-2
+        focus-visible:ring-offset-(--color-background)
       "
     >
       <Heart
-        size={19}
+        size={20}
         strokeWidth={1.8}
         fill={
           favourited
