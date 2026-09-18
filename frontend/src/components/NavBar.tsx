@@ -4,12 +4,18 @@ import {
   NavLink,
   useLocation,
 } from "react-router-dom";
-import {
-  Menu,
-  X,
-} from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Home02Icon } from "@hugeicons/core-free-icons";
+import {
+  Home04Icon,
+  ShoppingBag03Icon,
+  ShoppingCart02Icon,
+  PackageIcon,
+  UserIcon,
+  LogInIcon,
+  UserAdd01Icon,
+  MenuTwoLineIcon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
 import LogoutButton from "./auth/LogoutButton";
 
@@ -115,6 +121,9 @@ export default function NavBar() {
   }: {
     isActive: boolean;
   }) => `
+    flex
+    items-center
+    gap-2
     border-b
     border-(--color-border)
     py-3
@@ -130,6 +139,28 @@ export default function NavBar() {
     focus-visible:ring-offset-(--color-background)
     ${isActive ? "font-semibold" : ""}
   `;
+
+  const cartCount = !loading && (
+    <span
+      className="
+        inline-flex
+        min-w-5
+        h-5
+        items-center
+        justify-center
+        rounded-(--radius-full)
+        border-[1.8px]
+        border-(--color-text)
+        px-1
+        text-[0.6875rem]
+        font-medium
+        leading-none
+        text-(--color-text)
+      "
+    >
+      {itemCount}
+    </span>
+  );
 
   return (
     <nav
@@ -215,7 +246,7 @@ export default function NavBar() {
               className={navLinkClasses}
             >
               <HugeiconsIcon
-                icon={Home02Icon}
+                icon={Home04Icon}
                 size={20}
                 strokeWidth={1.8}
                 aria-hidden="true"
@@ -227,7 +258,13 @@ export default function NavBar() {
               to="/products"
               className={navLinkClasses}
             >
-              Products
+              <HugeiconsIcon
+                icon={ShoppingBag03Icon}
+                size={20}
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+              <span>Products</span>
             </NavLink>
 
             {!authenticated ? (
@@ -236,23 +273,40 @@ export default function NavBar() {
                   to="/cart"
                   className={navLinkClasses}
                 >
-                  Cart
-                  {!loading &&
-                    ` [${itemCount}]`}
+                  <HugeiconsIcon
+                    icon={ShoppingCart02Icon}
+                    size={20}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  <span>Cart</span>
+                  {cartCount}
                 </NavLink>
 
                 <NavLink
                   to="/login"
                   className={navLinkClasses}
                 >
-                  Login
+                  <HugeiconsIcon
+                    icon={LogInIcon}
+                    size={20}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  <span>Login</span>
                 </NavLink>
 
                 <NavLink
                   to="/register"
                   className={navLinkClasses}
                 >
-                  Register
+                  <HugeiconsIcon
+                    icon={UserAdd01Icon}
+                    size={20}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  <span>Register</span>
                 </NavLink>
               </>
             ) : user?.is_staff ? (
@@ -260,7 +314,13 @@ export default function NavBar() {
                 to="/admin/orders"
                 className={navLinkClasses}
               >
-                All Orders
+                <HugeiconsIcon
+                  icon={PackageIcon}
+                  size={20}
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+                <span>All Orders</span>
               </NavLink>
             ) : (
               <>
@@ -268,23 +328,40 @@ export default function NavBar() {
                   to="/cart"
                   className={navLinkClasses}
                 >
-                  Cart
-                  {!loading &&
-                    ` [${itemCount}]`}
+                  <HugeiconsIcon
+                    icon={ShoppingCart02Icon}
+                    size={20}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  <span>Cart</span>
+                  {cartCount}
                 </NavLink>
 
                 <NavLink
                   to="/orders"
                   className={navLinkClasses}
                 >
-                  Orders
+                  <HugeiconsIcon
+                    icon={PackageIcon}
+                    size={20}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  <span>Orders</span>
                 </NavLink>
 
                 <NavLink
                   to="/profile"
                   className={navLinkClasses}
                 >
-                  Profile
+                  <HugeiconsIcon
+                    icon={UserIcon}
+                    size={20}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  <span>Profile</span>
                 </NavLink>
               </>
             )}
@@ -322,15 +399,18 @@ export default function NavBar() {
             "
           >
             {mobileMenuOpen ? (
-              <X
+              <HugeiconsIcon
+                icon={Cancel01Icon}
                 size={24}
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
             ) : (
-              <Menu
+              <HugeiconsIcon
+                icon={MenuTwoLineIcon}
                 size={24}
                 strokeWidth={1.8}
+                className="-scale-x-100"
                 aria-hidden="true"
               />
             )}
@@ -356,7 +436,13 @@ export default function NavBar() {
                 onClick={closeMobileMenu}
                 className={mobileLinkClasses}
               >
-                Home
+                <HugeiconsIcon
+                  icon={Home04Icon}
+                  size={18}
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+                <span>Home</span>
               </NavLink>
 
               <NavLink
@@ -364,7 +450,13 @@ export default function NavBar() {
                 onClick={closeMobileMenu}
                 className={mobileLinkClasses}
               >
-                Products
+                <HugeiconsIcon
+                  icon={ShoppingBag03Icon}
+                  size={18}
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+                <span>Products</span>
               </NavLink>
 
               {!authenticated ? (
@@ -374,9 +466,14 @@ export default function NavBar() {
                     onClick={closeMobileMenu}
                     className={mobileLinkClasses}
                   >
-                    Cart
-                    {!loading &&
-                      ` [${itemCount}]`}
+                    <HugeiconsIcon
+                      icon={ShoppingCart02Icon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                    <span>Cart</span>
+                    {cartCount}
                   </NavLink>
 
                   <NavLink
@@ -384,7 +481,13 @@ export default function NavBar() {
                     onClick={closeMobileMenu}
                     className={mobileLinkClasses}
                   >
-                    Login
+                    <HugeiconsIcon
+                      icon={LogInIcon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                    <span>Login</span>
                   </NavLink>
 
                   <NavLink
@@ -392,7 +495,13 @@ export default function NavBar() {
                     onClick={closeMobileMenu}
                     className={mobileLinkClasses}
                   >
-                    Register
+                    <HugeiconsIcon
+                      icon={UserAdd01Icon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                    <span>Register</span>
                   </NavLink>
                 </>
               ) : user?.is_staff ? (
@@ -402,7 +511,13 @@ export default function NavBar() {
                     onClick={closeMobileMenu}
                     className={mobileLinkClasses}
                   >
-                    All Orders
+                    <HugeiconsIcon
+                      icon={PackageIcon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                    <span>All Orders</span>
                   </NavLink>
 
                   <div className="pt-3">
@@ -416,9 +531,14 @@ export default function NavBar() {
                     onClick={closeMobileMenu}
                     className={mobileLinkClasses}
                   >
-                    Cart
-                    {!loading &&
-                      ` [${itemCount}]`}
+                    <HugeiconsIcon
+                      icon={ShoppingCart02Icon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                    <span>Cart</span>
+                    {cartCount}
                   </NavLink>
 
                   <NavLink
@@ -426,7 +546,13 @@ export default function NavBar() {
                     onClick={closeMobileMenu}
                     className={mobileLinkClasses}
                   >
-                    Orders
+                    <HugeiconsIcon
+                      icon={PackageIcon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                    <span>Orders</span>
                   </NavLink>
 
                   <NavLink
@@ -434,7 +560,13 @@ export default function NavBar() {
                     onClick={closeMobileMenu}
                     className={mobileLinkClasses}
                   >
-                    Profile
+                    <HugeiconsIcon
+                      icon={UserIcon}
+                      size={18}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                    <span>Profile</span>
                   </NavLink>
 
                   <div className="pt-3">
