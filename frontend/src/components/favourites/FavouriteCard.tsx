@@ -8,6 +8,7 @@ import { favouriteService } from "../../services/favouriteService";
 import OptimizedImage from "../common/OptimizedImage";
 
 import type { FavouriteItem } from "../../types/favourite";
+import { formatCurrency } from "../../utils/currency";
 
 interface FavouriteCardProps {
   item: FavouriteItem;
@@ -101,6 +102,7 @@ export default function FavouriteCard({
             src={item.variant.product_image}
             alt={item.variant.product_name}
             className="
+              block
               h-full
               w-full
               object-cover
@@ -144,6 +146,11 @@ export default function FavouriteCard({
           hover:opacity-60
           disabled:cursor-not-allowed
           disabled:opacity-40
+          focus-visible:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-(--color-accent)
+          focus-visible:ring-offset-2
+          focus-visible:ring-offset-(--color-background)
         "
       >
         <Heart
@@ -184,8 +191,9 @@ export default function FavouriteCard({
           {item.variant.name}
         </p>
 
+        {/* Price */}
         <p className="mt-5 text-sm font-semibold">
-          GHS {item.variant.price}
+          {formatCurrency(item.variant.price)}
         </p>
 
         {/* Cart action */}
@@ -211,6 +219,11 @@ export default function FavouriteCard({
                 hover:bg-(--color-surface-muted)
                 disabled:cursor-not-allowed
                 disabled:opacity-40
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-(--color-accent)
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-(--color-background)
               "
             >
               {added

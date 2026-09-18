@@ -6,6 +6,7 @@ import type {
   Product,
   ProductVariant,
 } from "../../types/product";
+import { formatCurrency } from "../../utils/currency";
 
 import LoadingState from "../../components/common/LoadingState";
 import EmptyState from "../../components/common/EmptyState";
@@ -334,7 +335,7 @@ export default function ProductDetailPage() {
 
                             <span className="shrink-0 text-sm">
                               {isAvailable
-                                ? `GHS ${variant.price}`
+                                ? formatCurrency(variant.price)
                                 : "Unavailable"}
                             </span>
                           </button>
@@ -421,7 +422,7 @@ export default function ProductDetailPage() {
                       "
                     >
                       {selectedVariant
-                        ? `GHS ${selectedVariant.price}`
+                        ? formatCurrency(selectedVariant.price)
                         : "—"}
                     </p>
                   </div>

@@ -140,14 +140,20 @@ export default function ProductImageGallery({
                   w-20
                   shrink-0
                   overflow-hidden
-                  rounded-xl
+                  rounded-(--radius-md)
                   border
                   bg-(--color-surface-muted)
                   transition-opacity
+                  duration-200
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-(--color-accent)
+                  focus-visible:ring-offset-2
+                  focus-visible:ring-offset-(--color-background)
                   ${
                     isSelected
                       ? "border-(--color-text)"
-                      : "border-(--color-border) opacity-70 hover:opacity-100"
+                      : "border-(--color-border) opacity-80 hover:opacity-100"
                   }
                 `}
               >
@@ -155,6 +161,7 @@ export default function ProductImageGallery({
                   src={image.image}
                   alt=""
                   className="
+                    block
                     h-full
                     w-full
                     object-cover

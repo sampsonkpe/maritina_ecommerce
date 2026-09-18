@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import OptimizedImage from "../common/OptimizedImage";
 
 import type { Product } from "../../types/product";
+import { formatCurrency } from "../../utils/currency";
 
 interface Props {
   product: Product;
@@ -104,8 +105,8 @@ export default function ProductCard({ product }: Props) {
         <div className="mt-3 h-5">
           <p className="text-sm font-semibold">
             {lowestPrice !== null
-              ? `From GHS ${lowestPrice.toFixed(2)}`
-              : "From GHS —"}
+              ? `From ${formatCurrency(lowestPrice)}`
+              : "From GH₵ —"}
           </p>
         </div>
 
