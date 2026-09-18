@@ -221,7 +221,7 @@ export default function FavouriteCard({
 
               {!adding && !added && (
                 <ArrowRight
-                  size={17}
+                  size={18}
                   aria-hidden="true"
                   className="
                     transition-transform

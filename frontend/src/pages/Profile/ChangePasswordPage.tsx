@@ -381,12 +381,12 @@ function PasswordField({
       >
         {show ? (
           <EyeOff
-            size={17}
+            size={18}
             aria-hidden="true"
           />
         ) : (
           <Eye
-            size={17}
+            size={18}
             aria-hidden="true"
           />
         )}

@@ -34,7 +34,16 @@ export default function ProductCard({ product }: Props) {
           <OptimizedImage
             src={primaryImage}
             alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            className="
+              block
+              h-full
+              w-full
+              object-cover
+              transition-transform
+              duration-700
+              ease-out
+              group-hover:scale-[1.04]
+            "
           />
         ) : (
           <div className="flex h-full items-center justify-center">
@@ -46,33 +55,89 @@ export default function ProductCard({ product }: Props) {
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col items-center p-6 text-center sm:p-7">
-        <h2 className="text-base font-semibold tracking-tight sm:text-lg">
+      <div
+        className="
+          flex
+          flex-1
+          flex-col
+          items-center
+          p-6
+          text-center
+          sm:p-7
+        "
+      >
+        {/* Product name */}
+        <h2
+          className="
+            h-12
+            line-clamp-2
+            text-base
+            font-semibold
+            leading-6
+            tracking-tight
+            sm:h-14
+            sm:text-lg
+            sm:leading-7
+          "
+        >
           {product.name}
         </h2>
 
-        {product.description && (
-          <p className="mt-1 max-w-xs text-sm leading-6 text-(--color-text-muted)">
-            {product.description}
-          </p>
-        )}
+        {/* Description */}
+        <div className="mt-1 h-12">
+          {product.description && (
+            <p
+              className="
+                line-clamp-2
+                max-w-xs
+                text-sm
+                leading-6
+                text-(--color-text-muted)
+              "
+            >
+              {product.description}
+            </p>
+          )}
+        </div>
 
-        {lowestPrice !== null && (
-          <p className="mt-5 text-sm font-semibold">
-            From GHS {lowestPrice.toFixed(2)}
+        {/* Price */}
+        <div className="mt-3 h-5">
+          <p className="text-sm font-semibold">
+            {lowestPrice !== null
+              ? `From GHS ${lowestPrice.toFixed(2)}`
+              : "From GHS —"}
           </p>
-        )}
+        </div>
 
+        {/* CTA */}
         <Link
           to={`/products/${product.id}`}
-          className="mt-5 inline-flex items-center gap-2 rounded-full border border-(--color-border) px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-surface-muted)"
+          className="
+            mt-5
+            inline-flex
+            items-center
+            gap-2
+            rounded-(--radius-full)
+            border
+            border-(--color-border)
+            px-6
+            py-3
+            text-sm
+            font-medium
+            transition-colors
+            hover:bg-(--color-surface-muted)
+          "
         >
           View Product
 
           <ArrowRight
-            size={17}
+            size={18}
             aria-hidden="true"
-            className="transition-transform duration-300 group-hover:translate-x-1"
+            className="
+              transition-transform
+              duration-300
+              group-hover:translate-x-1
+            "
           />
         </Link>
       </div>

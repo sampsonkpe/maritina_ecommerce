@@ -287,7 +287,7 @@ export default function AddressesPage() {
                     "
                   >
                     <Plus
-                      size={17}
+                      size={18}
                       strokeWidth={1.8}
                       aria-hidden="true"
                     />

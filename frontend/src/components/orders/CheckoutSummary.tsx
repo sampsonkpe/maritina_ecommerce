@@ -112,7 +112,7 @@ export default function CheckoutSummary({
 
         {!placingOrder && (
           <ArrowRight
-            size={17}
+            size={18}
             aria-hidden="true"
             className="transition-transform duration-300 group-hover:translate-x-1"
           />

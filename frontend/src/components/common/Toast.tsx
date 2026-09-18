@@ -82,7 +82,7 @@ export default function Toast({
         "
       >
         <X
-          size={17}
+          size={18}
           strokeWidth={1.8}
           aria-hidden="true"
         />

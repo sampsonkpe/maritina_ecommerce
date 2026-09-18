@@ -454,7 +454,7 @@ export default function ProductDetailPage() {
                     Add to Cart
 
                     <ArrowRight
-                      size={17}
+                      size={18}
                       aria-hidden="true"
                       className="
                         transition-transform
