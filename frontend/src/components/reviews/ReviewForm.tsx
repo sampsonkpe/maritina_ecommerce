@@ -259,7 +259,6 @@ export default function ReviewForm({
                       rating === value
                     }
                     className="
-                      rounded-sm
                       p-0.5
                       text-(--color-text)
                       transition-opacity

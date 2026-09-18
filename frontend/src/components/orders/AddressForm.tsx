@@ -27,8 +27,8 @@ export default function AddressForm({
   onRegionChange,
 }: AddressFormProps) {
   return (
-    <section className="rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) p-6">
-      <h2 className="text-xl font-semibold">
+    <section className="rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-6">
+      <h2 className="text-center text-xl font-semibold tracking-tight sm:text-2xl">
         Delivery Address
       </h2>
 

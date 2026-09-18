@@ -29,13 +29,13 @@ export default function CheckoutAddressSelector({
   );
 
   return (
-    <section className="rounded-2xl border border-(--color-border) p-5 sm:p-6 lg:sticky lg:top-8">
+    <section className="rounded-(--radius-lg) border border-(--color-border) p-5 sm:p-6 lg:sticky lg:top-8">
         <h2 className="mb-5 text-xl text-center font-semibold tracking-tight sm:text-2xl">
           Delivery Address
         </h2>
 
       {currentAddress && (
-        <div className="rounded-xl border border-(--color-border) p-4">
+        <div className="rounded-(--radius-md) border border-(--color-border) p-4">
           <p className="font-semibold">
             {currentAddress.label}
           </p>
@@ -47,7 +47,7 @@ export default function CheckoutAddressSelector({
       )}
 
       {!currentAddress ? (
-        <div className="rounded-xl border border-dashed border-(--color-border) p-6 text-center">
+        <div className="rounded-(--radius-md) border border-dashed border-(--color-border) p-6 text-center">
           <p className="text-sm leading-6 text-(--color-text-muted)">
             You don't have any saved delivery
             addresses.
@@ -109,7 +109,7 @@ export default function CheckoutAddressSelector({
                             address.id
                           )
                         }
-                        className="block w-full rounded-xl border border-(--color-border) p-4 text-left transition-colors hover:bg-(--color-surface-muted)"
+                        className="block w-full rounded-(--radius-md) border border-(--color-border) p-4 text-left transition-colors hover:bg-(--color-surface-muted)"
                       >
                         <p className="font-semibold">
                           {address.label}

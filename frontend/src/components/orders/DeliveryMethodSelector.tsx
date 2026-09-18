@@ -13,8 +13,8 @@ export default function DeliveryMethodSelector({
   onDeliveryTypeChange,
 }: DeliveryMethodSelectorProps) {
   return (
-    <section className="rounded-2xl border border-(--color-border) p-5 sm:p-6">
-      <h2 className="text-xl font-semibold tracking-tight">
+    <section className="rounded-(--radius-lg) border border-(--color-border) p-5 sm:p-6">
+      <h2 className="text-center text-xl font-semibold tracking-tight sm:text-2xl">
         Delivery method
       </h2>
 
@@ -30,7 +30,7 @@ export default function DeliveryMethodSelector({
             )
           }
           className={`
-            rounded-xl
+            rounded-(--radius-md)
             border
             p-4
             text-left
@@ -67,7 +67,7 @@ export default function DeliveryMethodSelector({
             )
           }
           className={`
-            rounded-xl
+            rounded-(--radius-md)
             border
             p-4
             text-left
