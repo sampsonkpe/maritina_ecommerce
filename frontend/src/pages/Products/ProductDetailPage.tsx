@@ -287,7 +287,7 @@ export default function ProductDetailPage() {
           <div
             className="
               grid
-              gap-12
+              gap-10
               lg:grid-cols-2
               lg:gap-16
             "
@@ -319,7 +319,7 @@ export default function ProductDetailPage() {
 
               {/* Variants */}
               {product.variants.length > 0 && (
-                <div className="mt-10">
+                <div className="mt-8 lg:mt-10">
                   <div
                     className="
                       mb-4
@@ -670,14 +670,15 @@ export default function ProductDetailPage() {
             mx-auto
             max-w-7xl
             px-6
-            py-20
+            py-16
             sm:px-8
+            sm:py-20
             lg:px-8
             lg:py-24
           "
         >
           <div className="mx-auto max-w-3xl">
-            <div className="mb-12 text-center">
+            <div className="mb-10 sm:mb-12 text-center">
               <p
                 className="
                   mb-4
