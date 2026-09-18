@@ -422,11 +422,12 @@ export default function ProductDetailPage() {
               )}
 
               {/* Quantity */}
-              <div className="mt-8">
+              <div className="mt-8 flex flex-col items-center">
                 <label
                   htmlFor="product-quantity"
                   className="
                     block
+                    text-center
                     text-sm
                     font-semibold
                     uppercase
@@ -487,9 +488,7 @@ export default function ProductDetailPage() {
                     step="1"
                     value={quantity}
                     onChange={(event) =>
-                      handleQuantityChange(
-                        event.target.value
-                      )
+                      handleQuantityChange(event.target.value)
                     }
                     aria-label="Quantity"
                     className="

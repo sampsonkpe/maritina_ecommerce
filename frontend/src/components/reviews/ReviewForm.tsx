@@ -117,11 +117,9 @@ export default function ReviewForm({
     <form
       onSubmit={handleSubmit}
       className="
-        mx-auto
         mt-12
         w-full
-        max-w-3xl
-        rounded-2xl
+        rounded-(--radius-lg)
         border
         border-(--color-border)
         p-6
@@ -180,7 +178,7 @@ export default function ReviewForm({
           grid-cols-1
           gap-8
           md:grid-cols-2
-          md:gap-6
+          md:gap-30
         "
       >
         {/* Variant */}
@@ -216,16 +214,18 @@ export default function ReviewForm({
 
         {/* Rating */}
         <div
-          className={
-            variants.length > 1
-              ? ""
-              : "md:col-span-2"
-          }
+          className="
+            mx-auto
+            flex
+            w-fit
+            flex-col
+            items-start
+            md:mx-0
+          "
         >
           <p
             className="
-              mb-2
-              block
+              mb-3
               text-xs
               font-semibold
               uppercase
@@ -253,9 +253,7 @@ export default function ReviewForm({
                       setRating(value)
                     }
                     aria-label={`${value} star${
-                      value === 1
-                        ? ""
-                        : "s"
+                      value === 1 ? "" : "s"
                     }`}
                     aria-pressed={
                       rating === value
@@ -293,18 +291,18 @@ export default function ReviewForm({
       </div>
 
       {/* Review */}
-        <div className="mt-8">
-          <Textarea
-            label="Your Review"
-            id="review-comment"
-            value={comment}
-            onChange={(event) =>
-              setComment(event.target.value)
-            }
-            rows={5}
-            placeholder="Tell us what you think..."
-          />
-        </div>
+      <div className="mt-8">
+        <Textarea
+          label="Your Review"
+          id="review-comment"
+          value={comment}
+          onChange={(event) =>
+            setComment(event.target.value)
+          }
+          rows={5}
+          placeholder="Tell us what you think..."
+        />
+      </div>
 
       {/* Submit */}
       <div className="mt-8 flex justify-center">
@@ -315,7 +313,7 @@ export default function ReviewForm({
             inline-flex
             items-center
             justify-center
-            rounded-full
+            rounded-(--radius-full)
             border
             border-(--color-border)
             px-6
@@ -326,6 +324,11 @@ export default function ReviewForm({
             hover:bg-(--color-surface-muted)
             disabled:cursor-not-allowed
             disabled:opacity-50
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-(--color-accent)
+            focus-visible:ring-offset-2
+            focus-visible:ring-offset-(--color-background)
           "
         >
           {loading

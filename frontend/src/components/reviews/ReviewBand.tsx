@@ -60,69 +60,82 @@ export default function ReviewBand() {
         border-y
         border-(--color-border)
         bg-(--color-background)/45
-        backdrop-blur
-        shadow-[0_-8px_30px_rgba(0,0,0,0.06)]
         py-5
+        shadow-[0_-8px_30px_rgba(0,0,0,0.06)]
+        backdrop-blur
       "
     >
-        <div className="review-band-track">
-            {scrollingReviews.map(
-            (review, index) => (
-                <div
-                key={`${review.id}-${index}`}
+      <div className="review-band-track">
+        {scrollingReviews.map(
+          (review, index) => (
+            <div
+              key={`${review.id}-${index}`}
+              className="
+                flex
+                shrink-0
+                items-center
+                gap-5
+                px-3
+              "
+            >
+              <div
                 className="
-                    flex
-                    shrink-0
-                    items-center
-                    gap-5
-                    px-3
+                  flex
+                  items-center
+                  gap-0.5
                 "
-                >
-                <div className="flex items-center gap-0.5">
-                    {Array.from({
-                    length: 5,
-                    }).map((_, starIndex) => (
-                    <Star
-                        key={starIndex}
-                        size={15}
-                        strokeWidth={1.8}
-                        fill={
-                        starIndex <
-                        review.rating
-                            ? "currentColor"
-                            : "none"
-                        }
-                    />
-                    ))}
-                </div>
-
-                <span className="text-sm">
-                    "{review.comment}"
-                </span>
-
-                <span
-                    className="
-                    text-sm
-                    text-(--color-text-muted)
-                    "
-                >
-                    {review.customer_first_name}
-                    {" · "}
-                    {review.product_name}
-                    {" · "}
-                    {review.variant_name}
-                </span>
-
-                <span
+                aria-label={`${review.rating} out of 5 stars`}
+              >
+                {Array.from({
+                  length: 5,
+                }).map((_, starIndex) => (
+                  <Star
+                    key={starIndex}
+                    size={15}
+                    strokeWidth={1.8}
+                    fill={
+                      starIndex <
+                      review.rating
+                        ? "currentColor"
+                        : "none"
+                    }
                     aria-hidden="true"
-                    className="mx-4"
-                >
-                    |
-                </span>
-                </div>
-            )
-            )}
-        </div>
+                  />
+                ))}
+              </div>
+
+              <span className="text-sm">
+                "{review.comment}"
+              </span>
+
+              <span
+                className="
+                  text-sm
+                  text-(--color-text-muted)
+                "
+              >
+                {review.customer_first_name}
+                {" · "}
+                {review.product_name}
+                {" · "}
+                {review.variant_name}
+              </span>
+
+              <span
+                aria-hidden="true"
+                className="
+                  mx-4
+                  h-1
+                  w-1
+                  shrink-0
+                  rounded-full
+                  bg-(--color-text-muted)
+                "
+              />
+            </div>
+          )
+        )}
+      </div>
     </section>
   );
 }
