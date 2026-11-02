@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { addressService } from "../../services/addressService";
@@ -27,6 +27,8 @@ import DeliveryMethodSelector from "../../components/orders/DeliveryMethodSelect
 
 import { useCheckoutSession } from "../../hooks/useCheckoutSession";
 
+import axios from "axios";
+
 type CheckoutErrors = {
   fullName?: string;
   phone?: string;
@@ -37,8 +39,49 @@ type CheckoutErrors = {
   region?: string;
 };
 
+function getCheckoutErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data;
+
+    if (typeof data === "string") {
+      return data;
+    }
+
+    if (data && typeof data === "object") {
+      const responseData = data as Record<string, unknown>;
+
+      for (const key of ["detail", "message", "error"]) {
+        if (typeof responseData[key] === "string") {
+          return responseData[key] as string;
+        }
+      }
+
+      const fieldErrors = Object.values(responseData)
+        .flatMap((value) =>
+          Array.isArray(value) ? value : [value]
+        )
+        .filter(
+          (value): value is string =>
+            typeof value === "string"
+        );
+
+      if (fieldErrors.length > 0) {
+        return fieldErrors.join(" ");
+      }
+    }
+
+    return error.message || "Unable to continue to payment.";
+  }
+
+  return error instanceof Error
+    ? error.message
+    : "Unable to continue to payment.";
+}
+
 export default function CheckoutPage() {
   const { authenticated } = useAuth();
+
+  const submissionInProgress = useRef(false);
 
   const [guestStarted, setGuestStarted] =
     useState(false);
@@ -226,9 +269,22 @@ export default function CheckoutPage() {
   };
 
   const handleCheckout = async () => {
+    // Prevent duplicate submissions before React re-renders.
+    if (submissionInProgress.current) {
+      return;
+    }
+
     if (!validateCheckout()) {
       return;
     }
+
+    if (!cart?.items.length) {
+      showToast("Your cart is empty.", "error");
+      return;
+    }
+
+    submissionInProgress.current = true;
+    setPlacingOrder(true);
 
     const guestAddress =
       [
@@ -244,14 +300,11 @@ export default function CheckoutPage() {
         : "");
 
     try {
-      setPlacingOrder(true);
-
       const checkout =
         await checkoutService.createCheckout(
           deliveryType,
           authenticated &&
-            deliveryType ===
-              DELIVERY_TYPE.DELIVERY
+            deliveryType === DELIVERY_TYPE.DELIVERY
             ? selectedAddress!
             : undefined,
           authenticated
@@ -261,8 +314,7 @@ export default function CheckoutPage() {
                 email: guestEmail,
                 phone: guestPhone,
                 address:
-                  deliveryType ===
-                  DELIVERY_TYPE.DELIVERY
+                  deliveryType === DELIVERY_TYPE.DELIVERY
                     ? guestAddress
                     : undefined,
               }
@@ -283,21 +335,22 @@ export default function CheckoutPage() {
         );
       }
 
-      window.location.href =
-        paymentResponse.data.authorization_url;
+      // Keep the loading state active while redirecting.
+      window.location.assign(
+        paymentResponse.data.authorization_url
+      );
     } catch (error: unknown) {
       console.error(
         "Checkout/payment error:",
         error
       );
 
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unable to continue to payment.";
+      const message = getCheckoutErrorMessage(error);
 
       showToast(message, "error");
-    } finally {
+
+      // Allow the customer to retry after a failure.
+      submissionInProgress.current = false;
       setPlacingOrder(false);
     }
   };

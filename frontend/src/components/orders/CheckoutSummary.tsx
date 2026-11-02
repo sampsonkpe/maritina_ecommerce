@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 
 import type { Cart } from "../../types/cart";
 
@@ -216,7 +216,7 @@ export default function CheckoutSummary({
       <button
         type="button"
         onClick={onCheckout}
-        disabled={placingOrder}
+        disabled={placingOrder || !cart?.items.length}
         className="
           group
           mt-6
@@ -249,15 +249,17 @@ export default function CheckoutSummary({
             : "Continue to Payment"}
         </span>
 
-        {!placingOrder && (
+        {placingOrder ? (
+          <LoaderCircle
+            size={18}
+            aria-hidden="true"
+            className="animate-spin"
+          />
+        ) : (
           <ArrowRight
             size={18}
             aria-hidden="true"
-            className="
-              transition-transform
-              duration-300
-              group-hover:translate-x-1
-            "
+            className="transition-transform duration-300 group-hover:translate-x-1"
           />
         )}
       </button>
