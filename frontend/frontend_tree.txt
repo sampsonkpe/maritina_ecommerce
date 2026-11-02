@@ -39,19 +39,21 @@
 │   │   │   ├── LogoutButton.tsx
 │   │   │   ├── ProtectedRoute.tsx
 │   │   │   └── PublicRoute.tsx
-│   │   ├── checkout
-│   │   │   ├── CustomerCheckout.tsx
-│   │   │   └── GuestCheckout.tsx
 │   │   ├── common
 │   │   │   ├── Alert.tsx
 │   │   │   ├── Button.tsx
+│   │   │   ├── ConfirmationState.tsx
 │   │   │   ├── EmptyState.tsx
+│   │   │   ├── ErrorState.tsx
+│   │   │   ├── Input.tsx
 │   │   │   ├── LoadingState.tsx
 │   │   │   ├── OptimizedImage.tsx
 │   │   │   ├── PageContainer.tsx
 │   │   │   ├── PageHeader.tsx
 │   │   │   ├── SectionTitle.tsx
+│   │   │   ├── Select.tsx
 │   │   │   ├── StatusBadge.tsx
+│   │   │   ├── Textarea.tsx
 │   │   │   └── Toast.tsx
 │   │   ├── favourites
 │   │   │   ├── FavouriteButton.tsx
@@ -165,4 +167,4 @@
 ├── tsconfig.node.json
 └── vite.config.ts
 
-34 directories, 132 files
+33 directories, 135 files
