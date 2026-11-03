@@ -94,9 +94,7 @@ export default function OrdersPage() {
             <OrderHeader
               order={order}
               expanded={expanded}
-              onToggle={() =>
-                toggleOrder(order.id)
-              }
+              onToggle={() => toggleOrder(order.id)}
             />
 
             {expanded && (
@@ -145,10 +143,38 @@ export default function OrdersPage() {
           type="button"
           onClick={() => toggleSection(key)}
           aria-expanded={!collapsed}
-          className="flex w-full items-center justify-between text-left">
-          <span
-            className="text-sm font-semibold uppercase tracking-[0.2em]">
+          className="
+            flex
+            w-full
+            items-center
+            justify-between
+            text-left
+          "
+        >
+          <span className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.2em]">
             {title}
+
+            {/* Order Count */}
+            <span
+              className="
+                inline-flex
+                min-w-5
+                h-5
+                items-center
+                justify-center
+                rounded-(--radius-full)
+                border-[1.8px]
+                border-(--color-text)
+                px-1
+                text-[0.6875rem]
+                font-medium
+                leading-none
+                tracking-normal
+                text-(--color-text)
+              "
+            >
+              {ordersToRender.length}
+            </span>
           </span>
 
           {collapsed ? (
@@ -166,8 +192,7 @@ export default function OrdersPage() {
           )}
         </button>
 
-        <div
-          className="mt-4 border-t border-(--color-border)"/>
+        <div className="mt-4 border-t border-(--color-border)" />
 
         {!collapsed && (
           <div className="mt-6">
@@ -206,7 +231,7 @@ export default function OrdersPage() {
 
   return (
     <>
-      {/* Page intro */}
+      {/* Page Intro */}
       <section className="border-b border-(--color-border)">
         <div className="mx-auto flex min-h-[calc(50vh-4rem)] max-w-7xl items-center px-6 py-20 sm:px-8 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-3xl text-center">
@@ -235,7 +260,9 @@ export default function OrdersPage() {
           )}
 
           {orders.length === 0 ? (
-            <EmptyState title="No orders found. Please place an order to get started." />
+            <EmptyState
+              title="No orders found. Please place an order to get started."
+            />
           ) : (
             <div className="mx-auto max-w-5xl space-y-12">
               {renderSection(
