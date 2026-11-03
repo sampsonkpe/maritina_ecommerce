@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type {ReactNode} from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { orderService } from "../../services/orderService";
@@ -25,7 +26,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<ReactNode>("");
 
   const [expandedOrders, setExpandedOrders] = useState<number[]>([]);
   const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
@@ -277,9 +278,13 @@ export default function AdminOrdersPage() {
         );
       } else {
         setMessage(
-          `Refund initiated for Order #${orderId}. ` +
-          `The order will be cancelled once ` +
-          `the refund is successfully processed.`
+          <>
+            Refund initiated for{" "}
+            <strong>Order #{orderId}</strong>.{" "}
+              The order will be <strong> cancelled once the refund is
+              successfully processed.
+            </strong>
+          </>
         );
       }
     } catch (error) {

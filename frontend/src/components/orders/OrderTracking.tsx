@@ -13,9 +13,7 @@ import type {
   OrderStatusHistory,
 } from "../../types/order";
 
-import {
-  ORDER_STATUS,
-} from "../../constants/order";
+import { ORDER_STATUS } from "../../constants/order";
 
 interface OrderTrackingProps {
   order: Order;
@@ -110,8 +108,96 @@ export default function OrderTracking({
   const isCancelled =
     order.status === ORDER_STATUS.CANCELLED;
 
+  const isPending =
+    order.status === ORDER_STATUS.PENDING;
+
   const isCompleted =
     currentIndex === stages.length - 1;
+
+  const getStageClasses = (
+    index: number,
+    isSuccessful: boolean
+  ) => {
+    const isCurrent = index === currentIndex;
+    const isPast = index < currentIndex;
+
+    if (isSuccessful) {
+      return `
+        border-green-600
+        bg-green-600
+        text-white
+        shadow-sm
+      `;
+    }
+
+    if (isCurrent) {
+      return `
+        border-(--color-text)
+        bg-(--color-text)
+        text-(--color-background)
+        shadow-sm
+        dark:border-white
+        dark:bg-white
+        dark:text-black
+      `;
+    }
+
+    if (isPast) {
+      return `
+        border-(--color-border)
+        bg-(--color-surface-muted)
+        text-(--color-text-muted)
+        opacity-45
+      `;
+    }
+
+    return `
+      border-(--color-border)
+      bg-(--color-surface)
+      text-(--color-text-muted)
+    `;
+  };
+
+  const getLabelClasses = (
+    index: number,
+    isSuccessful: boolean
+  ) => {
+    const isCurrent = index === currentIndex;
+    const isPast = index < currentIndex;
+
+    if (isSuccessful) {
+      return "font-semibold text-green-700 dark:text-green-400";
+    }
+
+    if (isCurrent) {
+      return "font-semibold text-(--color-text)";
+    }
+
+    if (isPast) {
+      return "font-medium text-(--color-text-muted) opacity-55";
+    }
+
+    return "font-medium text-(--color-text-muted)";
+  };
+
+  const getTimestampClasses = (
+    index: number,
+    isSuccessful: boolean
+  ) => {
+    const isCurrent = index === currentIndex;
+
+    const isPast = index < currentIndex;
+
+    if (isCurrent || isSuccessful) {
+      return "opacity-100";
+    }
+
+    if (isPast) {
+      return "opacity-45";
+    }
+
+    return "opacity-75";
+  };
 
   return (
     <section
@@ -141,15 +227,12 @@ export default function OrderTracking({
           Order Tracking
         </h2>
 
-        <p
-          className="
-            text-sm
-            text-(--color-text-muted)
-          "
-        >
+        <p className="text-sm text-(--color-text-muted)">
           {isCancelled
             ? "This order was cancelled."
-            : "Here's the latest update on your order."}
+            : isPending
+              ? "Your order is awaiting confirmation."
+              : "Here's the latest update on your order."}
         </p>
       </div>
 
@@ -223,70 +306,170 @@ export default function OrderTracking({
         </div>
       )}
 
-      {/* Desktop tracking */}
+      {/* Tracking timeline */}
       {!isCancelled && (
-        <div className="mt-8 hidden sm:block">
-          <div className="grid grid-cols-4">
-            {stages.map((stage, index) => {
-              const Icon = stage.icon;
+        <>
+          {/* Desktop */}
+          <div className="mt-8 hidden sm:block">
+            <div className="grid grid-cols-4">
+              {stages.map((stage, index) => {
+                const Icon = stage.icon;
 
-              const isCurrent =
-                index === currentIndex;
+                const isCurrent =
+                  index === currentIndex;
 
-              const isPast =
-                index < currentIndex;
+                const isLast =
+                  index === stages.length - 1;
 
-              const isLast =
-                index === stages.length - 1;
+                const isSuccessful =
+                  isLast && isCompleted;
 
-              const isSuccessful =
-                isLast && isCompleted;
+                const timestamp =
+                  getHistoryTimestamp(
+                    order.status_history,
+                    stage.status
+                  );
 
-              const timestamp =
-                getHistoryTimestamp(
-                  order.status_history,
-                  stage.status
-                );
-
-              return (
-                <div
-                  key={stage.status}
-                  className="relative"
-                >
-                  {/* Horizontal connector */}
-                  {!isLast && (
-                    <div
-                      className={`
-                        pointer-events-none
-                        absolute
-                        top-6
-                        left-[calc(50%+24px)]
-                        right-[calc(-50%+24px)]
-                        z-0
-                        h-px
-                        ${
-                          index < currentIndex
-                            ? "bg-(--color-text-muted)"
-                            : "bg-(--color-border)"
-                        }
-                      `}
-                    />
-                  )}
-
-                  {/* Stage */}
+                return (
                   <div
-                    className="
-                      relative
-                      z-10
-                      flex
-                      flex-col
-                      items-center
-                      text-center
-                    "
+                    key={stage.status}
+                    className="relative"
                   >
+                    {/* Horizontal connector */}
+                    {!isLast && (
+                      <div
+                        className={`
+                          pointer-events-none
+                          absolute
+                          top-6
+                          left-[calc(50%+24px)]
+                          right-[calc(-50%+24px)]
+                          z-0
+                          h-px
+                          ${
+                            index < currentIndex
+                              ? "bg-(--color-text-muted)"
+                              : "bg-(--color-border)"
+                          }
+                        `}
+                      />
+                    )}
+
+                    {/* Stage */}
+                    <div
+                      className="
+                        relative
+                        z-10
+                        flex
+                        flex-col
+                        items-center
+                        text-center
+                      "
+                    >
+                      <div
+                        className={`
+                          flex
+                          h-12
+                          w-12
+                          shrink-0
+                          items-center
+                          justify-center
+                          rounded-full
+                          border
+                          transition-all
+                          duration-300
+                          ${getStageClasses(index, isSuccessful)}
+                        `}
+                      >
+                        <Icon
+                          size={20}
+                          strokeWidth={
+                            isCurrent || isSuccessful
+                              ? 2
+                              : 1.7
+                          }
+                          aria-hidden="true"
+                        />
+                      </div>
+
+                      <p
+                        className={`
+                          mt-3
+                          text-sm
+                          ${getLabelClasses(index, isSuccessful)}
+                        `}
+                      >
+                        {stage.label}
+                      </p>
+
+                      <p
+                        className={`
+                          mt-1
+                          text-xs
+                          text-(--color-text-muted)
+                          ${getTimestampClasses(index, isSuccessful)}
+                        `}
+                      >
+                        {timestamp
+                          ? formatStatusDate(timestamp)
+                          : "—"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile */}
+          <div className="mt-8 sm:hidden">
+            <div className="relative">
+              {stages.map((stage, index) => {
+                const Icon = stage.icon;
+
+                const isCurrent =
+                  index === currentIndex;
+
+                const isLast =
+                  index === stages.length - 1;
+
+                const isSuccessful =
+                  isLast && isCompleted;
+
+                const timestamp =
+                  getHistoryTimestamp(
+                    order.status_history,
+                    stage.status
+                  );
+
+                return (
+                  <div
+                    key={stage.status}
+                    className="relative flex min-h-20"
+                  >
+                    {/* Vertical connector */}
+                    {!isLast && (
+                      <div
+                        className={`
+                          absolute
+                          left-6
+                          top-12
+                          bottom-0
+                          w-px
+                          ${
+                            index < currentIndex
+                              ? "bg-(--color-text-muted)"
+                              : "bg-(--color-border)"
+                          }
+                        `}
+                      />
+                    )}
+
                     {/* Icon */}
                     <div
                       className={`
+                        relative
+                        z-10
                         flex
                         h-12
                         w-12
@@ -297,38 +480,7 @@ export default function OrderTracking({
                         border
                         transition-all
                         duration-300
-
-                        ${
-                          isSuccessful
-                            ? `
-                              border-green-600
-                              bg-green-600
-                              text-white
-                              shadow-sm
-                            `
-                            : isCurrent
-                            ? `
-                              border-(--color-text)
-                              bg-(--color-text)
-                              text-(--color-background)
-                              shadow-sm
-                              dark:border-white
-                              dark:bg-white
-                              dark:text-black
-                            `
-                            : isPast
-                            ? `
-                              border-(--color-text-muted)
-                              bg-(--color-background)
-                              text-(--color-text)
-                            `
-                            : `
-                              border-(--color-border)
-                              bg-(--color-background)
-                              text-(--color-text-muted)
-                              opacity-40
-                            `
-                        }
+                        ${getStageClasses(index, isSuccessful)}
                       `}
                     >
                       <Icon
@@ -338,211 +490,40 @@ export default function OrderTracking({
                             ? 2
                             : 1.7
                         }
+                        aria-hidden="true"
                       />
                     </div>
 
-                    {/* Label */}
-                    <p
-                      className={`
-                        mt-3
-                        text-sm
-                        ${
-                          isSuccessful
-                            ? "font-semibold text-green-700 dark:text-green-400"
-                            : isCurrent
-                            ? "font-semibold text-(--color-text)"
-                            : isPast
-                            ? "font-medium text-(--color-text)"
-                            : "font-medium text-(--color-text-muted) opacity-55"
-                        }
-                      `}
-                    >
-                      {stage.label}
-                    </p>
+                    {/* Details */}
+                    <div className="ml-4 min-w-0 pt-1">
+                      <p
+                        className={`
+                          text-sm
+                          ${getLabelClasses(index, isSuccessful)}
+                        `}
+                      >
+                        {stage.label}
+                      </p>
 
-                    {/* Timestamp */}
-                    <p
-                      className={`
-                        mt-1
-                        text-xs
-                        text-(--color-text-muted)
-                        ${
-                          isCurrent ||
-                          isSuccessful
-                            ? "opacity-100"
-                            : isPast
-                            ? "opacity-75"
-                            : "opacity-40"
-                        }
-                      `}
-                    >
-                      {timestamp
-                        ? formatStatusDate(timestamp)
-                        : "—"}
-                    </p>
+                      <p
+                        className={`
+                          mt-1
+                          text-xs
+                          text-(--color-text-muted)
+                          ${getTimestampClasses(index, isSuccessful)}
+                        `}
+                      >
+                        {timestamp
+                          ? formatStatusDate(timestamp)
+                          : "—"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Mobile tracking */}
-      {!isCancelled && (
-        <div className="mt-8 sm:hidden">
-          <div className="relative">
-            {stages.map((stage, index) => {
-              const Icon = stage.icon;
-
-              const isCurrent =
-                index === currentIndex;
-
-              const isPast =
-                index < currentIndex;
-
-              const isLast =
-                index === stages.length - 1;
-
-              const isSuccessful =
-                isLast && isCompleted;
-
-              const timestamp =
-                getHistoryTimestamp(
-                  order.status_history,
-                  stage.status
                 );
-
-              return (
-                <div
-                  key={stage.status}
-                  className="
-                    relative
-                    flex
-                    min-h-20
-                  "
-                >
-                  {/* Vertical connector */}
-                  {!isLast && (
-                    <div
-                      className={`
-                        absolute
-                        left-6
-                        top-12
-                        bottom-0
-                        w-px
-                        ${
-                          index < currentIndex
-                            ? "bg-(--color-text-muted)"
-                            : "bg-(--color-border)"
-                        }
-                      `}
-                    />
-                  )}
-
-                  {/* Icon */}
-                  <div
-                    className={`
-                      relative
-                      z-10
-                      flex
-                      h-12
-                      w-12
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-full
-                      border
-                      transition-all
-                      duration-300
-
-                      ${
-                        isSuccessful
-                          ? `
-                            border-green-600
-                            bg-green-600
-                            text-white
-                            shadow-sm
-                          `
-                          : isCurrent
-                          ? `
-                            border-(--color-text)
-                            bg-(--color-text)
-                            text-(--color-background)
-                            shadow-sm
-                            dark:border-white
-                            dark:bg-white
-                            dark:text-black
-                          `
-                          : isPast
-                          ? `
-                            border-(--color-text-muted)
-                            bg-(--color-background)
-                            text-(--color-text)
-                          `
-                          : `
-                            border-(--color-border)
-                            bg-(--color-background)
-                            text-(--color-text-muted)
-                            opacity-40
-                          `
-                      }
-                    `}
-                  >
-                    <Icon
-                      size={20}
-                      strokeWidth={
-                        isCurrent || isSuccessful
-                          ? 2
-                          : 1.7
-                      }
-                    />
-                  </div>
-
-                  {/* Details */}
-                  <div className="ml-4 pt-1">
-                    <p
-                      className={`
-                        text-sm
-                        ${
-                          isSuccessful
-                            ? "font-semibold text-green-700 dark:text-green-400"
-                            : isCurrent
-                            ? "font-semibold text-(--color-text)"
-                            : isPast
-                            ? "font-medium text-(--color-text)"
-                            : "font-medium text-(--color-text-muted) opacity-55"
-                        }
-                      `}
-                    >
-                      {stage.label}
-                    </p>
-
-                    <p
-                      className={`
-                        mt-1
-                        text-xs
-                        text-(--color-text-muted)
-                        ${
-                          isCurrent ||
-                          isSuccessful
-                            ? "opacity-100"
-                            : isPast
-                            ? "opacity-75"
-                            : "opacity-40"
-                        }
-                      `}
-                    >
-                      {timestamp
-                        ? formatStatusDate(timestamp)
-                        : "—"}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+              })}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </section>
   );

@@ -7,6 +7,8 @@ from .models import Order
 from .serializers import OrderSerializer
 from .services import OrderService
 
+from django.core.exceptions import ValidationError
+
 
 class AdminOrdersView(APIView):
 
@@ -73,25 +75,17 @@ class AdminCancelOrderView(APIView):
     def post(self, request, order_id):
 
         try:
-
             order = OrderService.admin_cancel_order(
                 order_id=order_id,
                 updated_by=request.user,
             )
 
-            # A paid order may still be waiting for Paystack
-            # to process its refund.
             if order.status == "CANCELLED":
-
                 return Response(
                     {
-                        "message": (
-                            "Order cancelled successfully."
-                        ),
+                        "message": "Order cancelled successfully.",
                         "status": order.status,
-                        "payment_status": (
-                            order.payment_status
-                        ),
+                        "payment_status": order.payment_status,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -99,28 +93,36 @@ class AdminCancelOrderView(APIView):
             return Response(
                 {
                     "message": (
-                        "Refund initiated. "
-                        "The order will be cancelled "
-                        "once the refund is successfully "
-                        "processed."
+                        "Refund requested successfully. "
+                        "The order will be cancelled once "
+                        "Paystack successfully processes "
+                        "the refund."
                     ),
                     "status": order.status,
-                    "payment_status": (
-                        order.payment_status
-                    ),
+                    "payment_status": order.payment_status,
                 },
                 status=status.HTTP_200_OK,
             )
 
         except Order.DoesNotExist:
-
             return Response(
                 {"error": "Order not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        except ValueError as error:
+        except ValidationError as error:
+            return Response(
+                {
+                    "error": (
+                        error.messages[0]
+                        if error.messages
+                        else "Unable to process the cancellation."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
+        except ValueError as error:
             return Response(
                 {"error": str(error)},
                 status=status.HTTP_400_BAD_REQUEST,
