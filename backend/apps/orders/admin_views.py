@@ -18,6 +18,9 @@ class AdminOrdersView(APIView):
 
         orders = OrderService.list_admin_orders(
             status_filter=request.query_params.get("status"),
+            payment_status_filter=request.query_params.get(
+                "payment_status"
+            ),
             delivery_filter=request.query_params.get(
                 "delivery_type"
             ),

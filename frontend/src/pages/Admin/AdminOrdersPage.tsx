@@ -39,6 +39,7 @@ export default function AdminOrdersPage() {
   const [cancellingOrders, setCancellingOrders] = useState<number[]>([]);
 
   const [statusFilter, setStatusFilter] = useState("");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("");
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState("");
 
   const [search, setSearch] = useState("");
@@ -72,6 +73,7 @@ export default function AdminOrdersPage() {
       try {
         const data = await orderService.getAdminOrders({
           status: statusFilter,
+          paymentStatus: paymentStatusFilter,
           deliveryType: deliveryTypeFilter,
           search: debouncedSearch,
         });
@@ -116,6 +118,7 @@ export default function AdminOrdersPage() {
     };
   }, [
     statusFilter,
+    paymentStatusFilter,
     deliveryTypeFilter,
     debouncedSearch,
   ]);
@@ -501,15 +504,16 @@ export default function AdminOrdersPage() {
       <AdminOrderFilters
         search={search}
         statusFilter={statusFilter}
+        paymentStatusFilter={paymentStatusFilter}
         deliveryTypeFilter={deliveryTypeFilter}
         onSearchChange={setSearch}
         onStatusChange={setStatusFilter}
-        onDeliveryTypeChange={
-          setDeliveryTypeFilter
-        }
+        onPaymentStatusChange={setPaymentStatusFilter}
+        onDeliveryTypeChange={setDeliveryTypeFilter}
         onClear={() => {
           setSearch("");
           setStatusFilter("");
+          setPaymentStatusFilter("");
           setDeliveryTypeFilter("");
         }}
       />

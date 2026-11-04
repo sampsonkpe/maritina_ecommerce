@@ -62,8 +62,30 @@ export const ORDER_STATUS_OPTIONS = [
     value: ORDER_STATUS.PICKED_UP,
     label: "Picked Up",
   },
+  {
+    value: ORDER_STATUS.CANCELLED,
+    label: "Cancelled",
+  },
 ];
 
+export const PAYMENT_STATUS_OPTIONS = [
+  {
+    value: PAYMENT_STATUS.PENDING,
+    label: "Pending",
+  },
+  {
+    value: PAYMENT_STATUS.PAID,
+    label: "Paid",
+  },
+  {
+    value: PAYMENT_STATUS.FAILED,
+    label: "Failed",
+  },
+  {
+    value: PAYMENT_STATUS.REFUNDED,
+    label: "Refunded",
+  },
+];
 
 export const ORDER_STATUS_TRANSITIONS = {
   PENDING: [

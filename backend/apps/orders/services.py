@@ -152,6 +152,7 @@ class OrderService:
     @staticmethod
     def list_admin_orders(
         status_filter=None,
+        payment_status_filter=None,
         delivery_filter=None,
         search=None,
     ):
@@ -170,6 +171,11 @@ class OrderService:
         if status_filter:
             orders = orders.filter(
                 status=status_filter
+            )
+
+        if payment_status_filter:
+            orders = orders.filter(
+                payment_status=payment_status_filter
             )
 
         if delivery_filter:

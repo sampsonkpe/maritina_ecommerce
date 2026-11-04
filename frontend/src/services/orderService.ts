@@ -58,6 +58,7 @@ export const orderService = {
 
   async getAdminOrders(filters?: {
     status?: string;
+    paymentStatus?: string;
     deliveryType?: string;
     search?: string;
   }): Promise<Order[]> {
@@ -67,6 +68,9 @@ export const orderService = {
         params: {
           status:
             filters?.status || undefined,
+
+          payment_status:
+            filters?.paymentStatus || undefined,
 
           delivery_type:
             filters?.deliveryType || undefined,

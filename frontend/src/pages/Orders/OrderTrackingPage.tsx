@@ -198,9 +198,11 @@ export default function OrderTrackingPage() {
         {/* Fulfilment */}
         <section className="mt-8">
           <SectionTitle>
-            {order.delivery_type === "DELIVERY"
-              ? "Delivery Status"
-              : "Pickup Status"}
+            {order.status === "CANCELLED"
+              ? "Fulfilment Status"
+              : order.delivery_type === "DELIVERY"
+                ? "Delivery Status"
+                : "Pickup Status"}
           </SectionTitle>
 
           <div
@@ -214,7 +216,23 @@ export default function OrderTrackingPage() {
               sm:p-6
             "
           >
-            {order.delivery_type === "DELIVERY" ? (
+            {order.status === "CANCELLED" ? (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-(--color-text)">
+                  This order has been cancelled.
+                </p>
+
+                {order.payment_status === "REFUNDED" ? (
+                  <p className="text-sm text-(--color-text-muted)">
+                    Your payment has been successfully refunded.
+                  </p>
+                ) : (
+                  <p className="text-sm text-(--color-text-muted)">
+                    Please check your payment details for the latest refund status.
+                  </p>
+                )}
+              </div>
+            ) : order.delivery_type === "DELIVERY" ? (
               <>
                 {order.address_text ? (
                   <p className="text-sm text-(--color-text-muted)">
@@ -235,13 +253,7 @@ export default function OrderTrackingPage() {
                 )}
 
                 {!order.address_text && (
-                  <p
-                    className="
-                      mt-3
-                      text-sm
-                      text-(--color-text-muted)
-                    "
-                  >
+                  <p className="mt-3 text-sm text-(--color-text-muted)">
                     Delivery address unavailable.
                   </p>
                 )}
@@ -252,8 +264,7 @@ export default function OrderTrackingPage() {
                   "Your order has been picked up."
                 ) : (
                   <>
-                    Your order will be ready for collection once it
-                    reaches{" "}
+                    Your order will be ready for collection once it reaches{" "}
                     <span className="font-medium text-(--color-text)">
                       Ready for Pickup
                     </span>

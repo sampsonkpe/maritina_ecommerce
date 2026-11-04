@@ -1,6 +1,7 @@
 import {
   DELIVERY_TYPE,
   ORDER_STATUS_OPTIONS,
+  PAYMENT_STATUS_OPTIONS,
 } from "../../constants/order";
 
 import Button from "../common/Button";
@@ -9,9 +10,11 @@ import Select from "../common/Select";
 interface AdminOrderFiltersProps {
   search: string;
   statusFilter: string;
+  paymentStatusFilter: string;
   deliveryTypeFilter: string;
   onSearchChange: (value: string) => void;
   onStatusChange: (value: string) => void;
+  onPaymentStatusChange: (value: string) => void;
   onDeliveryTypeChange: (value: string) => void;
   onClear: () => void;
 }
@@ -19,14 +22,23 @@ interface AdminOrderFiltersProps {
 export default function AdminOrderFilters({
   search,
   statusFilter,
+  paymentStatusFilter,
   deliveryTypeFilter,
   onSearchChange,
   onStatusChange,
+  onPaymentStatusChange,
   onDeliveryTypeChange,
   onClear,
 }: AdminOrderFiltersProps) {
   return (
-    <div className="mb-8 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
+    <div
+      className="
+        mb-8
+        grid
+        gap-4
+        md:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]
+      "
+    >
       {/* Search */}
       <input
         aria-label="Search orders"
@@ -51,7 +63,7 @@ export default function AdminOrderFilters({
         "
       />
 
-      {/* Status */}
+      {/* Order Status */}
       <Select
         aria-label="Filter by order status"
         value={statusFilter}
@@ -59,9 +71,29 @@ export default function AdminOrderFilters({
           onStatusChange(e.target.value)
         }
       >
-        <option value="">All Statuses</option>
+        <option value="">All Order Statuses</option>
 
         {ORDER_STATUS_OPTIONS.map((status) => (
+          <option
+            key={status.value}
+            value={status.value}
+          >
+            {status.label}
+          </option>
+        ))}
+      </Select>
+
+      {/* Payment Status */}
+      <Select
+        aria-label="Filter by payment status"
+        value={paymentStatusFilter}
+        onChange={(e) =>
+          onPaymentStatusChange(e.target.value)
+        }
+      >
+        <option value="">All Payment Statuses</option>
+
+        {PAYMENT_STATUS_OPTIONS.map((status) => (
           <option
             key={status.value}
             value={status.value}
