@@ -104,31 +104,86 @@ class PaystackWebhooksMixin:
         )
 
         if refund is None:
-            refund = Refund.objects.create(
-                payment=payment,
-                order=payment.order,
-                paystack_refund_id=data.get("id"),
-                refund_reference=data.get(
-                    "refund_reference"
-                ),
-                transaction_reference=(
-                    transaction_reference
-                ),
-                amount=amount,
-                status=status,
+            pending_statuses = [
+                Refund.STATUS_PENDING,
+                Refund.STATUS_PROCESSING,
+                Refund.STATUS_NEEDS_ATTENTION,
+            ]
+
+            # Check for an outstanding cancellation refund
+            # that may not have matched the webhook identifiers.
+            cancellation_refunds = list(
+                Refund.objects
+                .select_for_update()
+                .filter(
+                    payment=payment,
+                    is_cancellation_refund=True,
+                    status__in=pending_statuses,
+                )
+                .order_by("-created_at")[:2]
             )
 
-        else:
-            if data.get("id"):
-                refund.paystack_refund_id = data["id"]
+            if len(cancellation_refunds) == 1:
+                candidate = cancellation_refunds[0]
 
-            if data.get("refund_reference"):
-                refund.refund_reference = (
-                    data["refund_reference"]
+                if candidate.amount != amount:
+                    logger.error(
+                        "Paystack refund amount mismatch for "
+                        "cancellation refund. Payment=%s "
+                        "Local refund=%s Webhook amount=%s. "
+                        "Webhook event was not applied.",
+                        payment.reference,
+                        candidate.amount,
+                        amount,
+                    )
+                    return
+
+                refund = candidate
+
+                logger.info(
+                    "Matched Paystack webhook to outstanding "
+                    "cancellation refund using payment and "
+                    "amount. Payment=%s Refund=%s",
+                    payment.reference,
+                    refund.id,
                 )
 
-            refund.amount = amount
-            refund.status = status
+            elif len(cancellation_refunds) > 1:
+                logger.error(
+                    "Ambiguous Paystack refund webhook: "
+                    "multiple outstanding cancellation refunds "
+                    "exist for payment %s. Event was not applied.",
+                    payment.reference,
+                )
+                return
+
+            else:
+                # No outstanding local cancellation refund exists.
+                # This may be a refund initiated outside our application.
+                refund = Refund.objects.create(
+                    payment=payment,
+                    order=payment.order,
+                    paystack_refund_id=data.get("id"),
+                    refund_reference=data.get(
+                        "refund_reference"
+                    ),
+                    transaction_reference=transaction_reference,
+                    amount=amount,
+                    status=status,
+                    is_cancellation_refund=False,
+                )
+
+        # Update the matched or newly created refund.
+        if data.get("id"):
+            refund.paystack_refund_id = data["id"]
+
+        if data.get("refund_reference"):
+            refund.refund_reference = (
+                data["refund_reference"]
+            )
+
+        refund.amount = amount
+        refund.status = status
 
         if (
             status == Refund.STATUS_PROCESSED
@@ -138,26 +193,36 @@ class PaystackWebhooksMixin:
 
         refund.save()
 
-        self._sync_payment_refund_state(
-            payment
-        )
+        self._sync_payment_refund_state(payment)
 
         logger.info(
             "Processed Paystack refund webhook: "
-            "payment=%s refund=%s status=%s amount=%s",
+            "payment=%s refund=%s status=%s amount=%s "
+            "cancellation_refund=%s",
             payment.reference,
             refund.refund_reference
             or refund.paystack_refund_id
             or refund.id,
             refund.status,
             refund.amount,
+            refund.is_cancellation_refund,
         )
 
     @staticmethod
     def _find_refund_for_webhook(payment, data):
-        refund_reference = data.get(
-            "refund_reference"
-        )
+        """
+        Match a Paystack webhook to an existing local Refund.
+
+        Matching priority:
+        1. Paystack refund reference.
+        2. Paystack refund ID.
+        3. Unique transaction reference and amount match.
+
+        The final fallback includes processed refunds to
+        support webhook retries and prevent duplicate records.
+        """
+
+        refund_reference = data.get("refund_reference")
 
         if refund_reference:
             refund = (
@@ -193,32 +258,40 @@ class PaystackWebhooksMixin:
             "transaction_reference"
         )
 
-        amount = data.get("amount")
+        paystack_amount = data.get("amount")
 
         if (
-            transaction_reference
-            and amount is not None
+            not transaction_reference
+            or paystack_amount is None
         ):
-            amount_major = (
-                Decimal(str(amount))
-                / Decimal("100")
-            )
+            return None
 
-            return (
-                Refund.objects
-                .select_for_update()
-                .filter(
-                    payment=payment,
-                    transaction_reference=transaction_reference,
-                    amount=amount_major,
-                    status__in=[
-                        Refund.STATUS_PENDING,
-                        Refund.STATUS_PROCESSING,
-                        Refund.STATUS_NEEDS_ATTENTION,
-                    ],
-                )
-                .order_by("-created_at")
-                .first()
+        amount = (
+            Decimal(str(paystack_amount))
+            / Decimal("100")
+        )
+
+        matching_refunds = list(
+            Refund.objects
+            .select_for_update()
+            .filter(
+                payment=payment,
+                transaction_reference=transaction_reference,
+                amount=amount,
+            )
+            .order_by("-created_at")[:2]
+        )
+
+        if len(matching_refunds) == 1:
+            return matching_refunds[0]
+
+        if len(matching_refunds) > 1:
+            logger.warning(
+                "Multiple local refunds match Paystack "
+                "transaction %s and amount %s. "
+                "Additional identifiers are required.",
+                transaction_reference,
+                amount,
             )
 
         return None
