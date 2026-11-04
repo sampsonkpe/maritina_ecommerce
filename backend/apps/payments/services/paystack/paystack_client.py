@@ -9,6 +9,14 @@ from requests.exceptions import HTTPError, RequestException
 logger = logging.getLogger(__name__)
 
 
+class PaystackRequestUncertain(Exception):
+    """
+    The request may have reached Paystack, but its outcome
+    could not be confirmed.
+    """
+    pass
+
+
 class PaystackClient:
     BASE_URL = "https://api.paystack.co"
 
@@ -20,7 +28,13 @@ class PaystackClient:
             "Content-Type": "application/json",
         }
 
-    def _handle_response(self, response, endpoint):
+    def _handle_response(
+        self,
+        response,
+        endpoint,
+        *,
+        is_write=False,
+    ):
         try:
             response.raise_for_status()
 
@@ -35,12 +49,18 @@ class PaystackClient:
                 provider_message = response.text[:1000]
 
             logger.error(
-                "Paystack rejected request. "
+                "Paystack request failed. "
                 "Endpoint=%s HTTP Status=%s Message=%s",
                 endpoint,
                 response.status_code,
                 provider_message,
             )
+
+            if is_write and response.status_code >= 500:
+                raise PaystackRequestUncertain(
+                    "Paystack returned a server error. "
+                    "The request outcome is uncertain."
+                ) from error
 
             raise ValidationError(
                 f"Paystack rejected the request: "
@@ -52,6 +72,11 @@ class PaystackClient:
                 "Paystack request failed: %s",
                 endpoint,
             )
+
+            if is_write:
+                raise PaystackRequestUncertain(
+                    "The Paystack request outcome is uncertain."
+                ) from error
 
             raise ValidationError(
                 "Unable to contact Paystack. "
@@ -66,6 +91,12 @@ class PaystackClient:
                 "Paystack returned invalid JSON for %s.",
                 endpoint,
             )
+
+            if is_write:
+                raise PaystackRequestUncertain(
+                    "Paystack returned an invalid response. "
+                    "The request outcome is uncertain."
+                ) from error
 
             raise ValidationError(
                 "Paystack returned an invalid response. "
@@ -89,14 +120,14 @@ class PaystackClient:
                 endpoint,
             )
 
-            raise ValidationError(
-                "Unable to contact Paystack. "
-                "Please try again."
+            raise PaystackRequestUncertain(
+                "The Paystack request outcome is uncertain."
             ) from error
 
         return self._handle_response(
             response,
             endpoint,
+            is_write=True,
         )
 
     def get(self, endpoint):

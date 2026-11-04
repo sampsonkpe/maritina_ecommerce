@@ -6,6 +6,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from ...models import Payment, Refund
+from .paystack_client import PaystackRequestUncertain
 
 
 logger = logging.getLogger(__name__)
@@ -20,125 +21,209 @@ class PaystackRefundsMixin:
         amount=None,
         is_cancellation_refund=False,
     ):
-        payment = (
-            Payment.objects
-            .select_for_update()
-            .select_related("order")
-            .get(pk=payment.pk)
-        )
+        # ---------------------------------------------
+        # 1. Validate and reserve the refund locally
+        # ---------------------------------------------
 
-        if (
-            is_cancellation_refund
-            and payment.order
-            and payment.order.status == "CANCELLED"
-        ):
-            raise ValidationError(
-                "This order has already been cancelled."
+        with transaction.atomic():
+            payment = (
+                Payment.objects
+                .select_for_update()
+                .select_related("order")
+                .get(pk=payment.pk)
             )
 
-        if payment.status not in {
-            Payment.STATUS_SUCCESS,
-            Payment.STATUS_REFUND_PENDING,
-            Payment.STATUS_REFUND_FAILED,
-        }:
-            raise ValidationError(
-                "Only successful payments can be refunded."
-            )
-
-        if amount is None:
-            amount = payment.amount
-
-        else:
-            try:
-                amount = Decimal(str(amount))
-            except (
-                InvalidOperation,
-                TypeError,
-                ValueError,
-            ) as error:
+            if (
+                is_cancellation_refund
+                and payment.order
+                and payment.order.status == "CANCELLED"
+            ):
                 raise ValidationError(
-                    "Invalid refund amount."
-                ) from error
+                    "This order has already been cancelled."
+                )
 
-        amount = amount.quantize(
-            Decimal("0.01")
-        )
+            if payment.status not in {
+                Payment.STATUS_SUCCESS,
+                Payment.STATUS_REFUND_PENDING,
+                Payment.STATUS_REFUND_FAILED,
+            }:
+                raise ValidationError(
+                    "Only successful payments can be refunded."
+                )
 
-        if amount <= 0:
-            raise ValidationError(
-                "Refund amount must be greater than zero."
+            if amount is None:
+                amount = payment.amount
+            else:
+                try:
+                    amount = Decimal(str(amount))
+                except (
+                    InvalidOperation,
+                    TypeError,
+                    ValueError,
+                ) as error:
+                    raise ValidationError(
+                        "Invalid refund amount."
+                    ) from error
+
+            amount = amount.quantize(Decimal("0.01"))
+
+            if amount <= 0:
+                raise ValidationError(
+                    "Refund amount must be greater than zero."
+                )
+
+            processed_total = (
+                payment.refunds
+                .filter(status=Refund.STATUS_PROCESSED)
+                .aggregate(
+                    total=models.Sum("amount")
+                )["total"]
+                or Decimal("0")
             )
 
-        processed_total = (
-            payment.refunds
-            .filter(
-                status=Refund.STATUS_PROCESSED
+            pending_total = (
+                payment.refunds
+                .filter(
+                    status__in=[
+                        Refund.STATUS_PENDING,
+                        Refund.STATUS_PROCESSING,
+                        Refund.STATUS_NEEDS_ATTENTION,
+                    ]
+                )
+                .aggregate(
+                    total=models.Sum("amount")
+                )["total"]
+                or Decimal("0")
             )
-            .aggregate(
-                total=models.Sum("amount")
-            )["total"]
-            or Decimal("0")
-        )
 
-        pending_total = (
-            payment.refunds
-            .filter(
-                status__in=[
-                    Refund.STATUS_PENDING,
-                    Refund.STATUS_PROCESSING,
-                    Refund.STATUS_NEEDS_ATTENTION,
-                ]
+            refundable_remaining = (
+                payment.amount
+                - processed_total
+                - pending_total
             )
-            .aggregate(
-                total=models.Sum("amount")
-            )["total"]
-            or Decimal("0")
-        )
 
-        refundable_remaining = (
-            payment.amount
-            - processed_total
-            - pending_total
-        )
+            if amount > refundable_remaining:
+                raise ValidationError(
+                    "Refund amount exceeds the remaining "
+                    "refundable amount."
+                )
 
-        if amount > refundable_remaining:
-            raise ValidationError(
-                "Refund amount exceeds the remaining "
-                "refundable amount."
+            refund = Refund.objects.create(
+                payment=payment,
+                order=payment.order,
+                transaction_reference=payment.reference,
+                amount=amount,
+                status=Refund.STATUS_NEEDS_ATTENTION,
+                is_cancellation_refund=is_cancellation_refund,
             )
+
+        # ---------------------------------------------
+        # 2. Send the request to Paystack
+        # ---------------------------------------------
 
         payload = {
             "transaction": payment.reference,
-            "amount": int(
-                amount * Decimal("100")
-            ),
+            "amount": int(amount * Decimal("100")),
         }
 
-        result = self.paystack.post(
-            "/refund",
-            payload,
-        )
+        try:
+            result = self.paystack.post(
+                "/refund",
+                payload,
+            )
 
-        if result.get("status") is not True:
+        except PaystackRequestUncertain:
+            logger.exception(
+                "Uncertain Paystack refund outcome. "
+                "Refund #%s, Payment=%s",
+                refund.id,
+                payment.reference,
+            )
+
+            # Keep NEEDS_ATTENTION. Do not retry automatically.
+            self._sync_payment_refund_state(payment)
+            raise
+
+        except ValidationError:
+            # The client uses ValidationError for definite
+            # HTTP 4xx rejections.
+            with transaction.atomic():
+                refund = Refund.objects.select_for_update().get(
+                    pk=refund.pk
+                )
+
+                refund.status = Refund.STATUS_FAILED
+                refund.save(
+                    update_fields=[
+                        "status",
+                        "updated_at",
+                    ]
+                )
+
+                self._sync_payment_refund_state(payment)
+
+            raise
+
+        # ---------------------------------------------
+        # 3. Interpret Paystack's response
+        # ---------------------------------------------
+
+        if (
+            not isinstance(result, dict)
+            or result.get("status") is not True
+        ):
+            with transaction.atomic():
+                refund = Refund.objects.select_for_update().get(
+                    pk=refund.pk
+                )
+
+                refund.status = Refund.STATUS_FAILED
+                refund.save(
+                    update_fields=[
+                        "status",
+                        "updated_at",
+                    ]
+                )
+
+                self._sync_payment_refund_state(payment)
+
             raise ValidationError(
                 result.get(
                     "message",
                     "Unable to initiate refund.",
                 )
+                if isinstance(result, dict)
+                else "Invalid response from Paystack."
             )
 
-        data = result.get("data", {})
+        data = result.get("data")
 
-        provider_status = (
-            data.get("status")
-            or "pending"
-        )
+        # Paystack accepted the request, but its response
+        # does not contain enough information to confirm
+        # the refund state.
+        if not isinstance(data, dict):
+            logger.error(
+                "Paystack accepted refund #%s but returned "
+                "an invalid response body.",
+                refund.id,
+            )
 
-        refund_status = self._map_refund_status(
-            provider_status
-        )
+            self._sync_payment_refund_state(payment)
+            return result
+
+        provider_status = data.get("status") or "pending"
+
+        valid_provider_statuses = {
+            "pending",
+            "processing",
+            "needs-attention",
+            "processed",
+            "failed",
+        }
 
         provider_amount = data.get("amount")
+
+        amount_matches = True
 
         if provider_amount is not None:
             provider_amount = (
@@ -146,46 +231,47 @@ class PaystackRefundsMixin:
                 / Decimal("100")
             )
 
-            if provider_amount != amount:
-                logger.warning(
-                    "Paystack refund amount mismatch "
-                    "for payment %s. Requested=%s Provider=%s",
-                    payment.reference,
-                    amount,
-                    provider_amount,
-                )
+            amount_matches = provider_amount == amount
 
-                raise ValidationError(
-                    "Paystack returned an unexpected "
-                    "refund amount."
-                )
-
-        refund = Refund.objects.create(
-            payment=payment,
-            order=payment.order,
-            paystack_refund_id=data.get("id"),
-            refund_reference=data.get(
-                "refund_reference"
-            ),
-            transaction_reference=payment.reference,
-            amount=amount,
-            status=refund_status,
-            is_cancellation_refund=is_cancellation_refund,
-        )
-
-        if refund.status == Refund.STATUS_PROCESSED:
-            refund.processed_at = timezone.now()
-
-            refund.save(
-                update_fields=[
-                    "processed_at",
-                    "updated_at",
-                ]
+        if (
+            provider_status not in valid_provider_statuses
+            or not amount_matches
+        ):
+            logger.error(
+                "Paystack accepted refund #%s but returned "
+                "unexpected refund details. Status=%s Amount=%s",
+                refund.id,
+                provider_status,
+                provider_amount,
             )
 
-        self._sync_payment_refund_state(
-            payment
-        )
+            self._sync_payment_refund_state(payment)
+            return result
+
+        # ---------------------------------------------
+        # 4. Save the confirmed Paystack refund details
+        # ---------------------------------------------
+
+        with transaction.atomic():
+            refund = Refund.objects.select_for_update().get(
+                pk=refund.pk
+            )
+
+            refund.paystack_refund_id = data.get("id")
+            refund.refund_reference = data.get("reference")
+            refund.status = self._map_refund_status(
+                provider_status
+            )
+
+            if (
+                refund.status == Refund.STATUS_PROCESSED
+                and refund.processed_at is None
+            ):
+                refund.processed_at = timezone.now()
+
+            refund.save()
+
+            self._sync_payment_refund_state(payment)
 
         return result
 

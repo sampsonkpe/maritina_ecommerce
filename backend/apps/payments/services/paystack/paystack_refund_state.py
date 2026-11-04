@@ -20,6 +20,7 @@ class PaystackRefundStateMixin:
 
     @transaction.atomic
     def _sync_payment_refund_state(self, payment):
+
         payment = (
             Payment.objects
             .select_for_update()
@@ -77,6 +78,7 @@ class PaystackRefundStateMixin:
         ]
 
         if processed_total >= payment.amount:
+
             payment.status = Payment.STATUS_REFUNDED
 
             if payment.refunded_at is None:
@@ -88,14 +90,17 @@ class PaystackRefundStateMixin:
             ])
 
         elif pending_exists:
+
             payment.status = Payment.STATUS_REFUND_PENDING
             update_fields.append("status")
 
         elif failed_exists:
+
             payment.status = Payment.STATUS_REFUND_FAILED
             update_fields.append("status")
 
         else:
+
             payment.status = Payment.STATUS_SUCCESS
             update_fields.append("status")
 
@@ -103,75 +108,34 @@ class PaystackRefundStateMixin:
             update_fields=update_fields
         )
 
-        if processed_total >= payment.amount:
-            cancellation_refund_exists = (
-                payment.refunds
-                .filter(
-                    is_cancellation_refund=True,
-                    status=Refund.STATUS_PROCESSED,
-                )
-                .exists()
+        # A completed full refund updates the order's
+        # payment status, but never its order status.
+        if (
+            processed_total >= payment.amount
+            and payment.order_id
+        ):
+            from apps.common.constants import PAYMENT_REFUNDED
+            from apps.orders.models import Order
+
+            order = (
+                Order.objects
+                .select_for_update()
+                .get(pk=payment.order_id)
             )
 
-            if cancellation_refund_exists:
-                self._complete_order_cancellation(
-                    payment
+            if order.payment_status != PAYMENT_REFUNDED:
+                order.payment_status = PAYMENT_REFUNDED
+                order.save(
+                    update_fields=[
+                        "payment_status",
+                        "updated_at",
+                    ]
                 )
-
-    @staticmethod
-    def _complete_order_cancellation(payment):
-        if not payment.order_id:
-            return
-
-        from apps.common.constants import (
-            STATUS_CANCELLED,
-            PAYMENT_REFUNDED,
-        )
-        from apps.orders.models import (
-            Order,
-            OrderStatusHistory,
-        )
-
-        order = (
-            Order.objects
-            .select_for_update()
-            .get(pk=payment.order_id)
-        )
-
-        if order.payment_status != PAYMENT_REFUNDED:
-            order.payment_status = PAYMENT_REFUNDED
-
-        if order.status == STATUS_CANCELLED:
-            order.save(
-                update_fields=[
-                    "payment_status",
-                    "updated_at",
-                ]
-            )
-            return
-
-        old_status = order.status
-
-        order.status = STATUS_CANCELLED
-
-        order.save(
-            update_fields=[
-                "status",
-                "payment_status",
-                "updated_at",
-            ]
-        )
-
-        OrderStatusHistory.objects.create(
-            order=order,
-            old_status=old_status,
-            new_status=STATUS_CANCELLED,
-            updated_by=None,
-        )
 
         logger.info(
-            "Order #%s cancelled after successful refund "
-            "for payment %s.",
-            order.id,
+            "Synced refund state for payment %s. "
+            "Processed=%s Status=%s",
             payment.reference,
+            processed_total,
+            payment.status,
         )
