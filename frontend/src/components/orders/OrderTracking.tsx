@@ -93,6 +93,51 @@ function getHistoryTimestamp(
   return entry?.created_at ?? null;
 }
 
+function getRefundMessage(refundStatus: string | null) {
+  switch (refundStatus) {
+    case "PROCESSED":
+      return {
+        title: "Order Cancelled",
+        message:
+          "This order has been cancelled and your payment has been refunded.",
+        showContact: false,
+      };
+
+    case "PENDING":
+    case "PROCESSING":
+      return {
+        title: "Order Cancelled",
+        message:
+          "This order has been cancelled. Your refund is being processed.",
+        showContact: false,
+      };
+
+    case "NEEDS_ATTENTION":
+      return {
+        title: "Order Cancelled",
+        message:
+          "This order has been cancelled, but your refund requires further attention. Please contact us for assistance.",
+        showContact: true,
+      };
+
+    case "FAILED":
+      return {
+        title: "Order Cancelled",
+        message:
+          "This order has been cancelled, but we were unable to process your refund. Please contact us for assistance.",
+        showContact: true,
+      };
+
+    default:
+      return {
+        title: "Order Cancelled",
+        message:
+          "This order has been cancelled. Please contact us if you need assistance with your refund.",
+        showContact: true,
+      };
+  }
+}
+
 export default function OrderTracking({
   order,
 }: OrderTrackingProps) {
@@ -110,6 +155,10 @@ export default function OrderTracking({
 
   const isCompleted =
     currentIndex === stages.length - 1;
+
+  const refundMessage = getRefundMessage(
+    order.refund_status
+  );
 
   const getStageClasses = (
     index: number,
@@ -182,7 +231,6 @@ export default function OrderTracking({
     isSuccessful: boolean
   ) => {
     const isCurrent = index === currentIndex;
-
     const isPast = index < currentIndex;
 
     if (isCurrent || isSuccessful) {
@@ -225,7 +273,7 @@ export default function OrderTracking({
         </h2>
 
         <p className="text-sm text-(--color-text-muted)">
-            Here's the latest update on your order.
+          Here's the latest update on your order.
         </p>
       </div>
 
@@ -240,13 +288,11 @@ export default function OrderTracking({
             justify-center
             rounded-2xl
             border
-            border-red-200
-            bg-red-50
+            border-(--color-error)
+            bg-(--color-error-surface)
             px-5
             py-8
             text-center
-            dark:border-red-900/40
-            dark:bg-red-950/20
           "
         >
           <div
@@ -258,12 +304,9 @@ export default function OrderTracking({
               justify-center
               rounded-full
               border
-              border-red-300
-              bg-red-100
-              text-red-600
-              dark:border-red-800
-              dark:bg-red-950/40
-              dark:text-red-400
+              border-(--color-error)
+              bg-(--color-error-surface)
+              text-(--color-error)
             "
           >
             <XCircle
@@ -278,11 +321,10 @@ export default function OrderTracking({
               mt-4
               text-base
               font-semibold
-              text-red-700
-              dark:text-red-400
+              text-(--color-error)
             "
           >
-            Order Cancelled
+            {refundMessage.title}
           </p>
 
           <p
@@ -290,16 +332,37 @@ export default function OrderTracking({
               mt-1
               max-w-md
               text-sm
-              text-red-600/80
-              dark:text-red-400/70
+              text-(--color-error)
             "
           >
-            This order has been cancelled and your payment has been refunded.
+            {refundMessage.message}
           </p>
+
+          {refundMessage.showContact && (
+            <a
+              href="mailto:sampsonkpedev@icloud.com"
+              className="
+                mt-3
+                text-sm
+                font-semibold
+                text-(--color-error)
+                underline
+                underline-offset-4
+                transition-opacity
+                hover:opacity-75
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-(--color-error)
+                focus-visible:ring-offset-2
+              "
+            >
+              Please contact us
+            </a>
+          )}
         </div>
       )}
 
-      {/* Tracking timeline */}
+      {/* Tracking Timeline */}
       {!isCancelled && (
         <>
           {/* Desktop */}
@@ -307,9 +370,6 @@ export default function OrderTracking({
             <div className="grid grid-cols-4">
               {stages.map((stage, index) => {
                 const Icon = stage.icon;
-
-                const isCurrent =
-                  index === currentIndex;
 
                 const isLast =
                   index === stages.length - 1;
@@ -328,7 +388,7 @@ export default function OrderTracking({
                     key={stage.status}
                     className="relative"
                   >
-                    {/* Horizontal connector */}
+                    {/* Horizontal Connector */}
                     {!isLast && (
                       <div
                         className={`
@@ -377,7 +437,7 @@ export default function OrderTracking({
                         <Icon
                           size={20}
                           strokeWidth={
-                            isCurrent || isSuccessful
+                            index === currentIndex || isSuccessful
                               ? 2
                               : 1.7
                           }
@@ -420,9 +480,6 @@ export default function OrderTracking({
               {stages.map((stage, index) => {
                 const Icon = stage.icon;
 
-                const isCurrent =
-                  index === currentIndex;
-
                 const isLast =
                   index === stages.length - 1;
 
@@ -440,7 +497,7 @@ export default function OrderTracking({
                     key={stage.status}
                     className="relative flex min-h-20"
                   >
-                    {/* Vertical connector */}
+                    {/* Vertical Connector */}
                     {!isLast && (
                       <div
                         className={`
@@ -479,7 +536,7 @@ export default function OrderTracking({
                       <Icon
                         size={20}
                         strokeWidth={
-                          isCurrent || isSuccessful
+                          index === currentIndex || isSuccessful
                             ? 2
                             : 1.7
                         }
