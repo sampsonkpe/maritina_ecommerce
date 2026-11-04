@@ -35,10 +35,6 @@ export type DeliveryType =
 
 export const ORDER_STATUS_OPTIONS = [
   {
-    value: ORDER_STATUS.PENDING,
-    label: "Pending",
-  },
-  {
     value: ORDER_STATUS.CONFIRMED,
     label: "Confirmed",
   },
@@ -70,16 +66,8 @@ export const ORDER_STATUS_OPTIONS = [
 
 export const PAYMENT_STATUS_OPTIONS = [
   {
-    value: PAYMENT_STATUS.PENDING,
-    label: "Pending",
-  },
-  {
     value: PAYMENT_STATUS.PAID,
     label: "Paid",
-  },
-  {
-    value: PAYMENT_STATUS.FAILED,
-    label: "Failed",
   },
   {
     value: PAYMENT_STATUS.REFUNDED,

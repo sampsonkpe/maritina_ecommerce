@@ -2,13 +2,13 @@ from django.db import models
 from django.conf import settings
 
 from apps.common.constants import (
-    STATUS_PENDING,
     FULFILMENT_STATUS_CHOICES,
     PAYMENT_PENDING,
     PAYMENT_PAID,
     PAYMENT_STATUS_CHOICES,
     DELIVERY,
     DELIVERY_TYPE_CHOICES,
+    STATUS_CONFIRMED,
 )
 
 
@@ -67,7 +67,7 @@ class Order(models.Model):
     status = models.CharField(
         max_length=30,
         choices=FULFILMENT_STATUS_CHOICES,
-        default=STATUS_PENDING,
+        default=STATUS_CONFIRMED,
     )
 
     payment_status = models.CharField(

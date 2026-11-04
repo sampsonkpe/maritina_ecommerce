@@ -108,9 +108,6 @@ export default function OrderTracking({
   const isCancelled =
     order.status === ORDER_STATUS.CANCELLED;
 
-  const isPending =
-    order.status === ORDER_STATUS.PENDING;
-
   const isCompleted =
     currentIndex === stages.length - 1;
 
@@ -228,11 +225,7 @@ export default function OrderTracking({
         </h2>
 
         <p className="text-sm text-(--color-text-muted)">
-          {isCancelled
-            ? "This order was cancelled."
-            : isPending
-              ? "Your order is awaiting confirmation."
-              : "Here's the latest update on your order."}
+            Here's the latest update on your order.
         </p>
       </div>
 
@@ -301,7 +294,7 @@ export default function OrderTracking({
               dark:text-red-400/70
             "
           >
-            This order will not be fulfilled.
+            This order has been cancelled and your payment has been refunded.
           </p>
         </div>
       )}
