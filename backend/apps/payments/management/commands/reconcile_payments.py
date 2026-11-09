@@ -7,16 +7,18 @@ from apps.payments.services.paystack import (
 
 class Command(BaseCommand):
 
-    help = "Reconcile initiated Paystack payments."
+    help = "Reconcile pending Paystack refunds."
 
     def handle(self, *args, **options):
 
         service = PaystackPaymentService()
 
-        count = service.reconcile_pending_payments()
+        refund_count = (
+            service.reconcile_pending_refunds()
+        )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Reconciled {count} payment(s)."
+                f"Reconciled {refund_count} refund(s)."
             )
         )

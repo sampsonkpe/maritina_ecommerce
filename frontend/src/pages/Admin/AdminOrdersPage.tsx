@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type {ReactNode} from "react";
+import type { ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { orderService } from "../../services/orderService";
@@ -123,6 +123,90 @@ export default function AdminOrdersPage() {
     debouncedSearch,
   ]);
 
+  /*
+   * Refresh orders while cancellation refunds are active.
+   * Polling stops when no orders require refund monitoring.
+   */
+  const hasActiveCancellationRefunds = orders.some(
+    (order) =>
+      ["PENDING", "PROCESSING", "NEEDS_ATTENTION"].includes(
+        order.cancellation_refund_status ?? ""
+      )
+  );
+
+  useEffect(() => {
+    if (!hasActiveCancellationRefunds) {
+      return;
+    }
+
+    const refreshOrders = async () => {
+      try {
+        const data = await orderService.getAdminOrders({
+          status: statusFilter,
+          paymentStatus: paymentStatusFilter,
+          deliveryType: deliveryTypeFilter,
+          search: debouncedSearch,
+        });
+
+        setOrders((currentOrders) => {
+          const previousStatuses = new Map(
+            currentOrders.map((order) => [
+              order.id,
+              order.status,
+            ])
+          );
+
+          setSelectedStatuses((currentStatuses) => {
+            const updatedStatuses = {
+              ...currentStatuses,
+            };
+
+            data.forEach((order) => {
+              const previousStatus = previousStatuses.get(
+                order.id
+              );
+
+              /*
+               * Update the dropdown only when it still
+               * reflects the previous actual order status.
+               * This preserves any unsaved admin selection.
+               */
+              if (
+                currentStatuses[order.id] === previousStatus
+              ) {
+                updatedStatuses[order.id] = order.status;
+              }
+            });
+
+            return updatedStatuses;
+          });
+
+          return data;
+        });
+      } catch (error) {
+        console.error(
+          "Failed to refresh orders:",
+          error
+        );
+      }
+    };
+
+    const interval = window.setInterval(
+      refreshOrders,
+      20000
+    );
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [
+    hasActiveCancellationRefunds,
+    statusFilter,
+    paymentStatusFilter,
+    deliveryTypeFilter,
+    debouncedSearch,
+  ]);
+
   const toggleOrder = (orderId: number) => {
     setExpandedOrders((current) =>
       current.includes(orderId)
@@ -238,33 +322,24 @@ export default function AdminOrdersPage() {
 
     try {
       const result =
-        await orderService.cancelAdminOrder(
-          orderId
-        );
+        await orderService.cancelAdminOrder(orderId);
 
       /*
        * Unpaid orders are cancelled immediately.
        *
-       * Paid orders are different:
-       * cancellation starts the refund workflow, but
-       * the order remains in its current status until
-       * Paystack confirms the refund as processed.
+       * Paid orders remain in their current status
+       * until Paystack confirms the refund.
        */
-      if (
-        result.status ===
-        ORDER_STATUS.CANCELLED
-      ) {
+      if (result.status === ORDER_STATUS.CANCELLED) {
         setOrders((current) =>
           current.map((order) =>
             order.id === orderId
               ? {
                   ...order,
-                  status:
-                    ORDER_STATUS.CANCELLED,
-                  payment_status:
-                    result.payment_status as Order[
-                      "payment_status"
-                    ],
+                  status: ORDER_STATUS.CANCELLED,
+                  payment_status: result.payment_status as Order[
+                    "payment_status"
+                  ],
                 }
               : order
           )
@@ -272,20 +347,42 @@ export default function AdminOrdersPage() {
 
         setSelectedStatuses((current) => ({
           ...current,
-          [orderId]:
-            ORDER_STATUS.CANCELLED,
+          [orderId]: ORDER_STATUS.CANCELLED,
         }));
 
         setMessage(
           `Order #${orderId} cancelled successfully.`
         );
       } else {
+        /*
+         * Immediately retrieve the latest refund status
+         * from the backend after initiating cancellation.
+         */
+        const data = await orderService.getAdminOrders({
+          status: statusFilter,
+          paymentStatus: paymentStatusFilter,
+          deliveryType: deliveryTypeFilter,
+          search: debouncedSearch,
+        });
+
+        setOrders(data);
+
+        setSelectedStatuses((current) => {
+          const updatedStatuses = { ...current };
+
+          data.forEach((order) => {
+            updatedStatuses[order.id] = order.status;
+          });
+
+          return updatedStatuses;
+        });
+
         setMessage(
           <>
             Refund initiated for{" "}
-            <strong>Order #{orderId}</strong>.{" "}
-              The order will be <strong> cancelled once the refund is
-              successfully processed.
+            <strong>Order #{orderId}</strong>. The order will be{" "}
+            <strong>
+              cancelled once the refund is successfully processed.
             </strong>
           </>
         );
@@ -311,9 +408,7 @@ export default function AdminOrdersPage() {
 
   const activeOrders = orders.filter(
     (order) =>
-      !activeExcludedStatuses.includes(
-        order.status
-      )
+      !activeExcludedStatuses.includes(order.status)
   );
 
   const fulfilledOrders = orders.filter(
@@ -332,9 +427,7 @@ export default function AdminOrdersPage() {
   ) => (
     <div className="space-y-5">
       {ordersToRender.map((order) => {
-        const expanded = expandedOrders.includes(
-          order.id
-        );
+        const expanded = expandedOrders.includes(order.id);
 
         const cancelling =
           cancellingOrders.includes(order.id);
@@ -355,35 +448,25 @@ export default function AdminOrdersPage() {
               order={order}
               showCustomer
               expanded={expanded}
-              onToggle={() =>
-                toggleOrder(order.id)
-              }
+              onToggle={() => toggleOrder(order.id)}
             />
 
             {expanded && (
               <AdminOrderDetails
                 order={order}
                 selectedStatus={
-                  selectedStatuses[order.id] ??
-                  order.status
+                  selectedStatuses[order.id] ?? order.status
                 }
-                updating={updatingOrders.includes(
-                  order.id
-                )}
+                updating={updatingOrders.includes(order.id)}
                 cancelling={cancelling}
-                onCancel={() =>
-                  handleCancelOrder(order.id)
-                }
+                onCancel={() => handleCancelOrder(order.id)}
                 onStatusChange={(status) =>
                   setSelectedStatuses((current) => ({
                     ...current,
-                    [order.id]:
-                      status as Order["status"],
+                    [order.id]: status as Order["status"],
                   }))
                 }
-                onUpdate={() =>
-                  handleUpdateStatus(order.id)
-                }
+                onUpdate={() => handleUpdateStatus(order.id)}
               />
             )}
 
@@ -407,8 +490,7 @@ export default function AdminOrdersPage() {
       return null;
     }
 
-    const collapsed =
-      collapsedSections.includes(key);
+    const collapsed = collapsedSections.includes(key);
 
     return (
       <section>

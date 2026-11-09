@@ -17,6 +17,12 @@ import OrderItemsList from "../../components/orders/OrderItemsList";
 import OrderSummary from "../../components/orders/OrderSummary";
 import OrderTracking from "../../components/orders/OrderTracking";
 
+const ACTIVE_REFUND_STATUSES = [
+  "PENDING",
+  "PROCESSING",
+  "NEEDS_ATTENTION",
+];
+
 export default function OrderTrackingPage() {
   const { orderId } = useParams<{
     orderId: string;
@@ -31,6 +37,10 @@ export default function OrderTrackingPage() {
   const [error, setError] =
     useState("");
 
+  /*
+   * Load the order when the page opens
+   * or when the order ID changes.
+   */
   useEffect(() => {
     let cancelled = false;
 
@@ -51,6 +61,7 @@ export default function OrderTrackingPage() {
 
       setLoading(true);
       setError("");
+      setOrder(null);
 
       try {
         const data =
@@ -86,6 +97,70 @@ export default function OrderTrackingPage() {
       cancelled = true;
     };
   }, [orderId]);
+
+  /*
+   * Automatically refresh the order while
+   * its cancellation refund is being processed.
+   */
+  useEffect(() => {
+    if (
+      !order ||
+      !ACTIVE_REFUND_STATUSES.includes(
+        order.cancellation_refund_status ?? ""
+      )
+    ) {
+      return;
+    }
+
+    const parsedOrderId = Number(orderId);
+
+    if (!Number.isInteger(parsedOrderId)) {
+      return;
+    }
+
+    let cancelled = false;
+    let refreshing = false;
+
+    const refreshOrder = async () => {
+      if (refreshing) {
+        return;
+      }
+
+      refreshing = true;
+
+      try {
+        const data =
+          await orderService.getOrder(
+            parsedOrderId
+          );
+
+        if (!cancelled) {
+          setOrder(data);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to refresh order:",
+          error
+        );
+      } finally {
+        refreshing = false;
+      }
+    };
+
+    const interval = window.setInterval(
+      refreshOrder,
+      20000
+    );
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [
+    orderId,
+    order?.cancellation_refund_status,
+    order?.status,
+  ]);
 
   if (loading) {
     return (
