@@ -35,6 +35,7 @@ export interface Order {
   paid_at: string | null;
   refunded_amount: number | string;
   refund_status: string | null;
+  cancellation_refund_status: string | null;
 
   address: number | null;
   address_text: string | null;

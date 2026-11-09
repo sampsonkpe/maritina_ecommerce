@@ -93,7 +93,10 @@ function getHistoryTimestamp(
   return entry?.created_at ?? null;
 }
 
-function getRefundMessage(refundStatus: string | null) {
+function getRefundMessage(
+  refundStatus: string | null,
+  isCancelled: boolean
+) {
   switch (refundStatus) {
     case "PROCESSED":
       return {
@@ -101,40 +104,48 @@ function getRefundMessage(refundStatus: string | null) {
         message:
           "This order has been cancelled and your payment has been refunded.",
         showContact: false,
+        isError: false,
       };
 
     case "PENDING":
     case "PROCESSING":
       return {
-        title: "Order Cancelled",
+        title: "Cancellation Requested",
         message:
-          "This order has been cancelled. Your refund is being processed.",
+          "Your cancellation request has been received. Your refund is being processed, and the order will only be cancelled once the refund is confirmed.",
         showContact: false,
+        isError: false,
       };
 
     case "NEEDS_ATTENTION":
       return {
-        title: "Order Cancelled",
+        title: "Cancellation Requires Attention",
         message:
-          "This order has been cancelled, but your refund requires further attention. Please contact us for assistance.",
+          "Your refund requires further attention. Your order has not yet been cancelled. Please contact us for assistance.",
         showContact: true,
+        isError: true,
       };
 
     case "FAILED":
       return {
-        title: "Order Cancelled",
+        title: "Refund Failed",
         message:
-          "This order has been cancelled, but we were unable to process your refund. Please contact us for assistance.",
+          "We were unable to process your refund, so your order has not been cancelled. Please contact us for assistance.",
         showContact: true,
+        isError: true,
       };
 
     default:
-      return {
-        title: "Order Cancelled",
-        message:
-          "This order has been cancelled. Please contact us if you need assistance with your refund.",
-        showContact: true,
-      };
+      if (isCancelled) {
+        return {
+          title: "Order Cancelled",
+          message: "This order has been cancelled.",
+          showContact: false,
+          isError: true,
+        };
+      }
+
+      return null;
   }
 }
 
@@ -157,7 +168,8 @@ export default function OrderTracking({
     currentIndex === stages.length - 1;
 
   const refundMessage = getRefundMessage(
-    order.refund_status
+    order.cancellation_refund_status,
+    isCancelled
   );
 
   const getStageClasses = (
@@ -277,10 +289,10 @@ export default function OrderTracking({
         </p>
       </div>
 
-      {/* Cancelled */}
-      {isCancelled && (
+      {/* Cancellation / Refund Status */}
+      {refundMessage && (
         <div
-          className="
+          className={`
             mt-8
             flex
             flex-col
@@ -288,15 +300,26 @@ export default function OrderTracking({
             justify-center
             rounded-2xl
             border
-            border-(--color-error)
-            bg-(--color-error-surface)
             px-5
             py-8
             text-center
-          "
+            ${
+              refundMessage.isError
+                ? `
+                  border-(--color-error)
+                  bg-(--color-error-surface)
+                  text-(--color-error)
+                `
+                : `
+                  border-(--color-border)
+                  bg-(--color-surface-muted)
+                  text-(--color-text)
+                `
+            }
+          `}
         >
           <div
-            className="
+            className={`
               flex
               h-12
               w-12
@@ -304,10 +327,20 @@ export default function OrderTracking({
               justify-center
               rounded-full
               border
-              border-(--color-error)
-              bg-(--color-error-surface)
-              text-(--color-error)
-            "
+              ${
+                refundMessage.isError
+                  ? `
+                    border-(--color-error)
+                    bg-(--color-error-surface)
+                    text-(--color-error)
+                  `
+                  : `
+                    border-(--color-border)
+                    bg-(--color-surface)
+                    text-(--color-text-muted)
+                  `
+              }
+            `}
           >
             <XCircle
               size={22}
@@ -317,23 +350,31 @@ export default function OrderTracking({
           </div>
 
           <p
-            className="
+            className={`
               mt-4
               text-base
               font-semibold
-              text-(--color-error)
-            "
+              ${
+                refundMessage.isError
+                  ? "text-(--color-error)"
+                  : "text-(--color-text)"
+              }
+            `}
           >
             {refundMessage.title}
           </p>
 
           <p
-            className="
+            className={`
               mt-1
               max-w-md
               text-sm
-              text-(--color-error)
-            "
+              ${
+                refundMessage.isError
+                  ? "text-(--color-error)"
+                  : "text-(--color-text-muted)"
+              }
+            `}
           >
             {refundMessage.message}
           </p>
@@ -345,7 +386,6 @@ export default function OrderTracking({
                 mt-3
                 text-sm
                 font-semibold
-                text-(--color-error)
                 underline
                 underline-offset-4
                 transition-opacity

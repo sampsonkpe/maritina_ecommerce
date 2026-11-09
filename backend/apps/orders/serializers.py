@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from apps.payments.models import Refund
 from .models import Order, OrderItem, OrderStatusHistory
 
 
@@ -93,6 +95,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     refunded_amount = serializers.SerializerMethodField()
     refund_status = serializers.SerializerMethodField()
+    cancellation_refund_status = serializers.SerializerMethodField()
 
     def get_refunded_amount(self, obj):
         payment = (
@@ -118,6 +121,28 @@ class OrderSerializer(serializers.ModelSerializer):
 
         refund = (
             payment.refunds
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not refund:
+            return None
+
+        return refund.status
+
+    def get_cancellation_refund_status(self, obj):
+        payment = (
+            obj.payments
+            .order_by("-created_at")
+            .first()
+        )
+
+        if not payment:
+            return None
+
+        refund = (
+            payment.refunds
+            .filter(is_cancellation_refund=True)
             .order_by("-created_at")
             .first()
         )
@@ -165,6 +190,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "paid_at",
             "refunded_amount",
             "refund_status",
+            "cancellation_refund_status",
             "address",
             "address_text",
             "items",
