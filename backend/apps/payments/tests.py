@@ -4,6 +4,10 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from requests.exceptions import RequestException
+
+from apps.payments.services.paystack.paystack_client import (
+    PaystackRequestUncertain,
+)
 from rest_framework.test import APITestCase
 
 from apps.cart.models import Cart, CartItem
@@ -504,24 +508,26 @@ class PaystackInitialisationFailureTests(TestCase):
             "Paystack unavailable"
         )
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(PaystackRequestUncertain):
             self.service.initialize_payment(
                 self.checkout,
                 self.user.email,
             )
 
+        # The request may have reached Paystack. Keep the checkout
+        # and its stock reservation intact until its outcome is known.
         self.checkout.refresh_from_db()
 
         self.assertEqual(
             self.checkout.status,
-            CheckoutTransaction.STATUS_FAILED,
+            CheckoutTransaction.STATUS_PENDING,
         )
 
         self.assertEqual(
             StockReservation.objects.filter(
                 checkout=self.checkout,
             ).count(),
-            0,
+            1,
         )
 
         payment = Payment.objects.get(
@@ -530,7 +536,7 @@ class PaystackInitialisationFailureTests(TestCase):
 
         self.assertEqual(
             payment.status,
-            Payment.STATUS_FAILED,
+            Payment.STATUS_INITIATED,
         )
 
         self.variant.refresh_from_db()
@@ -718,7 +724,6 @@ class PaymentRefundTests(APITestCase):
             "message": "Refund initiated",
             "data": {
                 "id": 12345,
-                "refund_reference": "REFUND-123",
                 "amount": 1000000,
                 "status": "processed",
             },
@@ -746,9 +751,8 @@ class PaymentRefundTests(APITestCase):
             10000,
         )
 
-        self.assertEqual(
-            self.payment.refund_reference,
-            "REFUND-123",
+        self.assertTrue(
+            self.payment.refund_reference.startswith("rf_"),
         )
 
     def test_cannot_refund_failed_payment(self):
