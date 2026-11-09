@@ -38,14 +38,23 @@ export default function OrderStatusEditor({
   const isPaid =
     order.payment_status === "PAID";
 
+  const cancellationRefundStatus =
+    order.cancellation_refund_status;
+
+  const cancellationRefundActive = [
+    "PENDING",
+    "PROCESSING",
+    "NEEDS_ATTENTION",
+  ].includes(cancellationRefundStatus ?? "");
+
+  const cancellationRefundFailed =
+    cancellationRefundStatus === "FAILED";
+
   const availableStatuses = [
     order.status,
     ...nextStatuses.filter((status) => {
       /*
        * Fulfilment may only begin after payment.
-       *
-       * This mirrors the backend protection in
-       * OrderService.update_order_status().
        */
       const requiresPayment =
         status === ORDER_STATUS.CONFIRMED ||
@@ -158,22 +167,46 @@ export default function OrderStatusEditor({
 
       {canCancel && (
         <div className="mt-6 border-t border-(--color-border) pt-5 text-center">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onCancel}
-            disabled={updating || cancelling}
-            rounded="2xl"
-          >
-            {cancelling
-              ? "Processing..."
-              : "Cancel Order"}
-          </Button>
+          {cancellationRefundActive ? (
+            <>
+              <StatusBadge
+                status={cancellationRefundStatus!}
+              />
 
-          <p className="mt-2 text-sm text-(--color-text-muted)">
-            Paid orders are refunded before cancellation
-            is completed.
-          </p>
+              <p className="mt-3 text-sm text-(--color-text-muted)">
+                {cancellationRefundStatus === "PENDING" &&
+                  "The cancellation refund is pending. The order will remain in its current status until the refund is confirmed."}
+
+                {cancellationRefundStatus === "PROCESSING" &&
+                  "The cancellation refund is being processed. The order will only be cancelled once the refund is confirmed."}
+
+                {cancellationRefundStatus === "NEEDS_ATTENTION" &&
+                  "The cancellation refund requires attention. Please resolve the refund issue before attempting another cancellation."}
+              </p>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onCancel}
+                disabled={updating || cancelling}
+                rounded="2xl"
+              >
+                {cancelling
+                  ? "Processing..."
+                  : cancellationRefundFailed
+                    ? "Retry Cancellation"
+                    : "Cancel Order"}
+              </Button>
+
+              <p className="mt-2 text-sm text-(--color-text-muted)">
+                {cancellationRefundFailed
+                  ? "The previous refund failed. You can retry the cancellation."
+                  : "Paid orders are refunded before cancellation is completed."}
+              </p>
+            </>
+          )}
         </div>
       )}
     </div>

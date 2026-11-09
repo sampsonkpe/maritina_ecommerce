@@ -104,17 +104,17 @@ function getRefundMessage(
         message:
           "This order has been cancelled and your payment has been refunded.",
         showContact: false,
-        isError: false,
+        variant: "cancelled" as const,
       };
 
     case "PENDING":
     case "PROCESSING":
       return {
-        title: "Cancellation Requested",
+        title: "Cancellation in Progress",
         message:
-          "Your cancellation request has been received. Your refund is being processed, and the order will only be cancelled once the refund is confirmed.",
+          "The store has initiated a cancellation for this order. Your refund is being processed, and the order will be cancelled once the refund is confirmed.",
         showContact: false,
-        isError: false,
+        variant: "warning" as const,
       };
 
     case "NEEDS_ATTENTION":
@@ -123,7 +123,7 @@ function getRefundMessage(
         message:
           "Your refund requires further attention. Your order has not yet been cancelled. Please contact us for assistance.",
         showContact: true,
-        isError: true,
+        variant: "error" as const,
       };
 
     case "FAILED":
@@ -132,7 +132,7 @@ function getRefundMessage(
         message:
           "We were unable to process your refund, so your order has not been cancelled. Please contact us for assistance.",
         showContact: true,
-        isError: true,
+        variant: "error" as const,
       };
 
     default:
@@ -141,7 +141,7 @@ function getRefundMessage(
           title: "Order Cancelled",
           message: "This order has been cancelled.",
           showContact: false,
-          isError: true,
+          variant: "cancelled" as const,
         };
       }
 
@@ -256,6 +256,36 @@ export default function OrderTracking({
     return "opacity-75";
   };
 
+  const refundStyles = {
+    warning: {
+      container:
+        "border-amber-500/60 bg-amber-500/10 text-amber-400",
+      icon:
+        "border-amber-500/60 bg-amber-500/10 text-amber-400",
+      title: "text-amber-400",
+      message: "text-amber-300",
+      link: "focus-visible:ring-amber-500",
+    },
+    error: {
+      container:
+        "border-red-500/60 bg-red-500/10 text-red-400",
+      icon:
+        "border-red-500/60 bg-red-500/10 text-red-400",
+      title: "text-red-400",
+      message: "text-red-300",
+      link: "focus-visible:ring-red-500",
+    },
+    cancelled: {
+      container:
+        "border-red-500/60 bg-red-500/10 text-red-400",
+      icon:
+        "border-red-500/60 bg-red-500/10 text-red-400",
+      title: "text-red-400",
+      message: "text-red-300",
+      link: "focus-visible:ring-red-500",
+    },
+  };
+
   return (
     <section
       className="
@@ -303,19 +333,7 @@ export default function OrderTracking({
             px-5
             py-8
             text-center
-            ${
-              refundMessage.isError
-                ? `
-                  border-(--color-error)
-                  bg-(--color-error-surface)
-                  text-(--color-error)
-                `
-                : `
-                  border-(--color-border)
-                  bg-(--color-surface-muted)
-                  text-(--color-text)
-                `
-            }
+            ${refundStyles[refundMessage.variant].container}
           `}
         >
           <div
@@ -327,19 +345,7 @@ export default function OrderTracking({
               justify-center
               rounded-full
               border
-              ${
-                refundMessage.isError
-                  ? `
-                    border-(--color-error)
-                    bg-(--color-error-surface)
-                    text-(--color-error)
-                  `
-                  : `
-                    border-(--color-border)
-                    bg-(--color-surface)
-                    text-(--color-text-muted)
-                  `
-              }
+              ${refundStyles[refundMessage.variant].icon}
             `}
           >
             <XCircle
@@ -354,11 +360,7 @@ export default function OrderTracking({
               mt-4
               text-base
               font-semibold
-              ${
-                refundMessage.isError
-                  ? "text-(--color-error)"
-                  : "text-(--color-text)"
-              }
+              ${refundStyles[refundMessage.variant].title}
             `}
           >
             {refundMessage.title}
@@ -369,11 +371,7 @@ export default function OrderTracking({
               mt-1
               max-w-md
               text-sm
-              ${
-                refundMessage.isError
-                  ? "text-(--color-error)"
-                  : "text-(--color-text-muted)"
-              }
+              ${refundStyles[refundMessage.variant].message}
             `}
           >
             {refundMessage.message}
@@ -382,7 +380,7 @@ export default function OrderTracking({
           {refundMessage.showContact && (
             <a
               href="mailto:sampsonkpedev@icloud.com"
-              className="
+              className={`
                 mt-3
                 text-sm
                 font-semibold
@@ -392,9 +390,9 @@ export default function OrderTracking({
                 hover:opacity-75
                 focus-visible:outline-none
                 focus-visible:ring-2
-                focus-visible:ring-(--color-error)
                 focus-visible:ring-offset-2
-              "
+                ${refundStyles[refundMessage.variant].link}
+              `}
             >
               Please contact us
             </a>
@@ -428,7 +426,6 @@ export default function OrderTracking({
                     key={stage.status}
                     className="relative"
                   >
-                    {/* Horizontal Connector */}
                     {!isLast && (
                       <div
                         className={`
@@ -448,7 +445,6 @@ export default function OrderTracking({
                       />
                     )}
 
-                    {/* Stage */}
                     <div
                       className="
                         relative
@@ -537,7 +533,6 @@ export default function OrderTracking({
                     key={stage.status}
                     className="relative flex min-h-20"
                   >
-                    {/* Vertical Connector */}
                     {!isLast && (
                       <div
                         className={`
@@ -555,7 +550,6 @@ export default function OrderTracking({
                       />
                     )}
 
-                    {/* Icon */}
                     <div
                       className={`
                         relative
@@ -584,7 +578,6 @@ export default function OrderTracking({
                       />
                     </div>
 
-                    {/* Details */}
                     <div className="ml-4 min-w-0 pt-1">
                       <p
                         className={`
