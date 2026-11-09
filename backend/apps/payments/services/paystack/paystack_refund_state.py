@@ -4,6 +4,11 @@ from decimal import Decimal
 from django.db import models, transaction
 from django.utils import timezone
 
+from apps.common.constants import (
+    PAYMENT_REFUNDED,
+    STATUS_CANCELLED,
+)
+
 from ...models import Payment, Refund
 
 from .paystack_utils import map_refund_status
@@ -108,14 +113,17 @@ class PaystackRefundStateMixin:
             update_fields=update_fields
         )
 
-        # A completed full refund updates the order's
-        # payment status, but never its order status.
+        # Update the associated order after a full refund.
+
         if (
             processed_total >= payment.amount
             and payment.order_id
         ):
-            from apps.common.constants import PAYMENT_REFUNDED
-            from apps.orders.models import Order
+
+            from apps.orders.models import (
+                Order,
+                OrderStatusHistory,
+            )
 
             order = (
                 Order.objects
@@ -125,12 +133,46 @@ class PaystackRefundStateMixin:
 
             if order.payment_status != PAYMENT_REFUNDED:
                 order.payment_status = PAYMENT_REFUNDED
-                order.save(
-                    update_fields=[
-                        "payment_status",
-                        "updated_at",
-                    ]
+
+            # Only cancellation refunds can trigger
+            # cancellation of the order.
+
+            cancellation_refund = (
+                payment.refunds
+                .filter(
+                    is_cancellation_refund=True,
+                    status=Refund.STATUS_PROCESSED,
                 )
+                .order_by("-processed_at", "-created_at")
+                .first()
+            )
+
+            order_update_fields = [
+                "payment_status",
+                "updated_at",
+            ]
+
+            if (
+                cancellation_refund
+                and order.status != STATUS_CANCELLED
+            ):
+
+                old_status = order.status
+
+                order.status = STATUS_CANCELLED
+
+                OrderStatusHistory.objects.create(
+                    order=order,
+                    old_status=old_status,
+                    new_status=STATUS_CANCELLED,
+                    updated_by=cancellation_refund.initiated_by,
+                )
+
+                order_update_fields.append("status")
+
+            order.save(
+                update_fields=order_update_fields
+            )
 
         logger.info(
             "Synced refund state for payment %s. "

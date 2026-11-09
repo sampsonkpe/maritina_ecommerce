@@ -10,6 +10,9 @@ from django.core.exceptions import ValidationError
 
 from .models import Payment
 from .services.factory import PaymentServiceFactory
+from .services.paystack.paystack_client import (
+    PaystackRequestUncertain,
+)
 
 from apps.common.models import AuditLog
 from apps.common.services import record_admin_action
@@ -116,7 +119,21 @@ class AdminPaymentRefundView(APIView):
             result = payment_service.refund(
                 payment,
                 amount=amount,
-                is_cancellation_refund=True,
+                is_cancellation_refund=False,
+            )
+
+        except PaystackRequestUncertain:
+            return Response(
+                {
+                    "message": (
+                        "The refund request may have reached "
+                        "Paystack, but its outcome could not "
+                        "be confirmed. Please investigate "
+                        "before attempting another refund."
+                    ),
+                    "status": "NEEDS_ATTENTION",
+                },
+                status=status.HTTP_202_ACCEPTED,
             )
 
         except ValidationError as error:

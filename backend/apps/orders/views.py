@@ -1,7 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from apps.payments.services.paystack.paystack_client import (
+    PaystackRequestUncertain,
+)
 
 from .models import Order
 
@@ -74,59 +77,47 @@ class ClaimGuestOrdersView(APIView):
 
 class CancelOrderView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def post(self, request, order_id):
 
         try:
-            order = OrderService.cancel_order(
+            order = OrderService.admin_cancel_order(
                 order_id=order_id,
-                user=request.user,
+                updated_by=request.user,
             )
-
-            if order.status == "CANCELLED":
-                return Response(
-                    {
-                        "message": (
-                            "Order cancelled successfully."
-                        ),
-                        "status": order.status,
-                        "payment_status": (
-                            order.payment_status
-                        ),
-                    },
-                    status=status.HTTP_200_OK,
-                )
 
             return Response(
                 {
-                    "message": (
-                        "Refund initiated. "
-                        "The order will be cancelled "
-                        "once the refund is successfully "
-                        "processed."
-                    ),
+                    "message": "Order cancelled successfully.",
                     "status": order.status,
-                    "payment_status": (
-                        order.payment_status
-                    ),
+                    "payment_status": order.payment_status,
                 },
                 status=status.HTTP_200_OK,
             )
 
         except Order.DoesNotExist:
             return Response(
-                {
-                    "error": "Order not found."
-                },
+                {"error": "Order not found."},
                 status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except PaystackRequestUncertain:
+            return Response(
+                {
+                    "message": (
+                        "The refund outcome is uncertain. "
+                        "The order has not been cancelled. "
+                        "Please investigate the refund."
+                    ),
+                    "status": "REFUND_NEEDS_ATTENTION",
+                },
+                status=status.HTTP_202_ACCEPTED,
             )
 
         except ValueError as error:
             return Response(
-                {
-                    "error": str(error)
-                },
+                {"error": str(error)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

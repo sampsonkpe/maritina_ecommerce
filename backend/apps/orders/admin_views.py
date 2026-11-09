@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
@@ -7,15 +9,13 @@ from .models import Order
 from .serializers import OrderSerializer
 from .services import OrderService
 
-from django.core.exceptions import ValidationError
+from apps.common.constants import STATUS_CANCELLED
 
 
 class AdminOrdersView(APIView):
-
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-
         orders = OrderService.list_admin_orders(
             status_filter=request.query_params.get("status"),
             payment_status_filter=request.query_params.get(
@@ -36,13 +36,10 @@ class AdminOrdersView(APIView):
 
 
 class UpdateOrderStatusView(APIView):
-
     permission_classes = [IsAdminUser]
 
     def patch(self, request, order_id):
-
         try:
-
             order = OrderService.update_order_status(
                 order_id=order_id,
                 new_status=request.data.get("status"),
@@ -51,39 +48,44 @@ class UpdateOrderStatusView(APIView):
 
             return Response(
                 {
-                    "message": "Order status updated",
+                    "message": "Order status updated.",
                     "status": order.status,
-                }
+                },
+                status=status.HTTP_200_OK,
             )
 
         except Order.DoesNotExist:
-
             return Response(
                 {"error": "Order not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        except ValueError as error:
+        except (ValueError, ValidationError) as error:
+            message = (
+                error.messages[0]
+                if isinstance(error, ValidationError) and error.messages
+                else str(error)
+            )
 
             return Response(
-                {"error": str(error)},
+                {"error": message},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
 
 class AdminCancelOrderView(APIView):
-
     permission_classes = [IsAdminUser]
 
     def post(self, request, order_id):
-
         try:
             order = OrderService.admin_cancel_order(
                 order_id=order_id,
                 updated_by=request.user,
             )
 
-            if order.status == "CANCELLED":
+            # Cancellation is complete only after the refund
+            # has been successfully processed.
+            if order.status == STATUS_CANCELLED:
                 return Response(
                     {
                         "message": "Order cancelled successfully.",
@@ -93,18 +95,18 @@ class AdminCancelOrderView(APIView):
                     status=status.HTTP_200_OK,
                 )
 
+            # Refund is still awaiting confirmation.
+            # The order must remain in its existing status.
             return Response(
                 {
                     "message": (
-                        "Refund requested successfully. "
-                        "The order will be cancelled once "
-                        "Paystack successfully processes "
-                        "the refund."
+                        "Refund initiated. Order cancellation "
+                        "is pending confirmation."
                     ),
                     "status": order.status,
                     "payment_status": order.payment_status,
                 },
-                status=status.HTTP_200_OK,
+                status=status.HTTP_202_ACCEPTED,
             )
 
         except Order.DoesNotExist:
