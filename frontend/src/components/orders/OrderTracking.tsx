@@ -128,11 +128,11 @@ function getRefundMessage(
 
     case "FAILED":
       return {
-        title: "Refund Failed",
+        title: "Refund Delayed",
         message:
-          "We were unable to process your refund, so your order has not been cancelled. Please contact us for assistance.",
+          "We couldn't complete your refund at this time. Your order has not been cancelled, and we're working to resolve the issue. Please contact us if you need assistance.",
         showContact: true,
-        variant: "error" as const,
+        variant: "warning" as const,
       };
 
     default:

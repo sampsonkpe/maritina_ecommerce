@@ -171,9 +171,10 @@ export default function OrderStatusEditor({
             <>
               <StatusBadge
                 status={cancellationRefundStatus!}
+                className="!min-h-11 !rounded-(--radius-xl) !px-5 !py-2.5 !text-sm !font-medium !leading-none"
               />
 
-              <p className="mt-3 text-sm text-(--color-text-muted)">
+              <p className="mt-4 text-sm text-(--color-text-muted)">
                 {cancellationRefundStatus === "PENDING" &&
                   "The cancellation refund is pending. The order will remain in its current status until the refund is confirmed."}
 

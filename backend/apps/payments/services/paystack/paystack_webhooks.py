@@ -108,8 +108,13 @@ class PaystackWebhooksMixin:
 
         payload_status = data.get("status")
 
-        if payload_status and payload_status != status.lower().replace(
-            "_", "-"
+        expected_payload_status = (
+            status.lower().replace("_", "-")
+        )
+
+        if (
+            payload_status
+            and payload_status != expected_payload_status
         ):
             logger.warning(
                 "Paystack refund event/status mismatch. "
@@ -118,12 +123,31 @@ class PaystackWebhooksMixin:
                 payload_status,
             )
 
-        refund_reference = (
-            data.get("refund_reference")
-            or data.get("reference")
-        )
+        # Merchant-generated reference supplied when
+        # initiating the refund.
+        refund_reference = data.get("reference")
 
-        paystack_refund_id = data.get("id")
+        # Paystack-generated refund reference.
+        paystack_reference = data.get("refund_reference")
+
+        raw_paystack_refund_id = data.get("id")
+
+        try:
+            paystack_refund_id = (
+                int(raw_paystack_refund_id)
+                if raw_paystack_refund_id is not None
+                else None
+            )
+
+            if paystack_refund_id is not None and paystack_refund_id <= 0:
+                raise ValueError
+
+        except (TypeError, ValueError):
+            logger.error(
+                "Invalid Paystack refund ID: %s",
+                raw_paystack_refund_id,
+            )
+            return
 
         refund, ambiguous = self._find_refund_for_webhook(
             payment=payment,
@@ -168,11 +192,15 @@ class PaystackWebhooksMixin:
                 )
                 return
 
+            # An unmatched provider refund may be recorded
+            # only when there is no outstanding cancellation
+            # refund that could be incorrectly classified.
             refund = Refund.objects.create(
                 payment=payment,
                 order=payment.order,
                 paystack_refund_id=paystack_refund_id,
                 refund_reference=refund_reference,
+                paystack_reference=paystack_reference,
                 transaction_reference=transaction_reference,
                 amount=amount,
                 status=status,
@@ -203,11 +231,25 @@ class PaystackWebhooksMixin:
                 and refund.refund_reference != refund_reference
             ):
                 logger.error(
-                    "Paystack refund reference mismatch. "
+                    "Paystack merchant refund reference mismatch. "
                     "Refund=%s Local=%s Webhook=%s",
                     refund.id,
                     refund.refund_reference,
                     refund_reference,
+                )
+                return
+
+            if (
+                paystack_reference
+                and refund.paystack_reference
+                and refund.paystack_reference != paystack_reference
+            ):
+                logger.error(
+                    "Paystack provider refund reference mismatch. "
+                    "Refund=%s Local=%s Webhook=%s",
+                    refund.id,
+                    refund.paystack_reference,
+                    paystack_reference,
                 )
                 return
 
@@ -222,11 +264,14 @@ class PaystackWebhooksMixin:
                 )
                 return
 
+            if refund_reference and not refund.refund_reference:
+                refund.refund_reference = refund_reference
+
+            if paystack_reference:
+                refund.paystack_reference = paystack_reference
+
             if paystack_refund_id:
                 refund.paystack_refund_id = paystack_refund_id
-
-            if refund_reference:
-                refund.refund_reference = refund_reference
 
             if self._can_update_refund_status(
                 refund.status,
@@ -255,19 +300,23 @@ class PaystackWebhooksMixin:
 
         logger.info(
             "Processed Paystack refund webhook: "
-            "payment=%s refund=%s status=%s amount=%s "
-            "cancellation_refund=%s",
+            "payment=%s refund=%s provider_reference=%s "
+            "status=%s amount=%s cancellation_refund=%s",
             payment.reference,
             refund.refund_reference
             or refund.paystack_refund_id
             or refund.id,
+            refund.paystack_reference,
             refund.status,
             refund.amount,
             refund.is_cancellation_refund,
         )
 
     @staticmethod
-    def _can_update_refund_status(current_status, incoming_status):
+    def _can_update_refund_status(
+        current_status,
+        incoming_status,
+    ):
         if current_status in {
             Refund.STATUS_PROCESSED,
             Refund.STATUS_FAILED,
@@ -295,7 +344,7 @@ class PaystackWebhooksMixin:
         Match a Paystack webhook to an existing local refund.
 
         Matching priority:
-        1. Refund reference.
+        1. Merchant-generated refund reference.
         2. Paystack refund ID.
         3. Unique transaction reference and amount.
         """

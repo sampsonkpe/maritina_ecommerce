@@ -158,6 +158,7 @@ export default function OrderTrackingPage() {
     };
   }, [
     orderId,
+    order,
     order?.cancellation_refund_status,
     order?.status,
   ]);

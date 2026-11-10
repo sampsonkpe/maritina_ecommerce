@@ -10,7 +10,6 @@ export function formatStatus(status: string) {
     );
 }
 
-
 export function getStatusClasses(status: string) {
   switch (status) {
     case ORDER_STATUS.PENDING:
@@ -88,6 +87,16 @@ export function getStatusClasses(status: string) {
         dark:border-red-800
         dark:bg-red-950
         dark:text-red-300
+      `;
+
+    case "REFUND_FAILED":
+      return `
+        border border-amber-300
+        bg-amber-100
+        text-amber-800
+        dark:border-amber-800
+        dark:bg-amber-950
+        dark:text-amber-300
       `;
 
     default:

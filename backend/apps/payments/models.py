@@ -147,6 +147,13 @@ class Refund(models.Model):
         unique=True,
     )
 
+    paystack_reference = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        unique=True,
+    )
+
     transaction_reference = models.CharField(
         max_length=100,
         db_index=True,
